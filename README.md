@@ -224,6 +224,59 @@ docker network inspect dev_tools | grep -A 20 "Containers"  # Check containers
 docker exec [container] ping [other_container]  # Test connectivity
 ```
 
+### **SSL/TLS Certificate Setup (Traefik)**
+
+Traefik requires SSL/TLS certificates for HTTPS support. Follow these steps:
+
+#### **Option 1: Using mkcert (Recommended for Development)**
+
+```bash
+# Install mkcert if not already installed
+# On macOS:
+brew install mkcert
+
+# On Linux:
+curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"
+chmod +x mkcert-v*-linux-amd64
+sudo mv mkcert-v*-linux-amd64 /usr/local/bin/mkcert
+
+# Create certificate directory
+mkdir -p traefik/certs
+
+# Generate certificate (replace with your domain/localhost)
+mkcert -cert-file traefik/certs/server.crt -key-file traefik/certs/server.key localhost 127.0.0.1 ::1
+
+# Install root certificate in system (optional, for browser trust)
+mkcert -install
+```
+
+#### **Option 2: Using OpenSSL**
+
+```bash
+mkdir -p traefik/certs
+
+openssl req -x509 -newkey rsa:4096 -keyout traefik/certs/server.key \
+  -out traefik/certs/server.crt -days 365 -nodes \
+  -subj "/CN=localhost"
+```
+
+#### **Important Notes**
+
+- **Certificate files are in `.gitignore`** - They are NOT committed to repository
+- **Generate fresh certificates** for each environment (development, staging, production)
+- Certificates are located in: `traefik/certs/server.crt` and `traefik/certs/server.key`
+- Update certificate validity period in mkcert command as needed (default: 2 years)
+
+#### **Verify Certificates**
+
+```bash
+# Check certificate details
+openssl x509 -in traefik/certs/server.crt -text -noout
+
+# Check expiration
+openssl x509 -in traefik/certs/server.crt -noout -dates
+```
+
 ## 🔐 Security Notes
 
 ⚠️ **Default passwords are for development only!**
