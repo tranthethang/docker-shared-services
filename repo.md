@@ -61,7 +61,7 @@ This repository provides pre-configured Docker Compose setups for various develo
    Navigate to each service directory and run:
    ```bash
    cd postgres
-   docker-compose up -d
+   docker compose up -d
    ```
 
    Or start all services at once (requires custom orchestration script).

@@ -1,6 +1,7 @@
 # Docker Shared Services
 
-Collection of containerized development services with comprehensive Docker Compose configurations, environment management, and orchestration tools.
+Collection of containerized development services with comprehensive Docker Compose configurations, environment
+management, and orchestration tools.
 
 ## 🚀 Quick Start
 
@@ -21,19 +22,22 @@ make ps
 ### Alternative Setup Methods
 
 **Automatic with Makefile:**
+
 ```bash
 make setup && make up
 ```
 
 **Using Docker Compose directly:**
+
 ```bash
-docker-compose -f docker-compose.shared.yml \
+docker compose -f docker-compose.shared.yml \
   -f postgres/docker-compose.yml \
   -f redis/docker-compose.yml \
   up -d
 ```
 
 **Manual setup:**
+
 ```bash
 for dir in */; do
   [ -f "$dir/.env.example" ] && cp "$dir/.env.example" "$dir/.env"
@@ -44,21 +48,25 @@ make up
 ## 📦 Available Services
 
 ### **Databases**
+
 - **PostgreSQL** (pgvector) - Relational database with vector support
 - **MySQL 8** - Relational database with UTF-8 support
 - **MongoDB** - NoSQL document database
 - **Adminer** - Universal database administration interface
 
 ### **Caching & Messaging**
+
 - **Redis** - In-memory data structure store with authentication
 - **RabbitMQ** - Message broker with management UI
 - **Memcached** - Distributed memory caching
 
 ### **Storage & File Services**
+
 - **MinIO** - S3-compatible object storage
 - **Mailpit** - Email testing service
 
 ### **CI/CD & DevOps**
+
 - **Gitea** - Git service with version control
 - **Jenkins** - Pipeline automation and CI/CD
 - **Concourse** - Container-native CI system
@@ -66,6 +74,7 @@ make up
 - **SonarQube** - Code quality analysis
 
 ### **Monitoring & Management**
+
 - **Traefik** - Reverse proxy and load balancer
 - **Redis Insight** - Redis management UI
 
@@ -83,6 +92,7 @@ make up
 ## 🔧 Usage & Commands
 
 ### **Makefile (Recommended)**
+
 ```bash
 make help           # Show all commands
 make setup          # Setup environment files
@@ -97,6 +107,7 @@ make validate       # Validate configuration
 ```
 
 ### **Scripts**
+
 ```bash
 ./start-services.sh up       # Start all services
 ./start-services.sh down     # Stop all services
@@ -107,45 +118,49 @@ make validate       # Validate configuration
 ```
 
 ### **Docker Compose Direct**
+
 ```bash
-docker-compose ps                    # View status
-docker-compose logs -f               # View logs
-docker-compose logs -f [service]     # Specific service
-docker-compose down                  # Stop all
-docker-compose down -v               # Stop and remove volumes
+docker compose ps                    # View status
+docker compose logs -f               # View logs
+docker compose logs -f [service]     # Specific service
+docker compose down                  # Stop all
+docker compose down -v               # Stop and remove volumes
 ```
 
 ## 🌐 Service Access
 
-| Service | Access Point | Default Credentials |
-|---------|-------------|---------------------|
-| PostgreSQL | localhost:5432 | postgres/password102 |
-| MySQL 8 | localhost:3306 | uid/password102 |
-| MongoDB | localhost:27017 | root/password102 |
-| Redis | localhost:6379 | - / password102 |
-| RabbitMQ | localhost:5672 | guest/guest |
-| RabbitMQ UI | http://localhost:15672 | guest/guest |
-| Adminer | http://localhost:8081 | - |
-| Gitea | http://localhost:3000 | - |
-| SonarQube | http://localhost:9000 | admin/admin |
-| Jenkins | http://localhost:8090 | - |
-| MinIO | http://localhost:9002 | admin/password102 |
-| MinIO Console | http://localhost:9003 | admin/password102 |
-| Mailpit | http://localhost:8025 | - |
-| Concourse | http://localhost:8070 | admin/password102 |
-| Redis Insight | http://localhost:5540 | - |
-| Traefik | http://localhost:8080 | - |
+| Service       | Access Point           | Default Credentials  |
+|---------------|------------------------|----------------------|
+| PostgreSQL    | localhost:5432         | postgres/password102 |
+| MySQL 8       | localhost:3306         | uid/password102      |
+| MongoDB       | localhost:27017        | root/password102     |
+| Redis         | localhost:6379         | - / password102      |
+| RabbitMQ      | localhost:5672         | guest/guest          |
+| RabbitMQ UI   | http://localhost:15672 | guest/guest          |
+| Adminer       | http://localhost:8081  | -                    |
+| Gitea         | http://localhost:3000  | -                    |
+| SonarQube     | http://localhost:9000  | admin/admin          |
+| Jenkins       | http://localhost:8090  | -                    |
+| MinIO         | http://localhost:9002  | admin/password102    |
+| MinIO Console | http://localhost:9003  | admin/password102    |
+| Mailpit       | http://localhost:8025  | -                    |
+| Concourse     | http://localhost:8070  | admin/password102    |
+| Redis Insight | http://localhost:5540  | -                    |
+| Traefik       | http://localhost:8080  | -                    |
 
 ## ⚙️ Configuration
 
 ### **Environment Files**
+
 Each service has a `.env.example` file. Copy and customize:
+
 ```bash
 cp postgres/.env.example postgres/.env
 # Edit postgres/.env with your values
 ```
 
 ### **Change Passwords**
+
 ```bash
 # Edit service .env file
 POSTGRES_PASSWORD=your_strong_password
@@ -154,6 +169,7 @@ MONGO_ROOT_PASSWORD=your_strong_password
 ```
 
 ### **Change Ports**
+
 ```bash
 # Edit service .env file
 POSTGRES_PORT=5433          # Instead of 5432
@@ -161,6 +177,7 @@ MYSQL_PORT=3307            # Instead of 3306
 ```
 
 ### **Resource Limits**
+
 ```env
 POSTGRES_CPUS_LIMIT=2
 POSTGRES_MEMORY_LIMIT=2G
@@ -169,16 +186,19 @@ POSTGRES_MEMORY_RESERVED=1G
 ```
 
 ### **Enable/Disable Services**
+
 Edit `start-services.sh` or `Makefile` and comment out unwanted services.
 
 ### **Network Configuration**
 
 All services use the `dev_tools` bridge network:
+
 - **Network**: dev_tools
 - **Subnet**: 10.0.0.0/16
 - **Gateway**: 10.0.0.1
 
 Services communicate using container names:
+
 ```bash
 # PostgreSQL
 postgres://postgres:password102@postgres:5432/mydb
@@ -196,6 +216,7 @@ RABBITMQ_HOST=rabbitmq
 ```
 
 ### **Network Inspection**
+
 ```bash
 docker network ls                            # List networks
 docker network inspect dev_tools             # Inspect network
@@ -208,6 +229,7 @@ docker exec [container] ping [other_container]  # Test connectivity
 ⚠️ **Default passwords are for development only!**
 
 ### **Before Production**
+
 1. Change all default passwords (minimum 32 characters)
 2. Use strong, unique passwords for each service
 3. Secure sensitive data with proper secrets management
@@ -215,6 +237,7 @@ docker exec [container] ping [other_container]  # Test connectivity
 5. Set appropriate firewall rules
 
 ### **Generate Strong Passwords**
+
 ```bash
 openssl rand -base64 32
 ```
@@ -222,6 +245,7 @@ openssl rand -base64 32
 ## 🐛 Troubleshooting
 
 ### **Services won't start**
+
 ```bash
 make logs              # Check logs
 make validate          # Validate configuration
@@ -230,6 +254,7 @@ make logs-service SERVICE=postgres  # Specific service
 ```
 
 ### **Port already in use**
+
 ```bash
 lsof -i :5432          # Find process using port
 # Update .env to use different port
@@ -237,6 +262,7 @@ make restart
 ```
 
 ### **Out of memory**
+
 ```bash
 # Reduce resource limits in .env
 POSTGRES_MEMORY_LIMIT=512M
@@ -245,6 +271,7 @@ make restart
 ```
 
 ### **Network issues**
+
 ```bash
 docker network inspect dev_tools
 docker logs [container_id]
@@ -252,6 +279,7 @@ docker exec [container1] ping [container2]
 ```
 
 ### **Volume permission issues**
+
 ```bash
 docker volume ls | grep dev_      # List volumes
 docker volume rm [volume_name]    # Remove volume (data will be lost)
@@ -260,38 +288,42 @@ docker volume prune               # Remove unused volumes
 
 ### **Common Issues**
 
-| Problem | Solution |
-|---------|----------|
-| Services stuck "starting" | Wait 30-60 seconds, check logs, restart: `make restart` |
+| Problem                   | Solution                                                             |
+|---------------------------|----------------------------------------------------------------------|
+| Services stuck "starting" | Wait 30-60 seconds, check logs, restart: `make restart`              |
 | Can't connect to database | Verify port mapping, check .env passwords, test: `docker-compose ps` |
-| Out of disk space | Run `make prune`, remove images: `docker image prune -a` |
-| Need to reset everything | Run `make clean` then `make up` |
+| Out of disk space         | Run `make prune`, remove images: `docker image prune -a`             |
+| Need to reset everything  | Run `make clean` then `make up`                                      |
 
 ### **Getting Help**
+
 ```bash
 make health              # Check service health
 docker-compose ps        # View status
 make logs                # View logs
 
 # Test connectivity
-docker-compose exec postgres psql -U postgres -c "SELECT version();"
-docker-compose exec redis redis-cli ping
-docker-compose exec mysql8 mysqladmin ping -u root -p
+docker compose exec postgres psql -U postgres -c "SELECT version();"
+docker compose exec redis redis-cli ping
+docker compose exec mysql8 mysqladmin ping -u root -p
 ```
 
 ## 🗑️ Cleanup
 
 ### **Stop services (keep data)**
+
 ```bash
 make down
 ```
 
 ### **Stop and remove volumes (delete data)**
+
 ```bash
 make clean
 ```
 
 ### **Deep cleanup**
+
 ```bash
 make clean
 make prune
@@ -353,6 +385,7 @@ docker-shared-services/
 ## 🤝 Contributing
 
 Feel free to improve this setup by:
+
 - Adding new services
 - Improving documentation
 - Fixing issues
@@ -372,6 +405,7 @@ See LICENSE file for details.
 ## 📞 Support
 
 For issues or questions:
+
 1. Check this README for common solutions
 2. Review service-specific `.env.example` files
 3. Check Docker logs: `make logs`
