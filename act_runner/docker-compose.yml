@@ -1,0 +1,26 @@
+services:
+  act_runner:
+    image: gitea/act_runner:latest
+    container_name: act_runner
+    restart: "${RESTART_POLICY:-always}"
+    environment:
+      GITEA_INSTANCE_URL: "${GITEA_INSTANCE_URL:-http://gitea:3000}"
+      GITEA_RUNNER_REGISTRATION_TOKEN: "${GITEA_RUNNER_TOKEN:-}"
+      GITEA_RUNNER_NAME: "${GITEA_RUNNER_NAME:-act-runner}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - act_runner_data:/data
+    networks:
+      - dev_tools
+    depends_on:
+      gitea:
+        condition: service_started
+    command: daemon
+
+networks:
+  dev_tools:
+    name: dev_tools
+    driver: bridge
+
+volumes:
+  act_runner_data:

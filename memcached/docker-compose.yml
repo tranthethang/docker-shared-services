@@ -1,0 +1,14 @@
+services:
+  memcached:
+    container_name: dev_memcached
+    image: memcached:1.6-alpine
+    restart: "${RESTART_POLICY:-always}"
+    ports:
+      - "${MEMCACHED_PORT:-11211}:11211"
+    networks:
+      - dev_tools
+
+networks:
+  dev_tools:
+    name: dev_tools
+    driver: bridge

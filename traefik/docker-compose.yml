@@ -1,0 +1,26 @@
+services:
+  traefik:
+    image: "traefik:latest"
+    container_name: "traefik"
+    command:
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.file=true"
+      - "--providers.file.filename=/traefik/config.yml"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--log.level=${LOG_LEVEL:-DEBUG}"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "./config.yml:/traefik/config.yml:ro"
+    restart: "${RESTART_POLICY:-always}"
+    networks:
+      - dev_tools
+
+networks:
+  dev_tools:
+    name: dev_tools
+    driver: bridge

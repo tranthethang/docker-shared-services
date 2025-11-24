@@ -1,0 +1,27 @@
+services:
+  mongodb:
+    container_name: dev_mongodb
+    image: "mongo:8.0"
+    restart: "${RESTART_POLICY:-always}"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_ROOT_USER:-root}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD:-password102}"
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    networks:
+      - dev_tools
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  dev_tools:
+    name: dev_tools
+    driver: bridge
+
+volumes:
+  mongodb_data:

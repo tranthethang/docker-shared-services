@@ -1,0 +1,19 @@
+services:
+  adminer:
+    container_name: dev_adminer
+    image: adminer:5
+    restart: "${RESTART_POLICY:-always}"
+    networks:
+      - dev_tools
+    volumes:
+      - ./adminer.css:/var/www/html/adminer.css:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql8:
+        condition: service_healthy
+
+networks:
+  dev_tools:
+    name: dev_tools
+    driver: bridge

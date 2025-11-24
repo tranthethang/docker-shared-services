@@ -1,0 +1,101 @@
+http:
+  routers:
+    adminer:
+      rule: "Host(`adminer.localhost`)"
+      service: adminer
+      entryPoints:
+        - web
+    
+    mailpit:
+      rule: "Host(`mailpit.localhost`)"
+      service: mailpit
+      entryPoints:
+        - web
+    
+    rabbitmq:
+      rule: "Host(`rabbitmq.localhost`)"
+      service: rabbitmq
+      entryPoints:
+        - web
+    
+    redisinsight:
+      rule: "Host(`redisinsight.localhost`)"
+      service: redisinsight
+      entryPoints:
+        - web
+    
+    gitea:
+      rule: "Host(`gitea.localhost`)"
+      service: gitea
+      entryPoints:
+        - web
+    
+    jenkins:
+      rule: "Host(`jenkins.localhost`)"
+      service: jenkins
+      entryPoints:
+        - web
+    
+    concourse:
+      rule: "Host(`concourse.localhost`)"
+      service: concourse
+      entryPoints:
+        - web
+    
+    sonarqube:
+      rule: "Host(`sonarqube.localhost`)"
+      service: sonarqube
+      entryPoints:
+        - web
+    
+    minio:
+      rule: "Host(`minio.localhost`)"
+      service: minio
+      entryPoints:
+        - web
+
+  services:
+    adminer:
+      loadBalancer:
+        servers:
+          - url: "http://dev_adminer:8080"
+
+    mailpit:
+      loadBalancer:
+        servers:
+          - url: "http://dev_mailpit:8025"
+
+    rabbitmq:
+      loadBalancer:
+        servers:
+          - url: "http://dev_rabbitmq:15672"
+
+    redisinsight:
+      loadBalancer:
+        servers:
+          - url: "http://dev_redisinsight:5540"
+
+    gitea:
+      loadBalancer:
+        servers:
+          - url: "http://gitea:3000"
+
+    jenkins:
+      loadBalancer:
+        servers:
+          - url: "http://dev_jenkins:8080"
+
+    concourse:
+      loadBalancer:
+        servers:
+          - url: "http://concourse:8080"
+
+    sonarqube:
+      loadBalancer:
+        servers:
+          - url: "http://dev_sonarqube:9000"
+
+    minio:
+      loadBalancer:
+        servers:
+          - url: "http://dev_minio:9000"

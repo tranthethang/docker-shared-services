@@ -1,0 +1,28 @@
+services:
+  postgres:
+    container_name: dev_postgres
+    image: pgvector/pgvector:pg17
+    restart: "${RESTART_POLICY:-always}"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-password102}"
+      POSTGRES_DB: "${POSTGRES_DB:-sonarqube}"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - dev_tools
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  dev_tools:
+    name: dev_tools
+    driver: bridge
+
+volumes:
+  postgres_data:

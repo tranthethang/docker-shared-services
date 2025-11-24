@@ -1,0 +1,28 @@
+services:
+  concourse:
+    image: concourse/concourse
+    container_name: concourse
+    restart: "${RESTART_POLICY:-always}"
+    command: quickstart
+    privileged: true
+    ports:
+      - "${CONCOURSE_PORT:-8070}:8080"
+    environment:
+      CONCOURSE_POSTGRES_HOST: "${POSTGRES_HOST:-postgres}"
+      CONCOURSE_POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      CONCOURSE_POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-password102}"
+      CONCOURSE_POSTGRES_DATABASE: "${CONCOURSE_DB_NAME:-concourse}"
+      CONCOURSE_EXTERNAL_URL: "http://${CONCOURSE_HOST:-concourse.localhost}"
+      CONCOURSE_ADD_LOCAL_USER: "${CONCOURSE_ADD_LOCAL_USER:-admin:admin}"
+      CONCOURSE_MAIN_TEAM_LOCAL_USER: "${CONCOURSE_MAIN_TEAM_LOCAL_USER:-admin}"
+      CONCOURSE_WORKER_GARDEN_NETWORK: "${CONCOURSE_WORKER_GARDEN_NETWORK:-dev_tools}"
+    networks:
+      - dev_tools
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  dev_tools:
+    name: dev_tools
+    driver: bridge
