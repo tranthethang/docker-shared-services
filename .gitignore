@@ -28,3 +28,6 @@
 
 traefik/certs/server.crt
 traefik/certs/server.key
+
+**/server.crt
+**/server.key
