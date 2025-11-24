@@ -1,6 +1,6 @@
 services:
   redis:
-    container_name: dev_redis
+    container_name: redis
     image: "redis:7-alpine"
     restart: "${RESTART_POLICY:-always}"
     deploy:
@@ -28,7 +28,7 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
 
 volumes:
   redis_data:

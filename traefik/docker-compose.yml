@@ -17,18 +17,14 @@ services:
       - "--entryPoints.websecure.address=:443"
       - "--providers.file=true"
       - "--providers.file.filename=/traefik/config.yml"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL:-admin@example.com}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/traefik/acme.json"
       - "--log.level=${LOG_LEVEL:-INFO}"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
-      - "./config.yml:/traefik/config.yml:ro"
-      - "./acme.json:/traefik/acme.json"
+      - "/home/thangtt/Documents/GitHub/docker-shared-services/traefik/config.yml:/traefik/config.yml:ro"
+      - "/home/thangtt/Documents/GitHub/docker-shared-services/traefik/certs:/certs:ro"
     restart: "${RESTART_POLICY:-always}"
     networks:
       - dev_tools
@@ -36,4 +32,4 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true

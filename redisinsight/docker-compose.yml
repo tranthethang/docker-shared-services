@@ -1,6 +1,6 @@
 services:
   redisinsight:
-    container_name: dev_redisinsight
+    container_name: redisinsight
     image: "redis/redisinsight:1.15.0"
     restart: "${RESTART_POLICY:-always}"
     deploy:
@@ -24,7 +24,7 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
 
 volumes:
   redisinsight_data:

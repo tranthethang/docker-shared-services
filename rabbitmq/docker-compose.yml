@@ -1,6 +1,6 @@
 services:
   rabbitmq:
-    container_name: dev_rabbitmq
+    container_name: rabbitmq
     image: "rabbitmq:3.13-management-alpine"
     restart: "${RESTART_POLICY:-always}"
     environment:
@@ -22,7 +22,7 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
 
 volumes:
   rabbitmq_data:

@@ -34,7 +34,7 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
 
 volumes:
   act_runner_data:

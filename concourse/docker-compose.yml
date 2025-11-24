@@ -40,7 +40,7 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
 
 volumes:
   concourse_data:

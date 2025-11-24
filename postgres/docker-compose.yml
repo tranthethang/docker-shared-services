@@ -1,6 +1,6 @@
 services:
   postgres:
-    container_name: dev_postgres
+    container_name: postgres
     image: pgvector/pgvector:pg17
     restart: "${RESTART_POLICY:-always}"
     deploy:
@@ -30,7 +30,7 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
 
 volumes:
   postgres_data:

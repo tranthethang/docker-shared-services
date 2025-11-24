@@ -1,6 +1,6 @@
 services:
   minio:
-    container_name: dev_minio
+    container_name: minio
     image: bitnami/minio:2024.11.15
     restart: "${RESTART_POLICY:-always}"
     deploy:
@@ -33,7 +33,7 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
 
 volumes:
   minio_data:
