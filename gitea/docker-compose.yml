@@ -1,8 +1,16 @@
 services:
   gitea:
-    image: gitea/gitea:latest
+    image: gitea/gitea:1.21.11
     container_name: gitea
     restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${GITEA_CPUS_LIMIT:-1}"
+          memory: "${GITEA_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${GITEA_CPUS_RESERVED:-0.5}"
+          memory: "${GITEA_MEMORY_RESERVED:-512M}"
     ports:
       - "${GITEA_SSH_PORT:-2222}:22"
       - "${GITEA_HTTP_PORT:-3000}:3000"
@@ -21,6 +29,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 networks:
   dev_tools:

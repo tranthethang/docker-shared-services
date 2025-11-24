@@ -1,0 +1,78 @@
+# Environment files containing sensitive information
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Docker volumes and data (ignored, use docker volumes instead)
+data/
+volumes/
+.docker/
+
+# Docker build artifacts
+docker-compose.override.yml
+docker-compose.prod.yml
+
+# Log files
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+tmp/
+temp/
+
+# Database backups
+*.sql
+*.sql.gz
+*.bak
+*.backup
+
+# MinIO/S3 data (if stored locally)
+minio_data/
+
+# Specific service data directories
+postgres_data/
+mysql_data/
+mongodb_data/
+redis_data/
+rabbitmq_data/
+gitea_data/
+jenkins_home/
+sonarqube_*/
+concourse_data/
+redisinsight_data/
+act_runner_data/
+
+# Docker Compose lock files
+docker-compose.lock
+
+# Custom scripts
+custom_scripts/
+*.sh.bak
+
+# Keep .env.example files (they are safe)
+!.env.example
+!**/.env.example
+
+# Keep docker-compose files
+!docker-compose*.yml
+!**/docker-compose.yml
+
+# Keep shared configuration
+!docker-compose.shared.yml
+!SHARED_COMPOSE_GUIDE.md
+!QUICKSTART.md
+
+# Keep scripts
+!start-services.sh
+!setup-env.sh
+!Makefile

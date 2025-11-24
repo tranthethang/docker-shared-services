@@ -6,14 +6,28 @@ services:
     ports:
       - "${JENKINS_PORT:-8090}:8080"
       - "${JENKINS_AGENT_PORT:-50000}:50000"
+    deploy:
+      resources:
+        limits:
+          cpus: "${JENKINS_CPUS_LIMIT:-2}"
+          memory: "${JENKINS_MEMORY_LIMIT:-2G}"
+        reservations:
+          cpus: "${JENKINS_CPUS_RESERVED:-1}"
+          memory: "${JENKINS_MEMORY_RESERVED:-1G}"
     volumes:
       - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - dev_tools
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     environment:
       - JENKINS_OPTS=--httpPort=8080
       - TZ="${TZ:-Asia/Ho_Chi_Minh}"

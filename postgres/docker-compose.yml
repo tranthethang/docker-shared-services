@@ -3,6 +3,14 @@ services:
     container_name: dev_postgres
     image: pgvector/pgvector:pg17
     restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${POSTGRES_CPUS_LIMIT:-1}"
+          memory: "${POSTGRES_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${POSTGRES_CPUS_RESERVED:-0.5}"
+          memory: "${POSTGRES_MEMORY_RESERVED:-512M}"
     environment:
       POSTGRES_USER: "${POSTGRES_USER:-postgres}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-password102}"

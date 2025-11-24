@@ -3,10 +3,23 @@ services:
     container_name: dev_memcached
     image: memcached:1.6-alpine
     restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${MEMCACHED_CPUS_LIMIT:-0.5}"
+          memory: "${MEMCACHED_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${MEMCACHED_CPUS_RESERVED:-0.25}"
+          memory: "${MEMCACHED_MEMORY_RESERVED:-256M}"
     ports:
       - "${MEMCACHED_PORT:-11211}:11211"
     networks:
       - dev_tools
+    healthcheck:
+      test: ["CMD", "memcached-tool", "localhost", "stats"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   dev_tools:
