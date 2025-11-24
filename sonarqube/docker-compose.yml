@@ -1,7 +1,7 @@
 services:
   sonarqube:
     container_name: sonarqube
-    image: sonarqube:lts-community
+    image: sonarqube:2025.4-community
     restart: "${RESTART_POLICY:-always}"
     ports:
       - "${SONARQUBE_PORT:-9000}:9000"

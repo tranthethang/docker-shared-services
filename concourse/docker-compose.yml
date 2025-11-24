@@ -1,6 +1,6 @@
 services:
   concourse:
-    image: concourse/concourse:7.11.0
+    image: concourse/concourse:7.14.3
     container_name: concourse
     restart: "${RESTART_POLICY:-always}"
     command: quickstart
