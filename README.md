@@ -1,5 +1,7 @@
 # Docker Shared Services
 
+![Docker Shared Services](assets/repo.png)
+
 Collection of containerized development services with comprehensive Docker Compose configurations, environment
 management, and orchestration tools.
 
