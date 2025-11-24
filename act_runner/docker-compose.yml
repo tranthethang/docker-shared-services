@@ -1,6 +1,6 @@
 services:
   act_runner:
-    image: gitea/act_runner:0.2.11
+    image: gitea/act_runner:0.2.13
     container_name: act_runner
     restart: "${RESTART_POLICY:-always}"
     deploy:

@@ -1,7 +1,7 @@
 services:
   redisinsight:
     container_name: redisinsight
-    image: "redis/redisinsight:1.15.0"
+    image: "redis/redisinsight:2.0.0"
     restart: "${RESTART_POLICY:-always}"
     deploy:
       resources:

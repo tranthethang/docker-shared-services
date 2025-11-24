@@ -1,7 +1,7 @@
 services:
   adminer:
     container_name: adminer
-    image: adminer:5
+    image: adminer:5.4.1
     restart: "${RESTART_POLICY:-always}"
     ports:
       - "${ADMINER_PORT:-8081}:8080"
