@@ -3,14 +3,22 @@ services:
     container_name: dev_redis
     image: "redis:7-alpine"
     restart: "${RESTART_POLICY:-always}"
-    command: >
-      --requirepass ${REDIS_PASSWORD:-password102}
+    deploy:
+      resources:
+        limits:
+          cpus: "${REDIS_CPUS_LIMIT:-0.5}"
+          memory: "${REDIS_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${REDIS_CPUS_RESERVED:-0.25}"
+          memory: "${REDIS_MEMORY_RESERVED:-256M}"
+    command: redis-server /etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-password102}
     ports:
       - "${REDIS_PORT:-6379}:6379"
     networks:
       - dev_tools
     volumes:
       - redis_data:/data
+      - ./redis.conf:/etc/redis/redis.conf:ro
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s

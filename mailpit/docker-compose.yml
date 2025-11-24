@@ -1,13 +1,27 @@
 services:
   mailpit:
     container_name: dev_mailpit
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:1.20.0
     restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${MAILPIT_CPUS_LIMIT:-0.5}"
+          memory: "${MAILPIT_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${MAILPIT_CPUS_RESERVED:-0.25}"
+          memory: "${MAILPIT_MEMORY_RESERVED:-256M}"
     ports:
       - "${MAILPIT_SMTP_PORT:-1025}:1025"
       - "${MAILPIT_WEB_PORT:-8025}:8025"
     networks:
       - dev_tools
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8025/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
 networks:
   dev_tools:

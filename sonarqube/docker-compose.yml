@@ -5,6 +5,14 @@ services:
     restart: "${RESTART_POLICY:-always}"
     ports:
       - "${SONARQUBE_PORT:-9000}:9000"
+    deploy:
+      resources:
+        limits:
+          cpus: "${SONARQUBE_CPUS_LIMIT:-2}"
+          memory: "${SONARQUBE_MEMORY_LIMIT:-2G}"
+        reservations:
+          cpus: "${SONARQUBE_CPUS_RESERVED:-1}"
+          memory: "${SONARQUBE_MEMORY_RESERVED:-1G}"
     environment:
       SONAR_JDBC_URL: jdbc:postgresql://postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-sonarqube}
       SONAR_JDBC_USERNAME: "${POSTGRES_USER:-postgres}"

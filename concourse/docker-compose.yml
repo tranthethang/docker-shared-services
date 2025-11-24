@@ -1,12 +1,27 @@
 services:
   concourse:
-    image: concourse/concourse
+    image: concourse/concourse:7.11.0
     container_name: concourse
     restart: "${RESTART_POLICY:-always}"
     command: quickstart
-    privileged: true
+    volumes:
+      - concourse_data:/concourse
     ports:
       - "${CONCOURSE_PORT:-8070}:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: "${CONCOURSE_CPUS_LIMIT:-2}"
+          memory: "${CONCOURSE_MEMORY_LIMIT:-2G}"
+        reservations:
+          cpus: "${CONCOURSE_CPUS_RESERVED:-1}"
+          memory: "${CONCOURSE_MEMORY_RESERVED:-1G}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     environment:
       CONCOURSE_POSTGRES_HOST: "${POSTGRES_HOST:-postgres}"
       CONCOURSE_POSTGRES_USER: "${POSTGRES_USER:-postgres}"
@@ -26,3 +41,6 @@ networks:
   dev_tools:
     name: dev_tools
     driver: bridge
+
+volumes:
+  concourse_data:

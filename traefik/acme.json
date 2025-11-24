@@ -1,0 +1,10 @@
+{
+  "letsencrypt": {
+    "Account": {
+      "Email": "admin@example.com",
+      "Registration": null,
+      "URI": ""
+    },
+    "Certificates": null
+  }
+}

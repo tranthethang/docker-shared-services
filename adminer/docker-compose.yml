@@ -3,6 +3,8 @@ services:
     container_name: dev_adminer
     image: adminer:5
     restart: "${RESTART_POLICY:-always}"
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
     networks:
       - dev_tools
     volumes:

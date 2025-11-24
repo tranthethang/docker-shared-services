@@ -1,20 +1,34 @@
 services:
   act_runner:
-    image: gitea/act_runner:latest
+    image: gitea/act_runner:0.2.11
     container_name: act_runner
     restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${ACT_RUNNER_CPUS_LIMIT:-2}"
+          memory: "${ACT_RUNNER_MEMORY_LIMIT:-2G}"
+        reservations:
+          cpus: "${ACT_RUNNER_CPUS_RESERVED:-1}"
+          memory: "${ACT_RUNNER_MEMORY_RESERVED:-1G}"
     environment:
       GITEA_INSTANCE_URL: "${GITEA_INSTANCE_URL:-http://gitea:3000}"
       GITEA_RUNNER_REGISTRATION_TOKEN: "${GITEA_RUNNER_TOKEN:-}"
       GITEA_RUNNER_NAME: "${GITEA_RUNNER_NAME:-act-runner}"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - act_runner_data:/data
     networks:
       - dev_tools
     depends_on:
       gitea:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "ls", "/data"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     command: daemon
 
 networks:

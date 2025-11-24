@@ -1,8 +1,16 @@
 services:
   minio:
     container_name: dev_minio
-    image: bitnami/minio:latest
+    image: bitnami/minio:2024.11.15
     restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${MINIO_CPUS_LIMIT:-1}"
+          memory: "${MINIO_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${MINIO_CPUS_RESERVED:-0.5}"
+          memory: "${MINIO_MEMORY_RESERVED:-512M}"
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-admin}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-password102}

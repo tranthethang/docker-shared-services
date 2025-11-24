@@ -4,6 +4,14 @@ services:
     image: "mysql:8.4"
     restart: "${RESTART_POLICY:-always}"
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    deploy:
+      resources:
+        limits:
+          cpus: "${MYSQL_CPUS_LIMIT:-1}"
+          memory: "${MYSQL_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${MYSQL_CPUS_RESERVED:-0.5}"
+          memory: "${MYSQL_MEMORY_RESERVED:-512M}"
     environment:
       MYSQL_DATABASE: "${MYSQL_DATABASE:-cloud}"
       MYSQL_USER: "${MYSQL_USER:-uid}"
