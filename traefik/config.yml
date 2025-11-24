@@ -1,3 +1,8 @@
+tls:
+  certificates:
+    - certFile: /certs/server.crt
+      keyFile: /certs/server.key
+
 http:
   routers:
     adminer:
@@ -5,75 +10,93 @@ http:
       service: adminer
       entryPoints:
         - web
+        - websecure
+      tls: {}
     
     mailpit:
       rule: "Host(`mailpit.localhost`)"
       service: mailpit
       entryPoints:
         - web
+        - websecure
+      tls: {}
     
     rabbitmq:
       rule: "Host(`rabbitmq.localhost`)"
       service: rabbitmq
       entryPoints:
         - web
+        - websecure
+      tls: {}
     
     redisinsight:
       rule: "Host(`redisinsight.localhost`)"
       service: redisinsight
       entryPoints:
         - web
+        - websecure
+      tls: {}
     
     gitea:
       rule: "Host(`gitea.localhost`)"
       service: gitea
       entryPoints:
         - web
+        - websecure
+      tls: {}
     
     jenkins:
       rule: "Host(`jenkins.localhost`)"
       service: jenkins
       entryPoints:
         - web
+        - websecure
+      tls: {}
     
     concourse:
       rule: "Host(`concourse.localhost`)"
       service: concourse
       entryPoints:
         - web
+        - websecure
+      tls: {}
     
     sonarqube:
       rule: "Host(`sonarqube.localhost`)"
       service: sonarqube
       entryPoints:
         - web
+        - websecure
+      tls: {}
     
     minio:
       rule: "Host(`minio.localhost`)"
       service: minio
       entryPoints:
         - web
+        - websecure
+      tls: {}
 
   services:
     adminer:
       loadBalancer:
         servers:
-          - url: "http://dev_adminer:8080"
+          - url: "http://adminer:8080"
 
     mailpit:
       loadBalancer:
         servers:
-          - url: "http://dev_mailpit:8025"
+          - url: "http://mailpit:8025"
 
     rabbitmq:
       loadBalancer:
         servers:
-          - url: "http://dev_rabbitmq:15672"
+          - url: "http://rabbitmq:15672"
 
     redisinsight:
       loadBalancer:
         servers:
-          - url: "http://dev_redisinsight:5540"
+          - url: "http://redisinsight:5540"
 
     gitea:
       loadBalancer:
@@ -83,7 +106,7 @@ http:
     jenkins:
       loadBalancer:
         servers:
-          - url: "http://dev_jenkins:8080"
+          - url: "http://jenkins:8080"
 
     concourse:
       loadBalancer:
@@ -93,9 +116,9 @@ http:
     sonarqube:
       loadBalancer:
         servers:
-          - url: "http://dev_sonarqube:9000"
+          - url: "http://sonarqube:9000"
 
     minio:
       loadBalancer:
         servers:
-          - url: "http://dev_minio:9000"
+          - url: "http://minio:9000"

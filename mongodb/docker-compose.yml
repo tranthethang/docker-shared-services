@@ -1,6 +1,6 @@
 services:
   mongodb:
-    container_name: dev_mongodb
+    container_name: mongodb
     image: "mongo:8.0"
     restart: "${RESTART_POLICY:-always}"
     deploy:
@@ -29,7 +29,7 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
 
 volumes:
   mongodb_data:

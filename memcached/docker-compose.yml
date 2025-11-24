@@ -1,6 +1,6 @@
 services:
   memcached:
-    container_name: dev_memcached
+    container_name: memcached
     image: memcached:1.6-alpine
     restart: "${RESTART_POLICY:-always}"
     deploy:
@@ -24,4 +24,4 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true

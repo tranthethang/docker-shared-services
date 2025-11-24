@@ -1,6 +1,6 @@
 services:
   sonarqube:
-    container_name: dev_sonarqube
+    container_name: sonarqube
     image: sonarqube:lts-community
     restart: "${RESTART_POLICY:-always}"
     ports:
@@ -38,7 +38,7 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
 
 volumes:
   sonarqube_conf:

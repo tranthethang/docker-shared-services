@@ -1,6 +1,6 @@
 services:
   mailpit:
-    container_name: dev_mailpit
+    container_name: mailpit
     image: axllent/mailpit:1.20.0
     restart: "${RESTART_POLICY:-always}"
     deploy:
@@ -26,4 +26,4 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true

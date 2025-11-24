@@ -1,6 +1,6 @@
 services:
   adminer:
-    container_name: dev_adminer
+    container_name: adminer
     image: adminer:5
     restart: "${RESTART_POLICY:-always}"
     ports:
@@ -18,4 +18,4 @@ services:
 networks:
   dev_tools:
     name: dev_tools
-    driver: bridge
+    external: true
