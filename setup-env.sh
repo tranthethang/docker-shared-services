@@ -30,11 +30,16 @@ print_header() {
 }
 
 check_env_files() {
+  local services_to_check=("${SERVICES[@]}")
+  if [ "$1" != "all" ] && [ -n "$1" ]; then
+    services_to_check=("$1")
+  fi
+  
   echo "Checking .env files..."
   echo ""
   
   missing_count=0
-  for service in "${SERVICES[@]}"; do
+  for service in "${services_to_check[@]}"; do
     if [ -f "$service/.env" ]; then
       echo "✅ $service/.env exists"
     elif [ -f "$service/.env.example" ]; then
@@ -52,17 +57,22 @@ check_env_files() {
     read -p "Do you want to create .env files from .env.example? (y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-      create_env_files
+      create_env_files "$1"
     fi
   fi
 }
 
 create_env_files() {
+  local services_to_create=("${SERVICES[@]}")
+  if [ "$1" != "all" ] && [ -n "$1" ]; then
+    services_to_create=("$1")
+  fi
+  
   echo ""
   echo "Creating .env files from .env.example..."
   echo ""
   
-  for service in "${SERVICES[@]}"; do
+  for service in "${services_to_create[@]}"; do
     if [ -f "$service/.env.example" ] && [ ! -f "$service/.env" ]; then
       cp "$service/.env.example" "$service/.env"
       echo "✅ Created $service/.env"
@@ -76,14 +86,18 @@ create_env_files() {
 }
 
 validate_env_vars() {
+  local services_to_validate=("${SERVICES[@]}")
+  if [ "$1" != "all" ] && [ -n "$1" ]; then
+    services_to_validate=("$1")
+  fi
+  
   echo ""
   echo "Validating environment variables..."
   echo ""
   
   errors=0
   
-  # Check required variables
-  for service in "${SERVICES[@]}"; do
+  for service in "${services_to_validate[@]}"; do
     if [ ! -f "$service/.env" ]; then
       continue
     fi
@@ -145,13 +159,18 @@ generate_strong_passwords() {
 }
 
 show_services_summary() {
+  local services_to_show=("${SERVICES[@]}")
+  if [ "$1" != "all" ] && [ -n "$1" ]; then
+    services_to_show=("$1")
+  fi
+  
   echo ""
   echo "╔════════════════════════════════════════════════════════════════╗"
   echo "║                   Services Configuration                       ║"
   echo "╚════════════════════════════════════════════════════════════════╝"
   echo ""
   
-  for service in "${SERVICES[@]}"; do
+  for service in "${services_to_show[@]}"; do
     if [ -f "$service/.env" ]; then
       echo "Service: $service"
       
@@ -187,46 +206,75 @@ show_services_summary() {
   done
 }
 
+is_valid_service() {
+  local service=$1
+  for s in "${SERVICES[@]}"; do
+    if [ "$s" = "$service" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 main() {
   print_header
   
-  case "${1:-all}" in
+  local command="${1:-all}"
+  local service="${2}"
+  
+  case "$command" in
     all)
-      check_env_files
-      validate_env_vars || true
-      show_services_summary
+      check_env_files "all"
+      validate_env_vars "all" || true
+      show_services_summary "all"
       ;;
     check)
-      check_env_files
+      check_env_files "$service"
       ;;
     validate)
-      validate_env_vars
+      validate_env_vars "$service"
       ;;
     create)
-      create_env_files
+      create_env_files "$service"
       ;;
     passwords)
       generate_strong_passwords
       ;;
     summary)
-      show_services_summary
+      show_services_summary "$service"
       ;;
     help|--help|-h)
-      echo "Usage: ./setup-env.sh [command]"
+      echo "Usage: ./setup-env.sh [command] [service]"
       echo ""
       echo "Commands:"
-      echo "  all       Run all checks and create missing .env files"
-      echo "  check     Check which .env files are missing"
-      echo "  create    Create .env files from .env.example"
-      echo "  validate  Validate environment variables"
-      echo "  passwords Generate strong passwords"
-      echo "  summary   Show services configuration summary"
+      echo "  all                    Run all checks and create missing .env files for all services"
+      echo "  check [service]        Check .env files (if service specified, check only that service)"
+      echo "  create [service]       Create .env files from .env.example"
+      echo "  validate [service]     Validate environment variables"
+      echo "  passwords              Generate strong passwords"
+      echo "  summary [service]      Show services configuration summary"
+      echo ""
+      echo "Services:"
+      for s in "${SERVICES[@]}"; do
+        echo "  - $s"
+      done
+      echo ""
+      echo "Examples:"
+      echo "  ./setup-env.sh all                # Setup all services"
+      echo "  ./setup-env.sh create postgres   # Create .env for PostgreSQL only"
+      echo "  ./setup-env.sh validate redis    # Validate Redis .env"
       echo ""
       ;;
     *)
-      echo "Unknown command: $1"
-      echo "Use './setup-env.sh help' for usage information"
-      exit 1
+      if is_valid_service "$command"; then
+        check_env_files "$command"
+        validate_env_vars "$command" || true
+        show_services_summary "$command"
+      else
+        echo "Unknown command: $command"
+        echo "Use './setup-env.sh help' for usage information"
+        exit 1
+      fi
       ;;
   esac
 }

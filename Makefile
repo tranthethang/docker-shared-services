@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-DOCKER_COMPOSE := docker-compose -f docker-compose.shared.yml \
+DOCKER_COMPOSE := docker compose -f docker-compose.shared.yml \
 	-f traefik/docker-compose.yml \
 	-f postgres/docker-compose.yml \
 	-f mysql8/docker-compose.yml \
