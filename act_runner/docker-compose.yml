@@ -20,9 +20,7 @@ services:
       - act_runner_data:/data
     networks:
       - dev_tools
-    depends_on:
-      gitea:
-        condition: service_healthy
+
     healthcheck:
       test: ["CMD", "ls", "/data"]
       interval: 30s
