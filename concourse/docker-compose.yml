@@ -33,9 +33,6 @@ services:
       CONCOURSE_WORKER_GARDEN_NETWORK: "${CONCOURSE_WORKER_GARDEN_NETWORK:-dev_tools}"
     networks:
       - dev_tools
-    depends_on:
-      postgres:
-        condition: service_healthy
 
 networks:
   dev_tools:
