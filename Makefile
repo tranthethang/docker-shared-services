@@ -30,6 +30,8 @@ help: ## Show this help message
 	@echo ""
 
 setup: ## Setup environment files from .env.example
+	@echo "Creating network if it doesn't exist..."
+	@docker network create dev_tools --subnet 10.0.0.0/16 --driver bridge 2>/dev/null || true
 	@echo "Setting up environment files..."
 	@bash setup-env.sh all
 	@echo ""
@@ -39,7 +41,14 @@ validate: ## Validate environment configuration
 	@bash setup-env.sh validate
 	@echo ""
 
+network: ## Create the dev_tools network
+	@echo "Creating network dev_tools..."
+	@docker network create dev_tools --subnet 10.0.0.0/16 --driver bridge 2>/dev/null && echo "✅ Network created" || echo "ℹ️  Network already exists"
+	@echo ""
+
 up: ## Start all services
+	@echo "Creating network if it doesn't exist..."
+	@docker network create dev_tools --subnet 10.0.0.0/16 --driver bridge 2>/dev/null || true
 	@echo "Starting all services..."
 	@$(DOCKER_COMPOSE) up -d
 	@echo ""
