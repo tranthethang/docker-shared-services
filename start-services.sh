@@ -1,175 +1,144 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
-SERVICES=(
-  "traefik"
-  "postgres"
-  "mysql8"
-  "mongodb"
-  "redis"
-  "rabbitmq"
-  "memcached"
-  "mailpit"
-  "redisinsight"
-  "minio"
-  "gitea"
-  "sonarqube"
-  "jenkins"
-  "concourse"
-  "act_runner"
-  "adminer"
+readonly SERVICES=(
+  "act_runner" "adminer" "concourse" "gitea" "jenkins"
+  "mailpit" "memcached" "minio" "mongodb" "mysql8"
+  "postgres" "rabbitmq" "redis" "redisinsight" "sonarqube" "traefik"
 )
+readonly ACTIONS=("up" "down" "restart" "logs")
 
-COMMAND="${1:-up}"
-SERVICE="${2}"
-OPTIONS="${3:--d}"
+SERVICE="${1:-}"
+ACTION="${2:-}"
 
-print_header() {
+log_header() { 
   echo ""
   echo "╔════════════════════════════════════════════════════════════════╗"
   echo "║                 Docker Shared Services Manager                 ║"
   echo "╚════════════════════════════════════════════════════════════════╝"
   echo ""
 }
-
-print_usage() {
-  echo "Usage: ./start-services.sh [command] [service] [options]"
-  echo ""
-  echo "Commands:"
-  echo "  up        Start services (all by default)"
-  echo "  down      Stop services"
-  echo "  restart   Restart services"
-  echo "  ps        Show status of services"
-  echo "  logs      View logs from services"
-  echo "  pull      Pull latest images"
-  echo ""
-  echo "Services (omit to run all):"
-  for s in "${SERVICES[@]}"; do
-    echo "  $s"
-  done
-  echo ""
-  echo "Examples:"
-  echo "  ./start-services.sh up                      # Start all services in background"
-  echo "  ./start-services.sh up postgres             # Start only PostgreSQL"
-  echo "  ./start-services.sh up postgres ''          # Start PostgreSQL in foreground"
-  echo "  ./start-services.sh down redis              # Stop only Redis"
-  echo "  ./start-services.sh logs postgres -f        # Follow PostgreSQL logs"
-  echo "  ./start-services.sh ps                      # Show status of all services"
-  echo ""
-}
+log_error() { echo "❌ Error: $*" >&2; }
+log_info() { echo "ℹ️  $*"; }
+log_success() { echo "✅ $*"; }
 
 is_valid_service() {
   local service=$1
   for s in "${SERVICES[@]}"; do
-    if [ "$s" = "$service" ]; then
-      return 0
-    fi
+    [ "$s" = "$service" ] && return 0
   done
   return 1
 }
 
-validate_services() {
-  echo "Validating service configurations..."
-  for service in "${SERVICES[@]}"; do
-    if [ ! -f "$service/docker-compose.yml" ]; then
-      echo "❌ Error: $service/docker-compose.yml not found"
-      exit 1
-    fi
-    if [ ! -f "$service/.env.example" ]; then
-      echo "⚠️  Warning: $service/.env.example not found"
-    fi
+is_valid_action() {
+  local action=$1
+  for a in "${ACTIONS[@]}"; do
+    [ "$a" = "$action" ] && return 0
   done
-  echo "✅ All service configurations are valid"
+  return 1
 }
 
-build_compose_command() {
-  local cmd="docker compose"
-  cmd="$cmd -f docker-compose.shared.yml"
+show_menu() {
+  local items=("$@")
+  local choice
+  local max=${#items[@]}
   
-  local services_to_use=("${SERVICES[@]}")
-  if [ -n "$1" ] && is_valid_service "$1"; then
-    services_to_use=("$1")
-  fi
+  for i in "${!items[@]}"; do
+    printf "  [%d] %s\n" $((i+1)) "${items[$i]}"
+  done >&2
   
-  for service in "${services_to_use[@]}"; do
-    cmd="$cmd -f $service/docker-compose.yml"
+  echo "" >&2
+  while true; do
+    read -p "Select [1-$max] or [q]uit: " choice < /dev/tty
+    
+    case "$choice" in
+      q|Q)
+        exit 0
+        ;;
+      *)
+        if [[ $choice =~ ^[0-9]+$ ]] && [ $choice -ge 1 ] && [ $choice -le $max ]; then
+          echo $((choice-1))
+          return 0
+        else
+          log_error "Invalid selection. Please enter 1-$max or 'q'" >&2
+        fi
+        ;;
+    esac
   done
-  
+}
+
+build_compose_cmd() {
+  local service=$1
+  local cmd="docker compose -f docker-compose.shared.yml -f $service/docker-compose.yml"
   echo "$cmd"
 }
 
-main() {
-  print_header
+execute_action() {
+  local service=$1
+  local action=$2
+  local cmd=$(build_compose_cmd "$service")
   
-  local service_desc=""
-  if [ -n "$SERVICE" ] && is_valid_service "$SERVICE"; then
-    service_desc=" ($SERVICE)"
-  fi
-  
-  case "$COMMAND" in
+  case "$action" in
     up)
-      validate_services
+      log_success "Starting $service..."
       echo ""
-      echo "Starting services${service_desc}..."
-      COMPOSE_CMD=$(build_compose_command "$SERVICE")
-      $COMPOSE_CMD up $OPTIONS
-      
-      if [ "$OPTIONS" = "-d" ]; then
-        echo ""
-        echo "✅ Services started successfully!"
-        echo ""
-        echo "Service Status:"
-        $COMPOSE_CMD ps
-      fi
+      $cmd up -d
+      echo ""
+      log_success "$service started successfully"
       ;;
-      
     down)
-      echo "Stopping services${service_desc}..."
-      COMPOSE_CMD=$(build_compose_command "$SERVICE")
-      $COMPOSE_CMD down
-      echo "✅ Services stopped"
+      log_info "Stopping $service..."
+      $cmd down
+      log_success "$service stopped"
       ;;
-      
     restart)
-      echo "Restarting services${service_desc}..."
-      COMPOSE_CMD=$(build_compose_command "$SERVICE")
-      $COMPOSE_CMD restart
-      echo "✅ Services restarted"
+      log_info "Restarting $service..."
+      $cmd restart
+      log_success "$service restarted"
       ;;
-      
-    ps)
-      validate_services
-      COMPOSE_CMD=$(build_compose_command "$SERVICE")
-      echo ""
-      echo "Current service status${service_desc}:"
-      echo ""
-      $COMPOSE_CMD ps
-      ;;
-      
     logs)
-      COMPOSE_CMD=$(build_compose_command "$SERVICE")
-      $COMPOSE_CMD logs ${OPTIONS:--f}
-      ;;
-      
-    pull)
-      echo "Pulling latest images${service_desc}..."
-      COMPOSE_CMD=$(build_compose_command "$SERVICE")
-      $COMPOSE_CMD pull
-      echo "✅ Images pulled successfully"
-      ;;
-      
-    help|--help|-h)
-      print_usage
-      ;;
-      
-    *)
-      echo "❌ Unknown command: $COMMAND"
+      log_info "Displaying logs for $service (press Ctrl+C to exit)..."
       echo ""
-      print_usage
-      exit 1
+      $cmd logs -f
       ;;
   esac
+}
+
+main() {
+  log_header
+  
+  if [ -z "$SERVICE" ]; then
+    log_info "Select a service:"
+    echo ""
+    local idx=$(show_menu "${SERVICES[@]}")
+    SERVICE="${SERVICES[$idx]}"
+    echo ""
+  fi
+  
+  if ! is_valid_service "$SERVICE"; then
+    log_error "Unknown service: $SERVICE"
+    echo ""
+    echo "Available services:"
+    printf "  %s\n" "${SERVICES[@]}" | column -c 60
+    exit 1
+  fi
+  
+  if [ -z "$ACTION" ]; then
+    log_info "Select an action for '$SERVICE':"
+    echo ""
+    local idx=$(show_menu "${ACTIONS[@]}")
+    ACTION="${ACTIONS[$idx]}"
+    echo ""
+  fi
+  
+  if ! is_valid_action "$ACTION"; then
+    log_error "Unknown action: $ACTION"
+    echo "Available actions: ${ACTIONS[*]}"
+    exit 1
+  fi
+  
+  execute_action "$SERVICE" "$ACTION"
 }
 
 main "$@"
