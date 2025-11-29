@@ -68,6 +68,14 @@ show_menu() {
   done
 }
 
+ensure_network() {
+  if ! docker network inspect dev_tools >/dev/null 2>&1; then
+    log_info "Creating network dev_tools..."
+    docker network create dev_tools --subnet 10.0.0.0/16 --driver bridge
+    log_success "Network dev_tools created"
+  fi
+}
+
 build_compose_cmd() {
   local service=$1
   local cmd="docker compose -f docker-compose.shared.yml -f $service/docker-compose.yml"
@@ -81,6 +89,7 @@ execute_action() {
   
   case "$action" in
     up)
+      ensure_network
       log_success "Starting $service..."
       echo ""
       $cmd up -d
