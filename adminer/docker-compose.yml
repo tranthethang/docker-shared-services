@@ -8,7 +8,7 @@ services:
     networks:
       - dev_tools
     volumes:
-      - ./adminer.css:/var/www/html/adminer.css:ro  
+      - ./adminer/adminer.css:/var/www/html/adminer.css:ro  
 networks:
   dev_tools:
     name: dev_tools

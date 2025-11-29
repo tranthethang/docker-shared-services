@@ -23,8 +23,8 @@ services:
       - "443:443"
       - "8080:8080"
     volumes:
-      - "/home/thangtt/Documents/GitHub/docker-shared-services/traefik/config.yml:/traefik/config.yml:ro"
-      - "/home/thangtt/Documents/GitHub/docker-shared-services/traefik/certs:/certs:ro"
+      - ./traefik/config.yml:/traefik/config.yml:ro
+      - ./traefik/certs:/certs:ro
     restart: "${RESTART_POLICY:-always}"
     networks:
       - dev_tools

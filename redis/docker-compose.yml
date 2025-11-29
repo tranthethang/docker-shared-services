@@ -18,7 +18,7 @@ services:
       - dev_tools
     volumes:
       - redis_data:/data
-      - ./redis.conf:/etc/redis/redis.conf:ro
+      - ./redis/redis.conf:/etc/redis/redis.conf:ro
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
