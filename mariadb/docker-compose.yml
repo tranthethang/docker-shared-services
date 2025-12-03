@@ -1,0 +1,39 @@
+services:
+  mariadb:
+    container_name: mariadb
+    image: "mariadb:11.4.5"
+    restart: "${RESTART_POLICY:-always}"
+    command: mariadbd --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    deploy:
+      resources:
+        limits:
+          cpus: "${MARIADB_CPUS_LIMIT:-1}"
+          memory: "${MARIADB_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${MARIADB_CPUS_RESERVED:-0.5}"
+          memory: "${MARIADB_MEMORY_RESERVED:-512M}"
+    environment:
+      MARIADB_DATABASE: "${MARIADB_DATABASE:-app}"
+      MARIADB_USER: "${MARIADB_USER:-appuser}"
+      MARIADB_PASSWORD: "${MARIADB_PASSWORD:-password102}"
+      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:-password102}"
+      TZ: "${TZ:-Asia/Ho_Chi_Minh}"
+    ports:
+      - "${MARIADB_PORT:-3307}:3306"
+    networks:
+      - dev_tools
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p$${MARIADB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true
+
+volumes:
+  mariadb_data:

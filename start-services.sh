@@ -4,7 +4,7 @@ set -euo pipefail
 
 readonly SERVICES=(
   "act_runner" "adminer" "concourse" "gitea" "jenkins"
-  "mailpit" "memcached" "minio" "mongodb" "mysql8"
+  "mailpit" "mariadb" "memcached" "minio" "mongodb" "mysql8"
   "postgres" "rabbitmq" "redis" "redisinsight" "sonarqube" "traefik"
 )
 readonly ACTIONS=("up" "down" "restart" "logs")
