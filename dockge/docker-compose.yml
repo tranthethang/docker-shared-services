@@ -1,0 +1,28 @@
+services:
+  dockge:
+    container_name: dockge
+    image: louislam/dockge:1
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKGE_CPUS_LIMIT:-0.5}"
+          memory: "${DOCKGE_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${DOCKGE_CPUS_RESERVED:-0.25}"
+          memory: "${DOCKGE_MEMORY_RESERVED:-256M}"
+    ports:
+      - "${DOCKGE_PORT:-5001}:5001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+      - "${DOCKGE_STACKS_DIR:-./stacks}:/app/stacks"
+    environment:
+      - DOCKGE_STACKS_DIR=/app/stacks
+    networks:
+      - dev_tools
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true

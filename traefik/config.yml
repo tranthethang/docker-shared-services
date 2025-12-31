@@ -77,6 +77,14 @@ http:
         - websecure
       tls: {}
 
+    dockge:
+      rule: "Host(`dockge.localhost`)"
+      service: dockge
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
   services:
     adminer:
       loadBalancer:
@@ -122,3 +130,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://minio:9000"
+
+    dockge:
+      loadBalancer:
+        servers:
+          - url: "http://dockge:5001"
