@@ -85,6 +85,14 @@ http:
         - websecure
       tls: {}
 
+    portainer:
+      rule: "Host(`portainer.localhost`)"
+      service: portainer
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
   services:
     adminer:
       loadBalancer:
@@ -135,3 +143,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://dockge:5001"
+
+    portainer:
+      loadBalancer:
+        servers:
+          - url: "http://portainer:9000"
