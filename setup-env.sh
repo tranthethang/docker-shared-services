@@ -11,6 +11,7 @@ SERVICES=(
   "rabbitmq"
   "memcached"
   "mailpit"
+  "portainer"
   "redisinsight"
   "minio"
   "gitea"
