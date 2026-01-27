@@ -35,6 +35,7 @@ make setup && make up
 docker compose -f docker-compose.shared.yml \
   -f postgres/docker-compose.yml \
   -f redis/docker-compose.yml \
+  -f monitoring/docker-compose.yml \
   up -d
 ```
 
@@ -77,6 +78,9 @@ make up
 
 ### **Monitoring & Management**
 
+- **Grafana** - Analytics and monitoring dashboard
+- **Loki** - Log aggregation system
+- **Promtail** - Log shipper for Docker containers
 - **Traefik** - Reverse proxy and load balancer
 - **Redis Insight** - Redis management UI
 
@@ -148,6 +152,8 @@ docker compose down -v               # Stop and remove volumes
 | Mailpit       | http://localhost:8025  | -                    |
 | Concourse     | http://localhost:8070  | admin/password102    |
 | Redis Insight | http://localhost:5540  | -                    |
+| Grafana       | http://localhost:3001  | admin/password102    |
+| Loki          | http://localhost:3100  | -                    |
 | Traefik       | http://localhost:8080  | -                    |
 
 ## ⚙️ Configuration

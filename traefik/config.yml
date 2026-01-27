@@ -93,6 +93,14 @@ http:
         - websecure
       tls: {}
 
+    grafana:
+      rule: "Host(`grafana.localhost`)"
+      service: grafana
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
   services:
     adminer:
       loadBalancer:
@@ -148,3 +156,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://portainer:9000"
+
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"

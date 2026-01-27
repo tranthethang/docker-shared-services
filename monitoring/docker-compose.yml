@@ -1,0 +1,77 @@
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss:${GRAFANA_VERSION:-11.4.0}
+    restart: ${RESTART_POLICY:-always}
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-password102}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    networks:
+      - dev_tools
+    volumes:
+      - grafana_data:/var/lib/grafana
+    deploy:
+      resources:
+        limits:
+          cpus: '${GRAFANA_CPUS_LIMIT:-0.50}'
+          memory: ${GRAFANA_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: '${GRAFANA_CPUS_RESERVED:-0.25}'
+          memory: ${GRAFANA_MEMORY_RESERVED:-256M}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  loki:
+    container_name: loki
+    image: grafana/loki:${LOKI_VERSION:-3.3.2}
+    restart: ${RESTART_POLICY:-always}
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    networks:
+      - dev_tools
+    volumes:
+      - ${PWD}/monitoring/config/loki.yml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    deploy:
+      resources:
+        limits:
+          cpus: '${LOKI_CPUS_LIMIT:-0.50}'
+          memory: ${LOKI_MEMORY_LIMIT:-512M}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:${PROMTAIL_VERSION:-3.3.2}
+    restart: ${RESTART_POLICY:-always}
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - dev_tools
+    volumes:
+      - ${PWD}/monitoring/config/promtail.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      resources:
+        limits:
+          cpus: '${PROMTAIL_CPUS_LIMIT:-0.20}'
+          memory: ${PROMTAIL_MEMORY_LIMIT:-256M}
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true
+
+volumes:
+  grafana_data:
+  loki_data:

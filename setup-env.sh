@@ -20,6 +20,7 @@ SERVICES=(
   "concourse"
   "act_runner"
   "adminer"
+  "monitoring"
 )
 
 print_header() {
@@ -196,6 +197,9 @@ show_services_summary() {
           ;;
         sonarqube)
           grep "SONARQUBE_PORT" "$service/.env" | sed 's/^/  /' || echo "  (no ports configured)"
+          ;;
+        monitoring)
+          grep "GRAFANA_PORT\|LOKI_PORT" "$service/.env" | sed 's/^/  /' || echo "  (no ports configured)"
           ;;
         *)
           echo "  (configured)"

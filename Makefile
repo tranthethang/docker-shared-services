@@ -19,7 +19,8 @@ DOCKER_COMPOSE := docker compose -f docker-compose.shared.yml \
 	-f jenkins/docker-compose.yml \
 	-f concourse/docker-compose.yml \
 	-f act_runner/docker-compose.yml \
-	-f adminer/docker-compose.yml
+	-f adminer/docker-compose.yml \
+	-f monitoring/docker-compose.yml
 
 help: ## Show this help message
 	@echo "╔════════════════════════════════════════════════════════════════╗"
@@ -167,6 +168,7 @@ info: ## Show service information
 	@echo "  • Jenkins - http://localhost:8090"
 	@echo "  • Concourse - http://localhost:8070"
 	@echo "  • Adminer - http://localhost:8081"
+	@echo "  • Grafana - http://localhost:3001 (Host: grafana.localhost)"
 	@echo ""
 
 debug: ## Debug mode - keep services running and show logs
