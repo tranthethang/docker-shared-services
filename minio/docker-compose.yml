@@ -1,8 +1,9 @@
 services:
   minio:
     container_name: minio
-    image: bitnami/minio:2024.11.15
+    image: minio/minio:latest
     restart: "${RESTART_POLICY:-always}"
+    command: server /data --console-address ":9001"
     deploy:
       resources:
         limits:
@@ -14,13 +15,12 @@ services:
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-admin}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-password102}
-      - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKETS:-my-bucket}
       - MINIO_BROWSER=${MINIO_BROWSER:-on}
     ports:
       - "${MINIO_PORT:-9002}:9000"
       - "${MINIO_CONSOLE_PORT:-9003}:9001"
     volumes:
-      - minio_data:/bitnami/minio/data
+      - minio_data:/data
     networks:
       - dev_tools
     healthcheck:
