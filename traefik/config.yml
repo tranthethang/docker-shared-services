@@ -71,7 +71,15 @@ http:
     
     minio:
       rule: "Host(`minio.localhost`)"
-      service: minio
+      service: minio-console
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
+    minio-s3:
+      rule: "Host(`s3.minio.localhost`)"
+      service: minio-s3
       entryPoints:
         - web
         - websecure
@@ -142,7 +150,12 @@ http:
         servers:
           - url: "http://sonarqube:9000"
 
-    minio:
+    minio-console:
+      loadBalancer:
+        servers:
+          - url: "http://minio:9001"
+
+    minio-s3:
       loadBalancer:
         servers:
           - url: "http://minio:9000"
