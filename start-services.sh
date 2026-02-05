@@ -2,15 +2,7 @@
 
 set -euo pipefail
 
-readonly SERVICES=(
-  "act_runner" "adminer" "concourse" "dockge" "gitea" "jenkins"
-  "mailpit" "mariadb" "memcached" "minio" "monitoring" "mongodb" "mysql8" "n8n"
-  "portainer" "postgres" "rabbitmq" "redis" "redisinsight" "sonarqube" "traefik"
-)
-readonly ACTIONS=("up" "down" "restart" "logs")
-
-SERVICE="${1:-}"
-ACTION="${2:-}"
+PYTHON_MANAGER="python3 bin/service_manager.py"
 
 log_header() { 
   echo ""
@@ -19,25 +11,9 @@ log_header() {
   echo "╚════════════════════════════════════════════════════════════════╝"
   echo ""
 }
+
 log_error() { echo "❌ Error: $*" >&2; }
 log_info() { echo "ℹ️  $*"; }
-log_success() { echo "✅ $*"; }
-
-is_valid_service() {
-  local service=$1
-  for s in "${SERVICES[@]}"; do
-    [ "$s" = "$service" ] && return 0
-  done
-  return 1
-}
-
-is_valid_action() {
-  local action=$1
-  for a in "${ACTIONS[@]}"; do
-    [ "$a" = "$action" ] && return 0
-  done
-  return 1
-}
 
 show_menu() {
   local items=("$@")
@@ -68,55 +44,16 @@ show_menu() {
   done
 }
 
-ensure_network() {
-  if ! docker network inspect dev_tools >/dev/null 2>&1; then
-    log_info "Creating network dev_tools..."
-    docker network create dev_tools --subnet 10.0.0.0/16 --driver bridge
-    log_success "Network dev_tools created"
-  fi
-}
-
-build_compose_cmd() {
-  local service=$1
-  local cmd="docker compose -f docker-compose.shared.yml -f $service/docker-compose.yml"
-  echo "$cmd"
-}
-
-execute_action() {
-  local service=$1
-  local action=$2
-  local cmd=$(build_compose_cmd "$service")
-  
-  case "$action" in
-    up)
-      ensure_network
-      log_success "Starting $service..."
-      echo ""
-      $cmd up -d
-      echo ""
-      log_success "$service started successfully"
-      ;;
-    down)
-      log_info "Stopping $service..."
-      $cmd down
-      log_success "$service stopped"
-      ;;
-    restart)
-      log_info "Restarting $service..."
-      $cmd restart
-      log_success "$service restarted"
-      ;;
-    logs)
-      log_info "Displaying logs for $service (press Ctrl+C to exit)..."
-      echo ""
-      $cmd logs -f
-      ;;
-  esac
-}
-
 main() {
   log_header
   
+  SERVICE="${1:-}"
+  ACTION="${2:-}"
+
+  # Get services and actions list from python to keep sync
+  mapfile -t SERVICES < <($PYTHON_MANAGER --list-services)
+  mapfile -t ACTIONS < <($PYTHON_MANAGER --list-actions)
+
   if [ -z "$SERVICE" ]; then
     log_info "Select a service:"
     echo ""
@@ -124,15 +61,7 @@ main() {
     SERVICE="${SERVICES[$idx]}"
     echo ""
   fi
-  
-  if ! is_valid_service "$SERVICE"; then
-    log_error "Unknown service: $SERVICE"
-    echo ""
-    echo "Available services:"
-    printf "  %s\n" "${SERVICES[@]}" | column -c 60
-    exit 1
-  fi
-  
+
   if [ -z "$ACTION" ]; then
     log_info "Select an action for '$SERVICE':"
     echo ""
@@ -140,14 +69,8 @@ main() {
     ACTION="${ACTIONS[$idx]}"
     echo ""
   fi
-  
-  if ! is_valid_action "$ACTION"; then
-    log_error "Unknown action: $ACTION"
-    echo "Available actions: ${ACTIONS[*]}"
-    exit 1
-  fi
-  
-  execute_action "$SERVICE" "$ACTION"
+
+  $PYTHON_MANAGER "$SERVICE" "$ACTION"
 }
 
 main "$@"

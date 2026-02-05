@@ -1,9 +1,10 @@
 SERVICES = [
-    "traefik", "postgres", "mysql8", "mongodb", "redis", "rabbitmq",
-    "memcached", "mailpit", "portainer", "redisinsight", "minio",
-    "gitea", "sonarqube", "jenkins", "concourse", "act_runner",
-    "adminer", "n8n", "monitoring"
+    "act_runner", "adminer", "concourse", "dockge", "gitea", "jenkins",
+    "mailpit", "mariadb", "memcached", "minio", "monitoring", "mongodb", "mysql8", "n8n",
+    "portainer", "postgres", "rabbitmq", "redis", "redisinsight", "sonarqube", "traefik"
 ]
+
+ACTIONS = ["up", "down", "restart", "logs"]
 
 VALIDATION_RULES = {
     "postgres": ["PASSWORD"],
