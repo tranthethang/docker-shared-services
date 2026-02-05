@@ -20,6 +20,7 @@ SERVICES=(
   "concourse"
   "act_runner"
   "adminer"
+  "n8n"
   "monitoring"
 )
 
@@ -200,6 +201,9 @@ show_services_summary() {
           ;;
         monitoring)
           grep "GRAFANA_PORT\|LOKI_PORT" "$service/.env" | sed 's/^/  /' || echo "  (no ports configured)"
+          ;;
+        n8n)
+          grep "N8N_PORT" "$service/.env" | sed 's/^/  /' || echo "  (no ports configured)"
           ;;
         *)
           echo "  (configured)"

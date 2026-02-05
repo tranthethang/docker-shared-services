@@ -252,7 +252,8 @@ sudo mv mkcert-v*-linux-amd64 /usr/local/bin/mkcert
 mkdir -p traefik/certs
 
 # Generate certificate (replace with your domain/localhost)
-mkcert -cert-file traefik/certs/server.crt -key-file traefik/certs/server.key localhost 127.0.0.1 ::1
+CURRENT_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $2}' | sed 's/addr://' | head -n 1) && \
+mkcert -cert-file traefik/certs/server.crt -key-file traefik/certs/server.key "$CURRENT_IP" localhost 127.0.0.1 ::1
 
 # Install root certificate in system (optional, for browser trust)
 mkcert -install

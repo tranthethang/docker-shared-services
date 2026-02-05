@@ -1,7 +1,7 @@
 services:
   sonarqube:
     container_name: sonarqube
-    image: sonarqube:2025.4-community
+    image: sonarqube:lts-community
     restart: "${RESTART_POLICY:-always}"
     ports:
       - "${SONARQUBE_PORT:-9000}:9000"
@@ -27,7 +27,7 @@ services:
       - sonarqube_temp:/opt/sonarqube/temp
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/status"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:9000/api/system/status"]
       interval: 30s
       timeout: 10s
       retries: 5

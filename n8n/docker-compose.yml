@@ -1,0 +1,38 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:1.76.1
+    container_name: n8n
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${N8N_CPUS_LIMIT:-1}"
+          memory: "${N8N_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${N8N_CPUS_RESERVED:-0.5}"
+          memory: "${N8N_MEMORY_RESERVED:-512M}"
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_HOST=${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_RUNNERS_ENABLED=true
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-localhost}/
+      - GENERIC_TIMEZONE=${TZ:-Asia/Ho_Chi_Minh}
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./local-files:/files
+    networks:
+      - dev_tools
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true
+
+volumes:
+  n8n_data:

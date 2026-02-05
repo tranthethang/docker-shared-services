@@ -101,6 +101,14 @@ http:
         - websecure
       tls: {}
 
+    n8n:
+      rule: "Host(`n8n.localhost`)"
+      service: n8n
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
     grafana:
       rule: "Host(`grafana.localhost`)"
       service: grafana
@@ -169,6 +177,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://portainer:9000"
+
+    n8n:
+      loadBalancer:
+        servers:
+          - url: "http://n8n:5678"
 
     grafana:
       loadBalancer:
