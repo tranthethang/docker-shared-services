@@ -17,7 +17,8 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-password102}
       - MINIO_BROWSER=${MINIO_BROWSER:-on}
       - MINIO_BROWSER_REDIRECT_URL=${MINIO_BROWSER_REDIRECT_URL:-https://minio.localhost}
-      - MINIO_SERVER_URL=${MINIO_SERVER_URL:-https://s3.minio.localhost}
+      - MINIO_SERVER_URL=${MINIO_SERVER_URL:-http://minio:9000}
+      - MINIO_BROWSER_TLS_SKIP_VERIFY=on
     ports:
       - "${MINIO_PORT:-9002}:9000"
       - "${MINIO_CONSOLE_PORT:-9003}:9001"

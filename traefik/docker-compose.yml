@@ -27,7 +27,10 @@ services:
       - ./traefik/certs:/certs:ro
     restart: "${RESTART_POLICY:-always}"
     networks:
-      - dev_tools
+      dev_tools:
+        aliases:
+          - minio.localhost
+          - s3.minio.localhost
 
 networks:
   dev_tools:
