@@ -86,3 +86,6 @@ docker-compose.lock
 
 # Giữ lại mã nguồn Python trong bin/
 !bin/*.py
+
+.zencoder/
+.zenflow/

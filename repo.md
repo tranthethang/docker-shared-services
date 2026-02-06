@@ -1,135 +1,72 @@
-# Docker Shared Services
+---
+description: Repository Information Overview
+alwaysApply: true
+---
 
-A collection of Docker Compose configurations for common development tools and services, designed to run together on a shared Docker network for local development environments.
+# Docker Shared Services Information
 
-## Overview
+## Summary
+**Docker Shared Services** is a comprehensive Docker Compose orchestration repository containing 16+ pre-configured containerized services for development environments. It provides integrated infrastructure for databases, caching, messaging, storage, CI/CD pipelines, and monitoring tools, all managed through a centralized **Makefile** and Python-based management logic.
 
-This repository provides pre-configured Docker Compose setups for various development tools including databases, message queues, CI/CD systems, and monitoring tools. All services are connected to a shared `dev_tools` network and can be accessed via Traefik reverse proxy using localhost subdomains.
+## Structure
+- **Root Level**: Contains global configurations (`.env.example`, `docker-compose.shared.yml`), the orchestrating `Makefile`, and management logic in `bin/`.
+- **Service Directories**: Each service (e.g., `postgres/`, `redis/`, `gitea/`) contains its own `docker-compose.yml` and `.env.example`.
+- **Infrastructure**: `traefik/` acts as the reverse proxy and load balancer for all services.
+- **Monitoring**: `monitoring/` contains configurations for Grafana, Loki, and Promtail.
 
-## Services Included
+## Specification & Tools
+**Type**: Docker Compose Configuration Repository  
+**Build System**: Docker Compose (orchestrated via **Makefile**)  
+**Required Tools**:
+- **Docker Engine**: 20.10+
+- **Docker Compose**: v2.0+
+- **Make**: For command orchestration
+- **Python 3**: Used by internal management scripts in `bin/`
+- **mkcert**: (Optional) For local SSL/TLS certificate generation
 
-### Databases
-- **PostgreSQL** (`pgvector/pgvector:pg17`) - PostgreSQL with pgvector extension for AI/vector operations
-- **MySQL 8** - MySQL 8 database server
-- **MongoDB** - NoSQL document database
-- **Redis** - In-memory data structure store with persistence
+## Key Resources
+**Main Components**:
+- **Databases**: PostgreSQL (pgvector), MySQL 8, MariaDB, MongoDB, ChromaDB
+- **Caching & Messaging**: Redis, RabbitMQ, Memcached
+- **DevOps & CI/CD**: Gitea, Jenkins, Concourse, SonarQube, Act Runner
+- **Management UIs**: Adminer, Dockge, Portainer, Redis Insight, Dozzle
+- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit
 
-### Development Tools
-- **Adminer** - Database administration tool (supports MySQL, PostgreSQL, SQLite, etc.)
-- **RedisInsight** - Redis GUI for development and debugging
-- **SonarQube** - Code quality and security analysis platform
-- **Gitea** - Lightweight self-hosted Git service
-- **Jenkins** - Automation server for CI/CD
-- **Concourse** - CI/CD system designed for pipelines
-- **Act Runner** - GitHub Actions runner for local testing
+**Configuration Structure**:
+- **Global `.env`**: Created from root `.env.example`, contains shared variables and resource limits.
+- **Service `.env`**: Each directory has its own `.env` (copy from `.env.example`) for service-specific overrides.
+- **Shared Network**: All services utilize the `dev_tools` bridge network (10.0.0.0/16).
 
-### Infrastructure
-- **RabbitMQ** - Message broker for AMQP protocol
-- **Memcached** - Distributed memory object caching system
-- **MinIO** - S3-compatible object storage server
-- **Mailpit** - Email testing tool for developers
-- **Traefik** - Modern HTTP reverse proxy and load balancer
+## Usage & Operations
+**Key Commands**:
+```bash
+make setup          # Initialize environment files, network, and certificates
+make up             # Start services (interactive or specific)
+make ps             # Show status of all services
+make logs           # View aggregated logs
+make down           # Stop and remove services
+make stop           # Stop services but keep containers
+make clean          # Remove containers and volumes (WIPE DATA)
+make health         # Check service health status
+make cert           # Generate SSL certificates using mkcert
+```
 
-## Prerequisites
+**Service Access**:
+Services are accessible via `localhost` on specific ports or through Traefik routing (e.g., `http://appsmith.localhost`). Default credentials (e.g., `admin/password102`) are provided in `README.md` for development.
 
-- Docker and Docker Compose installed
-- At least 4GB RAM available (recommended 8GB+ for all services)
-- Ports 80, 443, and various service ports available
+## Docker Configuration
+**Common Patterns**:
+- **Base Images**: Official Docker Hub images.
+- **Resource Limits**: CPU and Memory limits/reservations defined via environment variables.
+- **Persistence**: Named Docker volumes (e.g., `postgres_data`, `gitea_data`) for data durability.
+- **Networking**: Integrated via `docker-compose.shared.yml` defining the `dev_tools` network.
 
-## Quick Start
+## Validation
+**Quality Checks**:
+- `make validate`: Validates all Docker Compose files for syntax and configuration errors.
+- **Health Checks**: Integrated Docker healthchecks for critical services (PostgreSQL, Gitea, etc.).
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/docker-shared-services.git
-   cd docker-shared-services
-   ```
-
-2. **Create the shared Docker network:**
-   ```bash
-   docker network ls | grep -q dev_tools || docker network create dev_tools
-   ```
-
-3. **Configure environment variables:**
-   Copy `.env.example` files from each service directory to `.env` and modify as needed:
-   ```bash
-   # Example for PostgreSQL
-   cp postgres/.env.example postgres/.env
-   # Edit postgres/.env with your preferred settings
-   ```
-
-4. **Start services:**
-   Navigate to each service directory and run:
-   ```bash
-   cd postgres
-   docker compose up -d
-   ```
-
-   Or start all services at once (requires custom orchestration script).
-
-## Service URLs
-
-Once Traefik is running, services are accessible at:
-
-- Adminer: http://adminer.localhost
-- Mailpit: http://mailpit.localhost
-- RabbitMQ Management: http://rabbitmq.localhost
-- RedisInsight: http://redisinsight.localhost
-- Gitea: http://gitea.localhost
-- Jenkins: http://jenkins.localhost
-- Concourse: http://concourse.localhost
-- SonarQube: http://sonarqube.localhost
-- MinIO: http://minio.localhost
-
-## Configuration
-
-Each service directory contains:
-- `docker-compose.yml` - Service configuration
-- `.env.example` - Environment variable template
-
-### Common Environment Variables
-
-- `RESTART_POLICY` - Container restart policy (default: always)
-- Service-specific ports and credentials
-
-### Resource Limits
-
-Some services (like PostgreSQL) include CPU and memory limits that can be configured via environment variables.
-
-## Data Persistence
-
-All services use named Docker volumes for data persistence. Volume names follow the pattern `{service}_data`.
-
-## Networking
-
-All services connect to the `dev_tools` bridge network, allowing inter-service communication using container names as hostnames.
-
-## Development Workflow
-
-1. Start Traefik first for routing
-2. Start databases (PostgreSQL, MySQL, MongoDB, Redis)
-3. Start supporting services (RabbitMQ, MinIO, Memcached)
-4. Start development tools (Jenkins, SonarQube, Gitea)
-5. Start testing tools (Mailpit, Adminer, RedisInsight)
-
-## Troubleshooting
-
-- **Port conflicts**: Check if required ports are available
-- **Memory issues**: Increase Docker memory allocation
-- **Network issues**: Ensure `dev_tools` network exists
-- **Permission issues**: Check Docker daemon permissions
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add new service configurations
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Author
-
-Thế Thắng Trần
+**Integration Points**:
+- **Database Backend**: Gitea, SonarQube, Jenkins, and Concourse are configured to connect to the shared PostgreSQL service.
+- **Log Aggregation**: Promtail ships logs from all containers to Loki, visualized in Grafana.
+- **Reverse Proxy**: Traefik handles SSL termination and routing based on container labels.
