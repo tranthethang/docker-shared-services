@@ -51,8 +51,15 @@ main() {
   ACTION="${2:-}"
 
   # Get services and actions list from python to keep sync
-  mapfile -t SERVICES < <($PYTHON_MANAGER --list-services)
-  mapfile -t ACTIONS < <($PYTHON_MANAGER --list-actions)
+  SERVICES=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && SERVICES+=("$line")
+  done < <($PYTHON_MANAGER --list-services)
+
+  ACTIONS=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && ACTIONS+=("$line")
+  done < <($PYTHON_MANAGER --list-actions)
 
   if [ -z "$SERVICE" ]; then
     log_info "Select a service:"

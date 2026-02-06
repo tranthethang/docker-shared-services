@@ -31,3 +31,8 @@ traefik/certs/server.key
 
 **/server.crt
 **/server.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
