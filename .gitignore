@@ -1,38 +1,88 @@
+# --- Environment & Secrets ---
 .env
 .env.local
+.env.production
 .env.*.local
+.env.test
 
+# --- Docker Data & Volumes (Global) ---
 **/data/
-**/postgres_data/
-**/mysql_data/
-**/mongodb_data/
-**/rabbitmq_data/
-**/redis_data/
-**/sonarqube_conf/
-**/sonarqube_data/
-**/sonarqube_extensions/
-**/sonarqube_logs/
-**/sonarqube_temp/
-**/minio_data/
-**/redisinsight_data/
-**/gitea_data/
-**/act_runner_data/
+**/volumes/
+**/.docker/
+**/*_data/
 **/jenkins_home/
+**/sonarqube_*/
 
-.DS_Store
+# --- Specific Service Data ---
+postgres_data/
+mysql_data/
+mongodb_data/
+redis_data/
+rabbitmq_data/
+gitea_data/
+act_runner_data/
+minio_data/
+concourse_data/
+redisinsight_data/
+
+# --- Logs & Temp ---
+*.log
+logs/
+*.tmp
+tmp/
+temp/
+
+# --- Database Backups ---
+*.sql
+*.sql.gz
+*.bak
+*.backup
+
+# --- IDE & OS ---
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
-.vscode/
-.idea/
+.DS_Store
+Thumbs.db
 
-traefik/certs/server.crt
-traefik/certs/server.key
-
-**/server.crt
-**/server.key
-
-# Python
+# --- Python ---
 __pycache__/
 *.py[cod]
 *$py.class
+
+# --- Certificates ---
+**/server.crt
+**/server.key
+traefik/certs/*.crt
+traefik/certs/*.key
+!traefik/certs/.gitkeep
+
+# --- Docker Build Artifacts ---
+docker-compose.override.yml
+docker-compose.prod.yml
+docker-compose.lock
+
+# ==========================================
+# KEEP RULES (Đảm bảo không mất file quan trọng)
+# ==========================================
+
+# Giữ lại các file ví dụ
+!.env.example
+!**/.env.example
+
+# Giữ lại toàn bộ cấu hình Docker Compose
+!docker-compose*.yml
+!**/docker-compose.yml
+!docker-compose.shared.yml
+
+# Giữ lại Scripts và Documentation
+!start-services.sh
+!setup-env.sh
+!Makefile
+!*.md
+!LICENSE
+
+# Giữ lại mã nguồn Python trong bin/
+!bin/*.py
