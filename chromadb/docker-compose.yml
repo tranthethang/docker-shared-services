@@ -1,0 +1,28 @@
+services:
+  chromadb:
+    container_name: chromadb
+    image: chromadb/chroma:latest
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${CHROMADB_CPUS_LIMIT:-1}"
+          memory: "${CHROMADB_MEMORY_LIMIT:-2G}"
+    volumes:
+      - chromadb_data:/chroma/data
+    ports:
+      - "${CHROMADB_PORT:-8000}:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/data
+    networks:
+      - dev_tools
+
+volumes:
+  chromadb_data:
+    name: chromadb_data
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true

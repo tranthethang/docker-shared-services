@@ -50,8 +50,12 @@ def execute_action(service, action):
         subprocess.run(cmd + ["up", "-d"])
         success(f"{service} started successfully")
     elif action == "down":
-        print(f"ℹ️  Stopping {service}...")
+        print(f"ℹ️  Stopping and removing {service}...")
         subprocess.run(cmd + ["down"])
+        success(f"{service} down")
+    elif action == "stop":
+        print(f"ℹ️  Stopping {service}...")
+        subprocess.run(cmd + ["stop"])
         success(f"{service} stopped")
     elif action == "restart":
         print(f"ℹ️  Restarting {service}...")
@@ -63,6 +67,36 @@ def execute_action(service, action):
             subprocess.run(cmd + ["logs", "-f"])
         except KeyboardInterrupt:
             print("\nStopped log streaming.")
+
+def show_menu(items, title):
+    print(f"ℹ️  {title}:")
+    for i, item in enumerate(items):
+        print(f"  [{i+1}] {item}")
+    print("")
+    
+    while True:
+        try:
+            choice = input(f"Select [1-{len(items)}] or [q]uit: ").strip().lower()
+            if choice == 'q':
+                sys.exit(0)
+            
+            idx = int(choice) - 1
+            if 0 <= idx < len(items):
+                return items[idx]
+            else:
+                error(f"Invalid selection. Please enter 1-{len(items)} or 'q'")
+        except ValueError:
+            error(f"Invalid selection. Please enter 1-{len(items)} or 'q'")
+
+def interactive_menu():
+    print_header("Docker Shared Services Manager")
+    
+    service = show_menu(SERVICES, "Select a service")
+    print("")
+    action = show_menu(ACTIONS, f"Select an action for '{service}'")
+    print("")
+    
+    execute_action(service, action)
 
 def main():
     parser = argparse.ArgumentParser(description='Docker Shared Services Manager')
@@ -84,9 +118,8 @@ def main():
         return
 
     if not args.service or not args.action:
-        # If arguments are missing, we return a special exit code so the bash script
-        # can handle the interactive menu.
-        sys.exit(2)
+        interactive_menu()
+        return
 
     execute_action(args.service, args.action)
 

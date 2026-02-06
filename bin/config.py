@@ -1,10 +1,11 @@
 SERVICES = [
     "act_runner", "adminer", "concourse", "dockge", "gitea", "jenkins",
     "mailpit", "mariadb", "memcached", "minio", "monitoring", "mongodb", "mysql8", "n8n",
-    "portainer", "postgres", "rabbitmq", "redis", "redisinsight", "sonarqube", "traefik"
+    "portainer", "postgres", "rabbitmq", "redis", "redisinsight", "sonarqube", "traefik",
+    "dozzle", "chromadb", "appsmith"
 ]
 
-ACTIONS = ["up", "down", "restart", "logs"]
+ACTIONS = ["up", "down", "stop", "restart", "logs"]
 
 VALIDATION_RULES = {
     "postgres": ["PASSWORD"],
@@ -23,4 +24,7 @@ SERVICE_INFO_VARS = {
     "sonarqube": ["SONARQUBE_PORT"],
     "monitoring": ["GRAFANA_PORT", "LOKI_PORT"],
     "n8n": ["N8N_PORT"],
+    "dozzle": ["DOZZLE_PORT"],
+    "chromadb": ["CHROMADB_PORT"],
+    "appsmith": ["APPSMITH_PORT"],
 }

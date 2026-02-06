@@ -1,0 +1,26 @@
+services:
+  appsmith:
+    container_name: appsmith
+    image: appsmith/appsmith-ce:latest
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${APPSMITH_CPUS_LIMIT:-2}"
+          memory: "${APPSMITH_MEMORY_LIMIT:-4G}"
+    volumes:
+      - appsmith_data:/appsmith-stacks
+    ports:
+      - "${APPSMITH_PORT:-8091}:80"
+      - "${APPSMITH_HTTPS_PORT:-8444}:443"
+    networks:
+      - dev_tools
+
+volumes:
+  appsmith_data:
+    name: appsmith_data
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true

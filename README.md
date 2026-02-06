@@ -10,11 +10,10 @@ management, and orchestration tools.
 ### Setup (5 minutes)
 
 ```bash
-# 1. Setup environment
-chmod +x setup-env.sh
-./setup-env.sh all
+# 1. Setup environment, network and certificates
+make setup
 
-# 2. Start all services
+# 2. Start all services (select 'all' or specific service)
 make up
 
 # 3. Check status
@@ -22,12 +21,6 @@ make ps
 ```
 
 ### Alternative Setup Methods
-
-**Automatic with Makefile:**
-
-```bash
-make setup && make up
-```
 
 **Using Docker Compose directly:**
 
@@ -101,26 +94,15 @@ make up
 
 ```bash
 make help           # Show all commands
-make setup          # Setup environment files
-make up             # Start all services
-make down           # Stop services
+make setup          # Setup environment files, network and certs
+make cert           # Generate SSL certificates
+make up             # Start services (interactive or specific)
+make down           # Stop and remove services
+make stop           # Stop services (keep containers)
 make ps             # Show service status
 make logs           # View logs
-make health         # Check service health
 make clean          # Remove containers & volumes
 make restart        # Restart services
-make validate       # Validate configuration
-```
-
-### **Scripts**
-
-```bash
-./start-services.sh up       # Start all services
-./start-services.sh down     # Stop all services
-./start-services.sh ps       # Show status
-
-./setup-env.sh all           # Setup and validate
-./setup-env.sh validate      # Validate only
 ```
 
 ### **Docker Compose Direct**
@@ -234,32 +216,20 @@ docker exec [container] ping [other_container]  # Test connectivity
 
 ### **SSL/TLS Certificate Setup (Traefik)**
 
-Traefik requires SSL/TLS certificates for HTTPS support. Follow these steps:
+Traefik requires SSL/TLS certificates for HTTPS support. The easiest way is using `mkcert`.
 
-#### **Option 1: Using mkcert (Recommended for Development)**
+#### **Option 1: Using Makefile (Recommended)**
 
 ```bash
-# Install mkcert if not already installed
-# On macOS:
-brew install mkcert
+# 1. Install mkcert
+# macOS: brew install mkcert
+# Linux: Follow mkcert installation guide
 
-# On Linux:
-curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"
-chmod +x mkcert-v*-linux-amd64
-sudo mv mkcert-v*-linux-amd64 /usr/local/bin/mkcert
-
-# Create certificate directory
-mkdir -p traefik/certs
-
-# Generate certificate (replace with your domain/localhost)
-CURRENT_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $2}' | sed 's/addr://' | head -n 1) && \
-mkcert -cert-file traefik/certs/server.crt -key-file traefik/certs/server.key "$CURRENT_IP" localhost 127.0.0.1 ::1
-
-# Install root certificate in system (optional, for browser trust)
-mkcert -install
+# 2. Run the make command
+make cert
 ```
 
-#### **Option 2: Using OpenSSL**
+#### **Option 2: Manual with mkcert**
 
 ```bash
 mkdir -p traefik/certs
@@ -398,9 +368,8 @@ docker system prune -a --volumes
 docker-shared-services/
 ├── docker-compose.shared.yml      # Shared network definition
 ├── .env.example                   # Root environment template
-├── Makefile                       # Make commands
-├── start-services.sh              # Service startup script
-├── setup-env.sh                   # Environment setup script
+├── Makefile                       # All-in-one management commands
+├── bin/                           # Python management logic
 ├── README.md                      # This file
 │
 ├── postgres/
@@ -476,6 +445,6 @@ For issues or questions:
 
 ---
 
-**Last Updated**: November 2024
+**Last Updated**: February 2026
 **Docker Version Required**: 20.10+
 **Docker Compose Version Required**: 2.0+
