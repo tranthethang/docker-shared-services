@@ -150,4 +150,6 @@ info: ## Show service information and access URLs
 	@echo "  • ChromaDB - http://localhost:8000 (Host: chromadb.localhost)"
 	@echo "  • Appsmith - http://localhost:8091 (Host: appsmith.localhost)"
 	@echo "  • Grafana - http://localhost:3001 (Host: grafana.localhost)"
+	@echo "  • Kafka - localhost:9092"
+	@echo "  • Kafka UI - http://localhost:8082 (Host: kafka-ui.localhost)"
 	@echo ""
