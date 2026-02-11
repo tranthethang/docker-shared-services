@@ -141,6 +141,14 @@ http:
         - websecure
       tls: {}
 
+    kafka-ui:
+      rule: "Host(`kafka-ui.localhost`)"
+      service: kafka-ui
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
   services:
     adminer:
       loadBalancer:
@@ -226,3 +234,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://appsmith:80"
+
+    kafka-ui:
+      loadBalancer:
+        servers:
+          - url: "http://kafka-ui:8080"

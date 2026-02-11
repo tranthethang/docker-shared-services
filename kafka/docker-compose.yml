@@ -1,0 +1,67 @@
+services:
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    deploy:
+      resources:
+        limits:
+          cpus: "${KAFKA_CPUS_LIMIT:-1}"
+          memory: "${KAFKA_MEMORY_LIMIT:-1024M}"
+        reservations:
+          cpus: "${KAFKA_CPUS_RESERVED:-0.5}"
+          memory: "${KAFKA_MEMORY_RESERVED:-512M}"
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
+      CLUSTER_ID: "${CLUSTER_ID:-MkU3OEVBNTcwNTJENDM2Qk}"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - dev_tools
+    restart: "${RESTART_POLICY:-always}"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    deploy:
+      resources:
+        limits:
+          cpus: "${KAFKA_UI_CPUS_LIMIT:-0.5}"
+          memory: "${KAFKA_UI_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${KAFKA_UI_CPUS_RESERVED:-0.25}"
+          memory: "${KAFKA_UI_MEMORY_RESERVED:-256M}"
+    ports:
+      - "8082:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "local-kraft"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"
+      JVM_OPTS: "-Xmx256M -Xms256M"
+    depends_on:
+      - kafka
+    networks:
+      - dev_tools
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`)"
+      - "traefik.http.routers.kafka-ui.entrypoints=web,websecure"
+      - "traefik.http.routers.kafka-ui.tls=true"
+      - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"
+    restart: "${RESTART_POLICY:-always}"
+
+volumes:
+  kafka_data:
+    name: kafka_data
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true
