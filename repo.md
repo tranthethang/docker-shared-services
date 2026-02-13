@@ -10,7 +10,7 @@ alwaysApply: true
 
 ## Structure
 - **Root Level**: Contains global configurations (`.env.example`, `docker-compose.shared.yml`), the orchestrating `Makefile`, and management logic in `bin/`.
-- **Service Directories**: Each service (e.g., `postgres/`, `redis/`, `gitea/`) contains its own `docker-compose.yml` and `.env.example`.
+- **Service Directories**: Each service (e.g., `pgvector/`, `redis/`, `gitea/`) contains its own `docker-compose.yml` and `.env.example`.
 - **Infrastructure**: `traefik/` acts as the reverse proxy and load balancer for all services.
 - **Monitoring**: `monitoring/` contains configurations for Grafana, Loki, and Promtail.
 
@@ -26,7 +26,7 @@ alwaysApply: true
 
 ## Key Resources
 **Main Components**:
-- **Databases**: PostgreSQL (pgvector), MySQL 8, MariaDB, MongoDB, ChromaDB
+- **Databases**: PgVector (PostgreSQL 17), MySQL 8, MariaDB, MongoDB, ChromaDB
 - **Caching & Messaging**: Redis, RabbitMQ, Memcached
 - **DevOps & CI/CD**: Gitea, Jenkins, Concourse, SonarQube, Act Runner
 - **Management UIs**: Adminer, Dockge, Portainer, Redis Insight, Dozzle
@@ -58,15 +58,15 @@ Services are accessible via `localhost` on specific ports or through Traefik rou
 **Common Patterns**:
 - **Base Images**: Official Docker Hub images.
 - **Resource Limits**: CPU and Memory limits/reservations defined via environment variables.
-- **Persistence**: Named Docker volumes (e.g., `postgres_data`, `gitea_data`) for data durability.
+- **Persistence**: Named Docker volumes (e.g., `pgvector_data`, `gitea_data`) for data durability.
 - **Networking**: Integrated via `docker-compose.shared.yml` defining the `dev_tools` network.
 
 ## Validation
 **Quality Checks**:
 - `make validate`: Validates all Docker Compose files for syntax and configuration errors.
-- **Health Checks**: Integrated Docker healthchecks for critical services (PostgreSQL, Gitea, etc.).
+- **Health Checks**: Integrated Docker healthchecks for critical services (PgVector, Gitea, etc.).
 
 **Integration Points**:
-- **Database Backend**: Gitea, SonarQube, Jenkins, and Concourse are configured to connect to the shared PostgreSQL service.
+- **Database Backend**: Gitea, SonarQube, Jenkins, and Concourse are configured to connect to the shared PgVector service.
 - **Log Aggregation**: Promtail ships logs from all containers to Loki, visualized in Grafana.
 - **Reverse Proxy**: Traefik handles SSL termination and routing based on container labels.

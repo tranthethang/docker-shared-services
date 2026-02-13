@@ -18,7 +18,7 @@ services:
       - USER_UID=1000
       - USER_GID=1000
       - GITEA__database__DB_TYPE=postgres
-      - GITEA__database__HOST=postgres:${POSTGRES_PORT:-5432}
+      - GITEA__database__HOST=pgvector:${POSTGRES_PORT:-5432}
       - GITEA__database__NAME=${GITEA_DB_NAME:-gitea}
       - GITEA__database__USER=${POSTGRES_USER:-postgres}
       - GITEA__database__PASSWD=${POSTGRES_PASSWORD:-password102}

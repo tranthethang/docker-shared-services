@@ -23,7 +23,7 @@ services:
       retries: 3
       start_period: 60s
     environment:
-      CONCOURSE_POSTGRES_HOST: "${POSTGRES_HOST:-postgres}"
+      CONCOURSE_POSTGRES_HOST: "${POSTGRES_HOST:-pgvector}"
       CONCOURSE_POSTGRES_USER: "${POSTGRES_USER:-postgres}"
       CONCOURSE_POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-password102}"
       CONCOURSE_POSTGRES_DATABASE: "${CONCOURSE_DB_NAME:-concourse}"
