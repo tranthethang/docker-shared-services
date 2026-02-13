@@ -1,7 +1,7 @@
 SERVICES = [
     "act_runner", "adminer", "appsmith", "chromadb", "concourse", "dockge",
     "dozzle", "gitea", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
-    "minio", "mongodb", "monitoring", "mysql8", "n8n", "pgvector", "portainer",
+    "minio", "mongodb", "monitoring", "mysql8", "n8n", "pgvector", "postgres", "portainer",
     "rabbitmq", "redis", "redisinsight", "sonarqube", "traefik"
 ]
 
@@ -12,6 +12,7 @@ VALIDATION_RULES = {
     "mongodb": ["PASSWORD"],
     "mysql8": ["PASSWORD"],
     "pgvector": ["PASSWORD"],
+    "postgres": ["POSTGRES18_PASSWORD"],
     "rabbitmq": ["RABBITMQ_PASSWORD"],
 }
 
@@ -25,6 +26,7 @@ SERVICE_INFO_VARS = {
     "mysql8": ["MYSQL_PORT", "MYSQL_DATABASE"],
     "n8n": ["N8N_PORT"],
     "pgvector": ["POSTGRES_PORT", "POSTGRES_DB"],
+    "postgres": ["POSTGRES18_PORT", "POSTGRES18_DB"],
     "redis": ["REDIS_PORT"],
     "sonarqube": ["SONARQUBE_PORT"],
 }
