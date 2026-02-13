@@ -149,6 +149,14 @@ http:
         - websecure
       tls: {}
 
+    temporal:
+      rule: "Host(`temporal.localhost`)"
+      service: temporal-ui
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
   services:
     adminer:
       loadBalancer:
@@ -239,3 +247,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://kafka-ui:8080"
+
+    temporal-ui:
+      loadBalancer:
+        servers:
+          - url: "http://temporal-ui:8080"
