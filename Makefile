@@ -132,6 +132,7 @@ info: ## Show service information and access URLs
 	@echo "Services:"
 	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
 	@echo "  • PgVector (PostgreSQL 17) - localhost:5432"
+	@echo "  • Postgres (PostgreSQL 18) - localhost:5433"
 	@echo "  • MySQL 8 - localhost:3306"
 	@echo "  • MongoDB - localhost:27017"
 	@echo "  • Redis - localhost:6379"
