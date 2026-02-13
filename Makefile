@@ -62,35 +62,35 @@ cert: ## Generate SSL certificates for Traefik
 		exit 1; \
 	fi
 
-up: ## Start services (usage: make up [service=postgres])
+up: ## Start services (usage: make up [service=pgvector])
 	@if [ -z "$(service)" ]; then \
 		$(PYTHON_SVC_MGR); \
 	else \
 		$(PYTHON_SVC_MGR) $(service) up; \
 	fi
 
-down: ## Stop and remove services (usage: make down [service=postgres])
+down: ## Stop and remove services (usage: make down [service=pgvector])
 	@if [ -z "$(service)" ]; then \
 		$(PYTHON_SVC_MGR); \
 	else \
 		$(PYTHON_SVC_MGR) $(service) down; \
 	fi
 
-stop: ## Stop services (usage: make stop [service=postgres])
+stop: ## Stop services (usage: make stop [service=pgvector])
 	@if [ -z "$(service)" ]; then \
 		$(PYTHON_SVC_MGR); \
 	else \
 		$(PYTHON_SVC_MGR) $(service) stop; \
 	fi
 
-restart: ## Restart services (usage: make restart [service=postgres])
+restart: ## Restart services (usage: make restart [service=pgvector])
 	@if [ -z "$(service)" ]; then \
 		$(PYTHON_SVC_MGR); \
 	else \
 		$(PYTHON_SVC_MGR) $(service) restart; \
 	fi
 
-logs: ## Show logs (usage: make logs [service=postgres])
+logs: ## Show logs (usage: make logs [service=pgvector])
 	@if [ -z "$(service)" ]; then \
 		$(PYTHON_SVC_MGR); \
 	else \
@@ -131,7 +131,7 @@ info: ## Show service information and access URLs
 	@echo ""
 	@echo "Services:"
 	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
-	@echo "  • PostgreSQL - localhost:5432"
+	@echo "  • PgVector (PostgreSQL 17) - localhost:5432"
 	@echo "  • MySQL 8 - localhost:3306"
 	@echo "  • MongoDB - localhost:27017"
 	@echo "  • Redis - localhost:6379"

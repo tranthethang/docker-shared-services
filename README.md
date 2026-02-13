@@ -26,7 +26,7 @@ make ps
 
 ```bash
 docker compose -f docker-compose.shared.yml \
-  -f postgres/docker-compose.yml \
+  -f pgvector/docker-compose.yml \
   -f redis/docker-compose.yml \
   -f monitoring/docker-compose.yml \
   up -d
@@ -45,7 +45,7 @@ make up
 
 ### **Databases**
 
-- **PostgreSQL** (pgvector) - Relational database with vector support
+- **PgVector** (PostgreSQL 17) - Relational database with vector support
 - **MySQL 8** - Relational database with UTF-8 support
 - **MongoDB** - NoSQL document database
 - **Adminer** - Universal database administration interface
@@ -119,7 +119,7 @@ docker compose down -v               # Stop and remove volumes
 
 | Service       | Access Point           | Default Credentials  |
 |---------------|------------------------|----------------------|
-| PostgreSQL    | localhost:5432         | postgres/password102 |
+| PgVector      | localhost:5432         | postgres/password102 |
 | MySQL 8       | localhost:3306         | uid/password102      |
 | MongoDB       | localhost:27017        | root/password102     |
 | Redis         | localhost:6379         | - / password102      |
@@ -145,8 +145,8 @@ docker compose down -v               # Stop and remove volumes
 Each service has a `.env.example` file. Copy and customize:
 
 ```bash
-cp postgres/.env.example postgres/.env
-# Edit postgres/.env with your values
+cp pgvector/.env.example pgvector/.env
+# Edit pgvector/.env with your values
 ```
 
 ### **Change Passwords**
@@ -190,8 +190,8 @@ All services use the `dev_tools` bridge network:
 Services communicate using container names:
 
 ```bash
-# PostgreSQL
-postgres://postgres:password102@postgres:5432/mydb
+# PgVector
+postgres://postgres:password102@pgvector:5432/mydb
 
 # Redis
 redis://:password102@redis:6379
@@ -200,7 +200,7 @@ redis://:password102@redis:6379
 amqp://guest:guest@rabbitmq:5672
 
 # Service-to-service
-POSTGRES_HOST=postgres
+POSTGRES_HOST=pgvector
 REDIS_HOST=redis
 RABBITMQ_HOST=rabbitmq
 ```
@@ -282,7 +282,7 @@ openssl rand -base64 32
 make logs              # Check logs
 make validate          # Validate configuration
 make restart           # Restart services
-make logs-service SERVICE=postgres  # Specific service
+make logs-service SERVICE=pgvector  # Specific service
 ```
 
 ### **Port already in use**
@@ -335,7 +335,7 @@ docker-compose ps        # View status
 make logs                # View logs
 
 # Test connectivity
-docker compose exec postgres psql -U postgres -c "SELECT version();"
+docker compose exec pgvector psql -U postgres -c "SELECT version();"
 docker compose exec redis redis-cli ping
 docker compose exec mysql8 mysqladmin ping -u root -p
 ```
@@ -372,7 +372,7 @@ docker-shared-services/
 ├── bin/                           # Python management logic
 ├── README.md                      # This file
 │
-├── postgres/
+├── pgvector/
 │   ├── docker-compose.yml
 │   └── .env.example
 │

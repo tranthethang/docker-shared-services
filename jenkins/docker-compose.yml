@@ -29,7 +29,7 @@ services:
     environment:
       - JENKINS_OPTS=--httpPort=8080
       - TZ="${TZ:-Asia/Ho_Chi_Minh}"
-      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_HOST=${POSTGRES_HOST:-pgvector}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - JENKINS_DB_NAME=${JENKINS_DB_NAME:-jenkins}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
