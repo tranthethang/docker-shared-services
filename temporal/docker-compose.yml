@@ -1,0 +1,50 @@
+services:
+  temporal:
+    container_name: temporal
+    image: temporalio/auto-setup:${TEMPORAL_VERSION:-latest}
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${TEMPORAL_CPUS_LIMIT:-1}"
+          memory: "${TEMPORAL_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${TEMPORAL_CPUS_RESERVED:-0.5}"
+          memory: "${TEMPORAL_MEMORY_RESERVED:-512M}"
+    environment:
+      - DB=${DB:-postgres12}
+      - DB_PORT=${DB_PORT:-5432}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PWD=${POSTGRES_PWD:-password102}
+      - POSTGRES_SEEDS=${POSTGRES_SEEDS:-postgres}
+    networks:
+      - dev_tools
+    ports:
+      - "${TEMPORAL_GRPC_PORT:-7233}:7233"
+
+  temporal-ui:
+    container_name: temporal-ui
+    image: temporalio/ui:${TEMPORAL_UI_VERSION:-latest}
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${TEMPORAL_UI_CPUS_LIMIT:-0.5}"
+          memory: "${TEMPORAL_UI_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${TEMPORAL_UI_CPUS_RESERVED:-0.2}"
+          memory: "${TEMPORAL_UI_MEMORY_RESERVED:-256M}"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:8083,https://temporal.localhost
+    networks:
+      - dev_tools
+    ports:
+      - "${TEMPORAL_UI_PORT:-8083}:8080"
+    depends_on:
+      - temporal
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true

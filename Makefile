@@ -153,4 +153,5 @@ info: ## Show service information and access URLs
 	@echo "  • Grafana - http://localhost:3001 (Host: grafana.localhost)"
 	@echo "  • Kafka - localhost:9092"
 	@echo "  • Kafka UI - http://localhost:8082 (Host: kafka-ui.localhost)"
+	@echo "  • Temporal - localhost:7233 (UI: http://localhost:8083 or temporal.localhost)"
 	@echo ""
