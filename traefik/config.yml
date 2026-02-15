@@ -157,6 +157,22 @@ http:
         - websecure
       tls: {}
 
+    jaeger:
+      rule: "Host(`jaeger.localhost`)"
+      service: jaeger
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
+    prometheus:
+      rule: "Host(`prometheus.localhost`)"
+      service: prometheus
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
   services:
     adminer:
       loadBalancer:
@@ -252,3 +268,13 @@ http:
       loadBalancer:
         servers:
           - url: "http://temporal-ui:8080"
+
+    jaeger:
+      loadBalancer:
+        servers:
+          - url: "http://jaeger:16686"
+
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: "http://prometheus:9090"
