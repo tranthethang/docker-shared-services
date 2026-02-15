@@ -1,7 +1,7 @@
 SERVICES = [
     "act_runner", "adminer", "appsmith", "chromadb", "concourse", "dockge",
     "dozzle", "gitea", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
-    "minio", "mongodb", "monitoring", "mysql8", "n8n", "pgvector", "postgres", "portainer",
+    "minio", "mongodb", "monitoring", "mysql8", "n8n", "otel", "pgvector", "postgres", "portainer",
     "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik"
 ]
 
@@ -24,6 +24,7 @@ SERVICE_INFO_VARS = {
     "mongodb": ["MONGO_PORT"],
     "monitoring": ["GRAFANA_PORT", "LOKI_PORT"],
     "mysql8": ["MYSQL_PORT", "MYSQL_DATABASE"],
+    "otel": ["OTEL_COLLECTOR_PORT_GRPC", "JAEGER_PORT", "PROMETHEUS_PORT"],
     "n8n": ["N8N_PORT"],
     "pgvector": ["POSTGRES_PORT", "POSTGRES_DB"],
     "postgres": ["POSTGRES18_PORT", "POSTGRES18_DB"],

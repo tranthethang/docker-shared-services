@@ -1,0 +1,49 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel-config.yaml"]
+    volumes:
+      - ${PWD}/otel/otel-config.yaml:/etc/otel-config.yaml
+    deploy:
+      resources:
+        limits:
+          cpus: ${OTEL_COLLECTOR_CPU_LIMIT:-0.1}
+          memory: ${OTEL_COLLECTOR_MEM_LIMIT:-128M}
+    ports:
+      - "${OTEL_COLLECTOR_PORT_GRPC:-4317}:4317" # OTLP gRPC
+      - "${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
+    networks:
+      - dev_tools
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    deploy:
+      resources:
+        limits:
+          cpus: ${JAEGER_CPU_LIMIT:-0.2}
+          memory: ${JAEGER_MEM_LIMIT:-512M}
+    ports:
+      - "${JAEGER_PORT:-16686}:16686" # Web UI
+    networks:
+      - dev_tools
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ${PWD}/otel/prometheus.yaml:/etc/prometheus/prometheus.yml
+    deploy:
+      resources:
+        limits:
+          cpus: ${PROMETHEUS_CPU_LIMIT:-0.1}
+          memory: ${PROMETHEUS_MEM_LIMIT:-256M}
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - dev_tools
+
+networks:
+  dev_tools:
+    external: true
