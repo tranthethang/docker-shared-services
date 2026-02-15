@@ -3,6 +3,8 @@ services:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
     command: ["--config=/etc/otel-config.yaml"]
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:
       - ${PWD}/otel/otel-config.yaml:/etc/otel-config.yaml
     deploy:
@@ -19,6 +21,8 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
     deploy:
       resources:
         limits:
@@ -32,8 +36,11 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:
       - ${PWD}/otel/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - /etc/localtime:/etc/localtime:ro
     deploy:
       resources:
         limits:
