@@ -149,6 +149,7 @@ info: ## Show service information and access URLs
 	@echo "  • n8n - http://localhost:5678 (Host: n8n.localhost)"
 	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.localhost)"
 	@echo "  • ChromaDB - http://localhost:8000 (Host: chromadb.localhost)"
+	@echo "  • ChromaDB Admin - http://localhost:8001 (Host: chromadb-admin.localhost)"
 	@echo "  • Appsmith - http://localhost:8091 (Host: appsmith.localhost)"
 	@echo "  • Grafana - http://localhost:3001 (Host: grafana.localhost)"
 	@echo "  • Kafka - localhost:9092"

@@ -133,6 +133,14 @@ http:
         - websecure
       tls: {}
 
+    chromadb-admin:
+      rule: "Host(`chromadb-admin.localhost`)"
+      service: chromadb-admin
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
     appsmith:
       rule: "Host(`appsmith.localhost`)"
       service: appsmith
@@ -253,6 +261,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://chromadb:8000"
+
+    chromadb-admin:
+      loadBalancer:
+        servers:
+          - url: "http://chromadb-admin:3001"
 
     appsmith:
       loadBalancer:

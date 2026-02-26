@@ -1,0 +1,21 @@
+services:
+  chromadb-admin:
+    container_name: chromadb-admin
+    image: fengzhichao/chromadb-admin:latest
+    restart: "${RESTART_POLICY:-always}"
+    ports:
+      - "${CHROMADB_ADMIN_PORT:-8001}:3001"
+    environment:
+      - CHROMA_URL=${CHROMADB_ADMIN_URL:-http://chromadb:8000}
+    deploy:
+      resources:
+        limits:
+          cpus: "${CHROMADB_ADMIN_CPUS_LIMIT:-0.5}"
+          memory: "${CHROMADB_ADMIN_MEMORY_LIMIT:-512M}"
+    networks:
+      - dev_tools
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true

@@ -1,5 +1,5 @@
 SERVICES = [
-    "act_runner", "adminer", "appsmith", "chromadb", "concourse", "dockge",
+    "act_runner", "adminer", "appsmith", "chromadb", "chromadb_admin", "concourse", "dockge",
     "dozzle", "gitea", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
     "minio", "mongodb", "monitoring", "mysql8", "n8n", "otel", "pgvector", "postgres", "portainer",
     "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik"
@@ -19,6 +19,7 @@ VALIDATION_RULES = {
 SERVICE_INFO_VARS = {
     "appsmith": ["APPSMITH_PORT"],
     "chromadb": ["CHROMADB_PORT"],
+    "chromadb_admin": ["CHROMADB_ADMIN_PORT"],
     "dozzle": ["DOZZLE_PORT"],
     "gitea": ["GITEA_HTTP_PORT", "GITEA_SSH_PORT"],
     "mongodb": ["MONGO_PORT"],
