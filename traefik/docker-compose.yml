@@ -17,12 +17,16 @@ services:
       - "--entryPoints.websecure.address=:443"
       - "--providers.file=true"
       - "--providers.file.filename=/traefik/config.yml"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=dev_tools"
       - "--log.level=${LOG_LEVEL:-INFO}"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/config.yml:/traefik/config.yml:ro
       - ./traefik/certs:/certs:ro
     restart: "${RESTART_POLICY:-always}"
