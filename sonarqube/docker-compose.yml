@@ -1,7 +1,7 @@
 services:
   sonarqube:
     container_name: sonarqube
-    image: sonarqube:lts-community
+    image: sonarqube:community
     restart: "${RESTART_POLICY:-always}"
     ports:
       - "${SONARQUBE_PORT:-9000}:9000"
@@ -14,7 +14,7 @@ services:
           cpus: "${SONARQUBE_CPUS_RESERVED:-1}"
           memory: "${SONARQUBE_MEMORY_RESERVED:-1G}"
     environment:
-      SONAR_JDBC_URL: jdbc:postgresql://pgvector:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-sonarqube}
+      SONAR_JDBC_URL: jdbc:postgresql://${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-sonarqube}
       SONAR_JDBC_USERNAME: "${POSTGRES_USER:-postgres}"
       SONAR_JDBC_PASSWORD: "${POSTGRES_PASSWORD:-password102}"
     networks:
