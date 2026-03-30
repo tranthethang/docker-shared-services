@@ -12,7 +12,7 @@ VALIDATION_RULES = {
     "mongodb": ["PASSWORD"],
     "mysql8": ["PASSWORD"],
     "pgvector": ["PASSWORD"],
-    "postgres": ["POSTGRES18_PASSWORD"],
+    "postgres": ["POSTGRES16_PASSWORD"],
     "rabbitmq": ["RABBITMQ_PASSWORD"],
 }
 
@@ -28,7 +28,7 @@ SERVICE_INFO_VARS = {
     "otel": ["OTEL_COLLECTOR_PORT_GRPC", "JAEGER_PORT", "PROMETHEUS_PORT"],
     "n8n": ["N8N_PORT"],
     "pgvector": ["POSTGRES_PORT", "POSTGRES_DB"],
-    "postgres": ["POSTGRES18_PORT", "POSTGRES18_DB"],
+    "postgres": ["POSTGRES16_PORT", "POSTGRES16_DB"],
     "redis": ["REDIS_PORT"],
     "sonarqube": ["SONARQUBE_PORT"],
     "temporal": ["TEMPORAL_UI_PORT", "TEMPORAL_GRPC_PORT"],

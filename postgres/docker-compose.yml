@@ -6,18 +6,18 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${POSTGRES18_CPUS_LIMIT:-1}"
-          memory: "${POSTGRES18_MEMORY_LIMIT:-1G}"
+          cpus: "${POSTGRES16_CPUS_LIMIT:-1}"
+          memory: "${POSTGRES16_MEMORY_LIMIT:-1G}"
         reservations:
-          cpus: "${POSTGRES18_CPUS_RESERVED:-0.5}"
-          memory: "${POSTGRES18_MEMORY_RESERVED:-512M}"
+          cpus: "${POSTGRES16_CPUS_RESERVED:-0.5}"
+          memory: "${POSTGRES16_MEMORY_RESERVED:-512M}"
     environment:
-      POSTGRES_USER: "${POSTGRES18_USER:-postgres}"
-      POSTGRES_PASSWORD: "${POSTGRES18_PASSWORD:-password102}"
-      POSTGRES_DB: "${POSTGRES18_DB:-postgres_db}"
+      POSTGRES_USER: "${POSTGRES16_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES16_PASSWORD:-password102}"
+      POSTGRES_DB: "${POSTGRES16_DB:-postgres_db}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
     ports:
-      - "${POSTGRES18_PORT:-5433}:5432"
+      - "${POSTGRES16_PORT:-5433}:5432"
     networks:
       - dev_tools
     volumes:
@@ -36,7 +36,7 @@ services:
         ) &
         exec docker-entrypoint.sh postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES18_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES16_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
