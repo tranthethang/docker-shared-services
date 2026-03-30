@@ -8,12 +8,12 @@ PYTHON_ENV_MGR := python3 bin/env_manager.py
 PYTHON_SVC_MGR := python3 bin/service_manager.py
 
 # Dynamic DOCKER_COMPOSE command that includes all services
-DOCKER_COMPOSE := docker compose -f docker-compose.shared.yml \
+DOCKER_COMPOSE = docker compose -f docker-compose.shared.yml \
 	$(shell find . -maxdepth 2 -name "docker-compose.yml" -not -path "./docker-compose.shared.yml" | sed 's|^./|-f |')
 
 help: ## Show this help message
 	@echo "╔════════════════════════════════════════════════════════════════╗"
-	@echo "║           Docker Shared Services - Management Console           ║"
+	@echo "║           Docker Shared Services - Management Console          ║"
 	@echo "╚════════════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "Usage:"
@@ -40,19 +40,19 @@ setup: ## Setup environment files, network and certificates
 	@read -p "Do you want to generate SSL certificates? (y/n) " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		make cert; \
+		$(MAKE) cert; \
 	fi
 	@echo ""
 
 cert: ## Generate SSL certificates for Traefik
 	@echo "Detecting local IP..."
-	$(eval CURRENT_IP=$(shell ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $$2}' | sed 's/addr://' | head -n 1))
-	@echo "Local IP detected: $(CURRENT_IP)"
-	@mkdir -p traefik/certs
-	@if command -v mkcert >/dev/null 2>&1; then \
+	@CURRENT_IP=$$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $$2}' | sed 's/addr://' | head -n 1); \
+	echo "Local IP detected: $$CURRENT_IP"; \
+	mkdir -p traefik/certs; \
+	if command -v mkcert >/dev/null 2>&1; then \
 		mkcert -cert-file traefik/certs/server.crt \
 		       -key-file traefik/certs/server.key \
-		       "$(CURRENT_IP)" \
+		       "$$CURRENT_IP" \
 		       localhost \
 		       127.0.0.1 \
 		       ::1; \
@@ -63,39 +63,19 @@ cert: ## Generate SSL certificates for Traefik
 	fi
 
 up: ## Start services (usage: make up [service=pgvector])
-	@if [ -z "$(service)" ]; then \
-		$(PYTHON_SVC_MGR); \
-	else \
-		$(PYTHON_SVC_MGR) $(service) up; \
-	fi
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
 
 down: ## Stop and remove services (usage: make down [service=pgvector])
-	@if [ -z "$(service)" ]; then \
-		$(PYTHON_SVC_MGR); \
-	else \
-		$(PYTHON_SVC_MGR) $(service) down; \
-	fi
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
 
 stop: ## Stop services (usage: make stop [service=pgvector])
-	@if [ -z "$(service)" ]; then \
-		$(PYTHON_SVC_MGR); \
-	else \
-		$(PYTHON_SVC_MGR) $(service) stop; \
-	fi
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
 
 restart: ## Restart services (usage: make restart [service=pgvector])
-	@if [ -z "$(service)" ]; then \
-		$(PYTHON_SVC_MGR); \
-	else \
-		$(PYTHON_SVC_MGR) $(service) restart; \
-	fi
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
 
 logs: ## Show logs (usage: make logs [service=pgvector])
-	@if [ -z "$(service)" ]; then \
-		$(PYTHON_SVC_MGR); \
-	else \
-		$(PYTHON_SVC_MGR) $(service) logs; \
-	fi
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
 
 ps: ## Show status of all running services
 	@echo ""
@@ -130,32 +110,32 @@ info: ## Show service information and access URLs
 	@echo "Subnet: 10.0.0.0/16"
 	@echo ""
 	@echo "Services:"
-	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
-	@echo "  • PgVector (PostgreSQL 17) - localhost:5432"
-	@echo "  • Postgres (PostgreSQL 18) - localhost:5433"
-	@echo "  • MySQL 8 - localhost:3306"
-	@echo "  • MongoDB - localhost:27017"
-	@echo "  • Redis - localhost:6379"
-	@echo "  • RabbitMQ - localhost:5672 (management: 15672)"
-	@echo "  • Memcached - localhost:11211"
-	@echo "  • Mailpit - localhost:8025 (SMTP: 1025)"
-	@echo "  • Redis Insight - http://localhost:5540"
-	@echo "  • MinIO - http://localhost:9002"
-	@echo "  • Gitea - http://localhost:3000"
-	@echo "  • SonarQube - http://localhost:9000"
-	@echo "  • Jenkins - http://localhost:8090"
-	@echo "  • Concourse - http://localhost:8070"
 	@echo "  • Adminer - http://localhost:8081"
-	@echo "  • n8n - http://localhost:5678 (Host: n8n.localhost)"
-	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.localhost)"
+	@echo "  • Appsmith - http://localhost:8091 (Host: appsmith.localhost)"
 	@echo "  • ChromaDB - http://localhost:8000 (Host: chromadb.localhost)"
 	@echo "  • ChromaDB Admin - http://localhost:8001 (Host: chromadb-admin.localhost)"
-	@echo "  • Appsmith - http://localhost:8091 (Host: appsmith.localhost)"
+	@echo "  • Concourse - http://localhost:8070"
+	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.localhost)"
+	@echo "  • Gitea - http://localhost:3000"
 	@echo "  • Grafana - http://localhost:3001 (Host: grafana.localhost)"
+	@echo "  • Jaeger - http://localhost:16686 (Host: jaeger.localhost)"
+	@echo "  • Jenkins - http://localhost:8090"
 	@echo "  • Kafka - localhost:9092"
 	@echo "  • Kafka UI - http://localhost:8082 (Host: kafka-ui.localhost)"
-	@echo "  • Temporal - localhost:7233 (UI: http://localhost:8083 or temporal.localhost)"
-	@echo "  • Jaeger - http://localhost:16686 (Host: jaeger.localhost)"
-	@echo "  • Prometheus - http://localhost:9090 (Host: prometheus.localhost)"
+	@echo "  • Mailpit - localhost:8025 (SMTP: 1025)"
+	@echo "  • Memcached - localhost:11211"
+	@echo "  • MinIO - http://localhost:9002"
+	@echo "  • MongoDB - localhost:27017"
+	@echo "  • MySQL 8 - localhost:3306"
+	@echo "  • n8n - http://localhost:5678 (Host: n8n.localhost)"
 	@echo "  • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP)"
+	@echo "  • PgVector (PostgreSQL 17) - localhost:5432"
+	@echo "  • Postgres (PostgreSQL 18) - localhost:5433"
+	@echo "  • Prometheus - http://localhost:9090 (Host: prometheus.localhost)"
+	@echo "  • RabbitMQ - localhost:5672 (management: 15672)"
+	@echo "  • Redis - localhost:6379"
+	@echo "  • Redis Insight - http://localhost:5540"
+	@echo "  • SonarQube - http://localhost:9000"
+	@echo "  • Temporal - localhost:7233 (UI: http://localhost:8083 or temporal.localhost)"
+	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
 	@echo ""
