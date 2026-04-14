@@ -13,9 +13,9 @@ services:
           cpus: "${CHROMADB_ADMIN_CPUS_LIMIT:-0.5}"
           memory: "${CHROMADB_ADMIN_MEMORY_LIMIT:-512M}"
     networks:
-      - dev_tools
+      - infra_shared
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true

@@ -16,13 +16,13 @@ services:
       - IS_PERSISTENT=TRUE
       - PERSIST_DIRECTORY=/chroma/data
     networks:
-      - dev_tools
+      - infra_shared
 
 volumes:
   chromadb_data:
     name: chromadb_data
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true

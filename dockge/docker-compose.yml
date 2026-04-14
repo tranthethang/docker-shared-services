@@ -20,9 +20,9 @@ services:
     environment:
       - DOCKGE_STACKS_DIR=/app/stacks
     networks:
-      - dev_tools
+      - infra_shared
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true

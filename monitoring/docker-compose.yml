@@ -10,7 +10,7 @@ services:
     ports:
       - "${GRAFANA_PORT:-3001}:3000"
     networks:
-      - dev_tools
+      - infra_shared
     volumes:
       - grafana_data:/var/lib/grafana
     deploy:
@@ -35,7 +35,7 @@ services:
     ports:
       - "${LOKI_PORT:-3100}:3100"
     networks:
-      - dev_tools
+      - infra_shared
     volumes:
       - ${PWD}/monitoring/config/loki.yml:/etc/loki/local-config.yaml
       - loki_data:/loki
@@ -56,7 +56,7 @@ services:
     restart: ${RESTART_POLICY:-always}
     command: -config.file=/etc/promtail/config.yml
     networks:
-      - dev_tools
+      - infra_shared
     volumes:
       - ${PWD}/monitoring/config/promtail.yml:/etc/promtail/config.yml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -68,8 +68,8 @@ services:
           memory: ${PROMTAIL_MEMORY_LIMIT:-256M}
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true
 
 volumes:

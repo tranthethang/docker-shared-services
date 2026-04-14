@@ -3,7 +3,7 @@
 To make your containers from other `docker-compose.yml` files accessible via Traefik with a custom domain (e.g., `sitexxx.localhost`), follow these steps:
 
 ## 1. Connect to the shared network
-Your service must join the `dev_tools` network, which is used by Traefik.
+Your service must join the `infra_shared` network, which is used by Traefik.
 
 ## 2. Add Traefik Labels
 You need to add specific labels to your service to tell Traefik how to route the traffic.
@@ -16,7 +16,7 @@ services:
   my-api:
     image: your-api-image:latest
     networks:
-      - dev_tools
+      - infra_shared
     labels:
       - "traefik.enable=true"
       # Define the domain
@@ -27,9 +27,9 @@ services:
       - "traefik.http.routers.my-api.entrypoints=web"
 
 networks:
-  dev_tools:
+  infra_shared:
     external: true
-    name: dev_tools
+    name: infra_shared
 ```
 
 ## Key Labels Explained
@@ -38,5 +38,5 @@ networks:
 - **`traefik.http.services.<name>.loadbalancer.server.port`**: The internal port your app listens on inside the container.
 
 ## Troubleshooting
-- Ensure the container is actually running and joined to the `dev_tools` network: `docker network inspect dev_tools`.
+- Ensure the container is actually running and joined to the `infra_shared` network: `docker network inspect infra_shared`.
 - Check Traefik Dashboard at [http://localhost:8080](http://localhost:8080) to see if your router appears.

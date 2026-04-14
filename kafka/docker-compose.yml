@@ -33,7 +33,7 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
-      - dev_tools
+      - infra_shared
     restart: "${RESTART_POLICY:-always}"
     healthcheck:
       test:
@@ -64,7 +64,7 @@ services:
     depends_on:
       - kafka
     networks:
-      - dev_tools
+      - infra_shared
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`)"
@@ -78,6 +78,6 @@ volumes:
     name: kafka_data
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true

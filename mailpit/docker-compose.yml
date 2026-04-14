@@ -15,7 +15,7 @@ services:
       - "${MAILPIT_SMTP_PORT:-1025}:1025"
       - "${MAILPIT_WEB_PORT:-8025}:8025"
     networks:
-      - dev_tools
+      - infra_shared
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8025/"]
       interval: 30s
@@ -24,6 +24,6 @@ services:
       start_period: 20s
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true

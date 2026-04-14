@@ -25,7 +25,7 @@ services:
     volumes:
       - gitea_data:/data
     networks:
-      - dev_tools
+      - infra_shared
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
@@ -35,8 +35,8 @@ services:
       start_period: 60s
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true
 
 volumes:

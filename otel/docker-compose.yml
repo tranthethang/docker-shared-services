@@ -16,7 +16,7 @@ services:
       - "${OTEL_COLLECTOR_PORT_GRPC:-4317}:4317" # OTLP gRPC
       - "${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
     networks:
-      - dev_tools
+      - infra_shared
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -31,7 +31,7 @@ services:
     ports:
       - "${JAEGER_PORT:-16686}:16686" # Web UI
     networks:
-      - dev_tools
+      - infra_shared
 
   prometheus:
     image: prom/prometheus:latest
@@ -49,8 +49,8 @@ services:
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
     networks:
-      - dev_tools
+      - infra_shared
 
 networks:
-  dev_tools:
+  infra_shared:
     external: true

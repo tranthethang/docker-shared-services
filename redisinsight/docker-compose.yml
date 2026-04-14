@@ -14,13 +14,13 @@ services:
     ports:
       - "${REDISINSIGHT_PORT:-5540}:5540"
     networks:
-      - dev_tools
+      - infra_shared
     volumes:
       - redisinsight_data:/data
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true
 
 volumes:

@@ -28,7 +28,7 @@ services:
       - TEMPORAL_S3_ENDPOINT=${TEMPORAL_S3_ENDPOINT:-http://minio:9000}
       - TEMPORAL_S3_S3_FORCE_PATH_STYLE=true
     networks:
-      - dev_tools
+      - infra_shared
     ports:
       - "${TEMPORAL_GRPC_PORT:-7233}:7233"
 
@@ -48,13 +48,13 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:8083,https://temporal.localhost
     networks:
-      - dev_tools
+      - infra_shared
     ports:
       - "${TEMPORAL_UI_PORT:-8083}:8080"
     depends_on:
       - temporal
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true

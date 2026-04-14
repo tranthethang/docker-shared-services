@@ -19,7 +19,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - act_runner_data:/data
     networks:
-      - dev_tools
+      - infra_shared
 
     healthcheck:
       test: ["CMD", "ls", "/data"]
@@ -30,8 +30,8 @@ services:
     command: daemon
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true
 
 volumes:

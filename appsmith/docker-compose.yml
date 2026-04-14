@@ -14,13 +14,13 @@ services:
       - "${APPSMITH_PORT:-8091}:80"
       - "${APPSMITH_HTTPS_PORT:-8444}:443"
     networks:
-      - dev_tools
+      - infra_shared
 
 volumes:
   appsmith_data:
     name: appsmith_data
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true

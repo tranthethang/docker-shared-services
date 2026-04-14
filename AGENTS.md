@@ -35,7 +35,7 @@ alwaysApply: true
 **Configuration Structure**:
 - **Global `.env`**: Created from root `.env.example`, contains shared variables and resource limits.
 - **Service `.env`**: Each directory has its own `.env` (copy from `.env.example`) for service-specific overrides.
-- **Shared Network**: All services utilize the `dev_tools` bridge network (10.0.0.0/16).
+- **Shared Network**: All services utilize the `infra_shared` bridge network (10.0.0.0/16).
 
 ## Usage & Operations
 **Key Commands**:
@@ -59,7 +59,7 @@ Services are accessible via `localhost` on specific ports or through Traefik rou
 - **Base Images**: Official Docker Hub images.
 - **Resource Limits**: CPU and Memory limits/reservations defined via environment variables.
 - **Persistence**: Named Docker volumes (e.g., `pgvector_data`, `gitea_data`) for data durability.
-- **Networking**: Integrated via `docker-compose.shared.yml` defining the `dev_tools` network.
+- **Networking**: Integrated via `docker-compose.shared.yml` defining the `infra_shared` network.
 
 ## Validation
 **Quality Checks**:

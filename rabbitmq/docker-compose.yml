@@ -10,7 +10,7 @@ services:
       - "${RABBITMQ_PORT:-5672}:5672"
       - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     networks:
-      - dev_tools
+      - infra_shared
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -20,8 +20,8 @@ services:
       retries: 5
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true
 
 volumes:

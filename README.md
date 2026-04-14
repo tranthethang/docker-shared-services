@@ -84,7 +84,7 @@ make up
 - ✅ CPU/Memory resource limits and reservations
 - ✅ Persistent volumes for data
 - ✅ Service dependencies management
-- ✅ Shared `dev_tools` network (10.0.0.0/16)
+- ✅ Shared `infra_shared` network (10.0.0.0/16)
 - ✅ Makefile with 20+ commands
 - ✅ Automated setup scripts with validation
 
@@ -181,9 +181,9 @@ Edit `start-services.sh` or `Makefile` and comment out unwanted services.
 
 ### **Network Configuration**
 
-All services use the `dev_tools` bridge network:
+All services use the `infra_shared` bridge network:
 
-- **Network**: dev_tools
+- **Network**: infra_shared
 - **Subnet**: 10.0.0.0/16
 - **Gateway**: 10.0.0.1
 
@@ -209,8 +209,8 @@ RABBITMQ_HOST=rabbitmq
 
 ```bash
 docker network ls                            # List networks
-docker network inspect dev_tools             # Inspect network
-docker network inspect dev_tools | grep -A 20 "Containers"  # Check containers
+docker network inspect infra_shared             # Inspect network
+docker network inspect infra_shared | grep -A 20 "Containers"  # Check containers
 docker exec [container] ping [other_container]  # Test connectivity
 ```
 
@@ -305,7 +305,7 @@ make restart
 ### **Network issues**
 
 ```bash
-docker network inspect dev_tools
+docker network inspect infra_shared
 docker logs [container_id]
 docker exec [container1] ping [container2]
 ```
@@ -441,7 +441,7 @@ For issues or questions:
 2. Review service-specific `.env.example` files
 3. Check Docker logs: `make logs`
 4. Validate configuration: `make validate`
-5. Inspect network: `docker network inspect dev_tools`
+5. Inspect network: `docker network inspect infra_shared`
 
 ---
 

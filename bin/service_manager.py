@@ -13,13 +13,13 @@ def is_valid_action(action):
 
 def ensure_network():
     try:
-        subprocess.run(["docker", "network", "inspect", "dev_tools"], 
+        subprocess.run(["docker", "network", "inspect", "infra_shared"], 
                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
-        print("ℹ️  Creating network dev_tools...")
-        subprocess.run(["docker", "network", "create", "dev_tools", 
+        print("ℹ️  Creating network infra_shared...")
+        subprocess.run(["docker", "network", "create", "infra_shared", 
                         "--subnet", "10.0.0.0/16", "--driver", "bridge"], check=True)
-        success("Network dev_tools created")
+        success("Network infra_shared created")
 
 def get_compose_cmd(service):
     return [

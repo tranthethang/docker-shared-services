@@ -27,11 +27,11 @@ services:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
     networks:
-      - dev_tools
+      - infra_shared
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true
 
 volumes:

@@ -25,7 +25,7 @@ help: ## Show this help message
 
 setup: ## Setup environment files, network and certificates
 	@echo "Creating network if it doesn't exist..."
-	@docker network create dev_tools --subnet 10.0.0.0/16 --driver bridge 2>/dev/null || true
+	@docker network create infra_shared --subnet 10.0.0.0/16 --driver bridge 2>/dev/null || true
 	@echo "Checking environment files..."
 	@$(PYTHON_ENV_MGR) check all
 	@echo ""
@@ -106,7 +106,7 @@ info: ## Show service information and access URLs
 	@echo "║                     Service Information                        ║"
 	@echo "╚════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "Network: dev_tools"
+	@echo "Network: infra_shared"
 	@echo "Subnet: 10.0.0.0/16"
 	@echo ""
 	@echo "Services:"

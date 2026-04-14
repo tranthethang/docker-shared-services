@@ -30,13 +30,13 @@ services:
       CONCOURSE_EXTERNAL_URL: "http://${CONCOURSE_HOST:-concourse.localhost}"
       CONCOURSE_ADD_LOCAL_USER: "${CONCOURSE_ADD_LOCAL_USER:-admin:admin}"
       CONCOURSE_MAIN_TEAM_LOCAL_USER: "${CONCOURSE_MAIN_TEAM_LOCAL_USER:-admin}"
-      CONCOURSE_WORKER_GARDEN_NETWORK: "${CONCOURSE_WORKER_GARDEN_NETWORK:-dev_tools}"
+      CONCOURSE_WORKER_GARDEN_NETWORK: "${CONCOURSE_WORKER_GARDEN_NETWORK:-infra_shared}"
     networks:
-      - dev_tools
+      - infra_shared
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true
 
 volumes:

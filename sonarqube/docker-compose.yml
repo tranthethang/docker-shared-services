@@ -18,7 +18,7 @@ services:
       SONAR_JDBC_USERNAME: "${POSTGRES_USER:-postgres}"
       SONAR_JDBC_PASSWORD: "${POSTGRES_PASSWORD:-password102}"
     networks:
-      - dev_tools
+      - infra_shared
     volumes:
       - sonarqube_conf:/opt/sonarqube/conf
       - sonarqube_data:/opt/sonarqube/data
@@ -34,8 +34,8 @@ services:
       start_period: 60s
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true
 
 volumes:

@@ -1,6 +1,6 @@
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     driver: bridge
     ipam:
       config:

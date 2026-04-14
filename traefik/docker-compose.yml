@@ -19,7 +19,7 @@ services:
       - "--providers.file.filename=/traefik/config.yml"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=dev_tools"
+      - "--providers.docker.network=infra_shared"
       - "--log.level=${LOG_LEVEL:-INFO}"
     ports:
       - "80:80"
@@ -31,12 +31,12 @@ services:
       - ./traefik/certs:/certs:ro
     restart: "${RESTART_POLICY:-always}"
     networks:
-      dev_tools:
+      infra_shared:
         aliases:
           - minio.localhost
           - s3.minio.localhost
 
 networks:
-  dev_tools:
-    name: dev_tools
+  infra_shared:
+    name: infra_shared
     external: true
