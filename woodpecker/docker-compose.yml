@@ -1,6 +1,6 @@
 services:
   woodpecker-server:
-    image: woodpeckerci/woodpecker-server:latest
+    image: woodpeckerci/woodpecker-server:v3
     container_name: woodpecker-server
     restart: "${RESTART_POLICY:-always}"
     deploy:
@@ -12,7 +12,9 @@ services:
           cpus: "${WOODPECKER_CPUS_RESERVED:-0.5}"
           memory: "${WOODPECKER_MEMORY_RESERVED:-512M}"
     ports:
-      - "${WOODPECKER_HTTP_PORT:-8002}:8000"
+      - "${WOODPECKER_HTTP_PORT:-8012}:8000"
+    env_file:
+      - woodpecker/.env
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
       - WOODPECKER_OPEN=${WOODPECKER_OPEN:-true}
@@ -26,14 +28,6 @@ services:
       - WOODPECKER_GITEA_URL=http://gitea:3000
       - WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT:-}
       - WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET:-}
-      - WOODPECKER_GITHUB=${WOODPECKER_GITHUB:-false}
-      - WOODPECKER_GITHUB_URL=${WOODPECKER_GITHUB_URL:-https://github.com}
-      - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT:-}
-      - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET:-}
-      - WOODPECKER_GITLAB=${WOODPECKER_GITLAB:-false}
-      - WOODPECKER_GITLAB_URL=${WOODPECKER_GITLAB_URL:-https://gitlab.com}
-      - WOODPECKER_GITLAB_CLIENT=${WOODPECKER_GITLAB_CLIENT:-}
-      - WOODPECKER_GITLAB_SECRET=${WOODPECKER_GITLAB_SECRET:-}
     volumes:
       - woodpecker_data:/var/lib/woodpecker
     networks:
@@ -46,7 +40,7 @@ services:
       - "traefik.http.services.woodpecker.loadbalancer.server.port=8000"
 
   woodpecker-agent:
-    image: woodpeckerci/woodpecker-agent:latest
+    image: woodpeckerci/woodpecker-agent:v3
     container_name: woodpecker-agent
     restart: "${RESTART_POLICY:-always}"
     deploy:
@@ -59,6 +53,8 @@ services:
           memory: "${WOODPECKER_AGENT_MEMORY_RESERVED:-512M}"
     depends_on:
       - woodpecker-server
+    env_file:
+      - woodpecker/.env
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
       - WOODPECKER_SERVER=woodpecker-server:9000

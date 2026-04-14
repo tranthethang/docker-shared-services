@@ -181,6 +181,14 @@ http:
         - websecure
       tls: {}
 
+    woodpecker:
+      rule: "Host(`woodpecker.localhost`)"
+      service: woodpecker
+      entryPoints:
+        - web
+        - websecure
+      tls: {}
+
   services:
     adminer:
       loadBalancer:
@@ -291,3 +299,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://prometheus:9090"
+
+    woodpecker:
+      loadBalancer:
+        servers:
+          - url: "http://woodpecker-server:8000"
