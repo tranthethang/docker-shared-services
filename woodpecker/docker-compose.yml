@@ -1,0 +1,80 @@
+services:
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:latest
+    container_name: woodpecker-server
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${WOODPECKER_CPUS_LIMIT:-1}"
+          memory: "${WOODPECKER_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${WOODPECKER_CPUS_RESERVED:-0.5}"
+          memory: "${WOODPECKER_MEMORY_RESERVED:-512M}"
+    ports:
+      - "${WOODPECKER_HTTP_PORT:-8002}:8000"
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+      - WOODPECKER_OPEN=${WOODPECKER_OPEN:-true}
+      - WOODPECKER_HOST=https://${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-localhost}
+      - WOODPECKER_ADMIN=${WOODPECKER_ADMIN:-}
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET:-change_me}
+      - WOODPECKER_LOG_LEVEL=${WOODPECKER_LOG_LEVEL:-info}
+      - WOODPECKER_DATABASE_DRIVER=sqlite3
+      - WOODPECKER_DATABASE_DATASOURCE=/var/lib/woodpecker/woodpecker.sqlite
+      - WOODPECKER_GITEA=${WOODPECKER_GITEA:-true}
+      - WOODPECKER_GITEA_URL=http://gitea:3000
+      - WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT:-}
+      - WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET:-}
+      - WOODPECKER_GITHUB=${WOODPECKER_GITHUB:-false}
+      - WOODPECKER_GITHUB_URL=${WOODPECKER_GITHUB_URL:-https://github.com}
+      - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT:-}
+      - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET:-}
+      - WOODPECKER_GITLAB=${WOODPECKER_GITLAB:-false}
+      - WOODPECKER_GITLAB_URL=${WOODPECKER_GITLAB_URL:-https://gitlab.com}
+      - WOODPECKER_GITLAB_CLIENT=${WOODPECKER_GITLAB_CLIENT:-}
+      - WOODPECKER_GITLAB_SECRET=${WOODPECKER_GITLAB_SECRET:-}
+    volumes:
+      - woodpecker_data:/var/lib/woodpecker
+    networks:
+      - dev_tools
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.woodpecker.rule=Host(`${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-localhost}`)"
+      - "traefik.http.routers.woodpecker.entrypoints=web,websecure"
+      - "traefik.http.routers.woodpecker.tls=true"
+      - "traefik.http.services.woodpecker.loadbalancer.server.port=8000"
+
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:latest
+    container_name: woodpecker-agent
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${WOODPECKER_AGENT_CPUS_LIMIT:-1}"
+          memory: "${WOODPECKER_AGENT_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${WOODPECKER_AGENT_CPUS_RESERVED:-0.5}"
+          memory: "${WOODPECKER_AGENT_MEMORY_RESERVED:-512M}"
+    depends_on:
+      - woodpecker-server
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+      - WOODPECKER_SERVER=woodpecker-server:9000
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET:-change_me}
+      - WOODPECKER_MAX_WORKFLOWS=${WOODPECKER_MAX_WORKFLOWS:-2}
+      - WOODPECKER_BACKEND_DOCKER=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - dev_tools
+
+volumes:
+  woodpecker_data:
+    name: woodpecker_data
+
+networks:
+  dev_tools:
+    name: dev_tools
+    external: true

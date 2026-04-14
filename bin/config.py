@@ -2,7 +2,7 @@ SERVICES = [
     "act_runner", "adminer", "appsmith", "chromadb", "chromadb_admin", "concourse", "dockge",
     "dozzle", "gitea", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
     "minio", "mongodb", "monitoring", "mysql8", "n8n", "otel", "pgvector", "postgres", "portainer",
-    "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik"
+    "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik", "woodpecker"
 ]
 
 ACTIONS = ["up", "down", "stop", "restart", "logs"]
@@ -32,4 +32,5 @@ SERVICE_INFO_VARS = {
     "redis": ["REDIS_PORT"],
     "sonarqube": ["SONARQUBE_PORT"],
     "temporal": ["TEMPORAL_UI_PORT", "TEMPORAL_GRPC_PORT"],
+    "woodpecker": ["WOODPECKER_HTTP_PORT"],
 }
