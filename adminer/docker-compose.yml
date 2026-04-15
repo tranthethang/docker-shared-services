@@ -10,6 +10,3 @@ services:
     volumes:
       - ./adminer/adminer.css:/var/www/html/adminer.css:ro  
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true

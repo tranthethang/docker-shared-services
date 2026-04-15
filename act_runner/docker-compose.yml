@@ -30,9 +30,5 @@ services:
     command: daemon
 
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true
-
 volumes:
   act_runner_data:

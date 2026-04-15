@@ -30,9 +30,5 @@ services:
       - infra_shared
 
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true
-
 volumes:
   n8n_data:

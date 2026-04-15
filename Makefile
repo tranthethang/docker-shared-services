@@ -1,4 +1,4 @@
-.PHONY: help setup ps clean prune info up down stop restart logs cert
+.PHONY: help setup ps clean prune info up down stop restart logs cert validate
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -143,3 +143,8 @@ info: ## Show service information and access URLs
 	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
 	@echo "  • Woodpecker CI - http://localhost:8012 (Host: woodpecker.localhost)"
 	@echo ""
+
+validate: ## Validate all Docker Compose files
+	@echo "Validating Docker Compose configuration..."
+	@$(DOCKER_COMPOSE) config >/dev/null
+	@echo "✅ Compose configuration is valid"

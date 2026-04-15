@@ -19,9 +19,5 @@ services:
       - redisinsight_data:/data
 
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true
-
 volumes:
   redisinsight_data:

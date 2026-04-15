@@ -1,7 +1,4 @@
 networks:
   infra_shared:
     name: infra_shared
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.0.0.0/16
+    external: true

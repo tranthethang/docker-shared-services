@@ -55,6 +55,3 @@ services:
       - temporal
 
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true

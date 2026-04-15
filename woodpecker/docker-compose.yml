@@ -71,6 +71,3 @@ volumes:
     name: woodpecker_data
 
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true

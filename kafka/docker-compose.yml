@@ -78,6 +78,3 @@ volumes:
     name: kafka_data
 
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true

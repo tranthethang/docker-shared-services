@@ -68,10 +68,6 @@ services:
           memory: ${PROMTAIL_MEMORY_LIMIT:-256M}
 
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true
-
 volumes:
   grafana_data:
   loki_data:

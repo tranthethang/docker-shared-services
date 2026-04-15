@@ -23,6 +23,3 @@ volumes:
     name: chromadb_data
 
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true

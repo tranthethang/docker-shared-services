@@ -34,10 +34,6 @@ services:
       start_period: 60s
 
 networks:
-  infra_shared:
-    name: infra_shared
-    external: true
-
 volumes:
   sonarqube_conf:
   sonarqube_data:
