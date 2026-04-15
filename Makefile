@@ -63,19 +63,19 @@ cert: ## Generate SSL certificates for Traefik
 	fi
 
 up: ## Start services (usage: make up [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
 
 down: ## Stop and remove services (usage: make down [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
 
 stop: ## Stop services (usage: make stop [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
 
 restart: ## Restart services (usage: make restart [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
 
 logs: ## Show logs (usage: make logs [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@)
+	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
 
 ps: ## Show status of all running services
 	@echo ""

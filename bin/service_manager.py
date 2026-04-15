@@ -11,6 +11,13 @@ def is_valid_service(service):
 def is_valid_action(action):
     return action in ACTIONS
 
+def has_fzf():
+    return subprocess.run(
+        ["bash", "-lc", "command -v fzf >/dev/null 2>&1"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
 def ensure_network():
     try:
         subprocess.run(["docker", "network", "inspect", "infra_shared"], 
@@ -69,17 +76,33 @@ def execute_action(service, action):
             print("\nStopped log streaming.")
 
 def show_menu(items, title):
+    if has_fzf():
+        try:
+            selected = subprocess.run(
+                ["bash", "-lc", f"printf '%s\n' \"$@\" | fzf --prompt='{title}> ' --height=20% --border"],
+                check=False,
+                input="\n".join(items),
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            ).stdout.strip()
+            if selected:
+                return selected
+            sys.exit(0)
+        except KeyboardInterrupt:
+            sys.exit(0)
+
     print(f"ℹ️  {title}:")
     for i, item in enumerate(items):
         print(f"  [{i+1}] {item}")
     print("")
-    
+
     while True:
         try:
             choice = input(f"Select [1-{len(items)}] or [q]uit: ").strip().lower()
-            if choice == 'q':
+            if choice == "q":
                 sys.exit(0)
-            
+
             idx = int(choice) - 1
             if 0 <= idx < len(items):
                 return items[idx]
@@ -88,15 +111,34 @@ def show_menu(items, title):
         except ValueError:
             error(f"Invalid selection. Please enter 1-{len(items)} or 'q'")
 
-def interactive_menu():
+def interactive_menu(preselected_action=None):
     print_header("Docker Shared Services Manager")
-    
-    service = show_menu(SERVICES, "Select a service")
+
+    service = show_menu(SERVICES, "Select service")
     print("")
-    action = show_menu(ACTIONS, f"Select an action for '{service}'")
+
+    action = preselected_action or show_menu(ACTIONS, f"Select action for '{service}'")
     print("")
-    
+
     execute_action(service, action)
+
+def normalize_args(args):
+    """
+    Accept these forms:
+    - <service> <action>
+    - <action>                 (interactive pick service, action fixed)
+    - (no args)                (interactive pick service, then action)
+    """
+    if not args.service and not args.action:
+        return None, None
+
+    # If only one positional was provided, argparse puts it in service.
+    if args.service and not args.action:
+        if is_valid_action(args.service) and not is_valid_service(args.service):
+            return None, args.service
+        return args.service, None
+
+    return args.service, args.action
 
 def main():
     parser = argparse.ArgumentParser(description='Docker Shared Services Manager')
@@ -117,11 +159,21 @@ def main():
             print(a)
         return
 
-    if not args.service or not args.action:
+    service, action = normalize_args(args)
+
+    if not service and not action:
         interactive_menu()
         return
 
-    execute_action(args.service, args.action)
+    if not service and action:
+        interactive_menu(preselected_action=action)
+        return
+
+    if service and not action:
+        interactive_menu()
+        return
+
+    execute_action(service, action)
 
 if __name__ == "__main__":
     main()
