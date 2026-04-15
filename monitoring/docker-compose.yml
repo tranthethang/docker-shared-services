@@ -11,6 +11,7 @@ services:
       - "${GRAFANA_PORT:-3001}:3000"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - grafana_data:/var/lib/grafana
     deploy:
@@ -36,6 +37,7 @@ services:
       - "${LOKI_PORT:-3100}:3100"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - ${PWD}/monitoring/config/loki.yml:/etc/loki/local-config.yaml
       - loki_data:/loki
@@ -57,6 +59,7 @@ services:
     command: -config.file=/etc/promtail/config.yml
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - ${PWD}/monitoring/config/promtail.yml:/etc/promtail/config.yml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro

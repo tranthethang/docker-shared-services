@@ -35,12 +35,12 @@ alwaysApply: true
 **Configuration Structure**:
 - **Global `.env`**: Created from root `.env.example`, contains shared variables and resource limits.
 - **Service `.env`**: Each directory has its own `.env` (copy from `.env.example`) for service-specific overrides.
-- **Shared Network**: All services utilize the `infra_shared` bridge network (10.0.0.0/16).
+- **Shared networks**: External bridge networks `infra_shared` (10.0.0.0/16) and `dev_tools` (10.1.0.0/16), declared in `docker-compose.shared.yml`. Docker cannot assign the same CIDR to two networks; adjacent `/16` blocks keep addressing under `10.0.0.0/8`. Most services attach to both so Traefik (on `infra_shared`) and legacy compose stacks (on `dev_tools`) can reach them by container name on the appropriate network.
 
 ## Usage & Operations
 **Key Commands**:
 ```bash
-make setup          # Initialize environment files, network, and certificates
+make setup          # Initialize environment files, shared networks, and certificates
 make up             # Start services (interactive or specific)
 make ps             # Show status of all services
 make logs           # View aggregated logs
@@ -59,7 +59,7 @@ Services are accessible via `localhost` on specific ports or through Traefik rou
 - **Base Images**: Official Docker Hub images.
 - **Resource Limits**: CPU and Memory limits/reservations defined via environment variables.
 - **Persistence**: Named Docker volumes (e.g., `pgvector_data`, `gitea_data`) for data durability.
-- **Networking**: Integrated via `docker-compose.shared.yml` defining the `infra_shared` network.
+- **Networking**: `docker-compose.shared.yml` defines external networks `infra_shared` and `dev_tools`. Traefik is configured to use `infra_shared` for Docker provider routing.
 
 ## Validation
 **Quality Checks**:

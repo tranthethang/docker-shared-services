@@ -19,6 +19,7 @@ services:
       - portainer_data:/data
     networks:
       - infra_shared
+      - dev_tools
 
 networks:
 volumes:

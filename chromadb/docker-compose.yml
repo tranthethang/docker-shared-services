@@ -17,6 +17,7 @@ services:
       - PERSIST_DIRECTORY=/chroma/data
     networks:
       - infra_shared
+      - dev_tools
 
 volumes:
   chromadb_data:

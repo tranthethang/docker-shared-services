@@ -16,6 +16,7 @@ services:
       - "${REDIS_PORT:-6379}:6379"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - redis_data:/data
       - ./redis/redis.conf:/etc/redis/redis.conf:ro

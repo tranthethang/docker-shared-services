@@ -18,6 +18,7 @@ services:
       - "${MONGO_PORT:-27017}:27017"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - mongodb_data:/data/db
     healthcheck:

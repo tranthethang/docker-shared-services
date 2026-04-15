@@ -19,6 +19,7 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - pgvector_data:/var/lib/postgresql/data
     healthcheck:

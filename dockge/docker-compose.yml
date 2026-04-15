@@ -21,5 +21,6 @@ services:
       - DOCKGE_STACKS_DIR=/app/stacks
     networks:
       - infra_shared
+      - dev_tools
 
 networks:

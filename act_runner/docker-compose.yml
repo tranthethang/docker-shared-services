@@ -20,6 +20,7 @@ services:
       - act_runner_data:/data
     networks:
       - infra_shared
+      - dev_tools
 
     healthcheck:
       test: ["CMD", "ls", "/data"]

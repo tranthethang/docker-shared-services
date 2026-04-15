@@ -10,7 +10,7 @@ management, and orchestration tools.
 ### Setup (5 minutes)
 
 ```bash
-# 1. Setup environment, network and certificates
+# 1. Setup environment, shared networks, and certificates
 make setup
 
 # 2. Start all services (select 'all' or specific service)
@@ -84,7 +84,7 @@ make up
 - ✅ CPU/Memory resource limits and reservations
 - ✅ Persistent volumes for data
 - ✅ Service dependencies management
-- ✅ Shared `infra_shared` network (10.0.0.0/16)
+- ✅ Shared external networks: `infra_shared` (10.0.0.0/16) and `dev_tools` (10.1.0.0/16) for legacy stacks
 - ✅ Makefile with 20+ commands
 - ✅ Automated setup scripts with validation
 
@@ -94,7 +94,7 @@ make up
 
 ```bash
 make help           # Show all commands
-make setup          # Setup environment files, network and certs
+make setup          # Setup environment files, networks, and certs
 make cert           # Generate SSL certificates
 make up             # Start services (interactive or specific)
 make down           # Stop and remove services
@@ -179,15 +179,18 @@ POSTGRES_MEMORY_RESERVED=1G
 
 Edit `start-services.sh` or `Makefile` and comment out unwanted services.
 
-### **Network Configuration**
+### **Network configuration**
 
-All services use the `infra_shared` bridge network:
+Services use two **external** bridge networks (created by `make setup` if missing). Docker does not allow two networks to share the same CIDR, so both use adjacent `/16` blocks in `10.0.0.0/8`:
 
-- **Network**: infra_shared
-- **Subnet**: 10.0.0.0/16
-- **Gateway**: 10.0.0.1
+| Network        | Subnet       | Role |
+|----------------|--------------|------|
+| `infra_shared` | `10.0.0.0/16` | Primary stack, Traefik discovery (`--providers.docker.network=infra_shared`) |
+| `dev_tools`    | `10.1.0.0/16` | Legacy or external compose projects that attach to `dev_tools` |
 
-Services communicate using container names:
+Most service containers join **both** networks so they can reach Traefik on `infra_shared` and legacy workloads on `dev_tools`.
+
+Services communicate using container names on the network where both endpoints are attached:
 
 ```bash
 # PgVector
@@ -209,8 +212,9 @@ RABBITMQ_HOST=rabbitmq
 
 ```bash
 docker network ls                            # List networks
-docker network inspect infra_shared             # Inspect network
-docker network inspect infra_shared | grep -A 20 "Containers"  # Check containers
+docker network inspect infra_shared             # Inspect primary network
+docker network inspect dev_tools                # Inspect legacy network
+docker network inspect infra_shared | grep -A 20 "Containers"  # List attached containers
 docker exec [container] ping [other_container]  # Test connectivity
 ```
 
@@ -366,7 +370,7 @@ docker system prune -a --volumes
 
 ```
 docker-shared-services/
-├── docker-compose.shared.yml      # Shared network definition
+├── docker-compose.shared.yml      # Shared external networks (infra_shared, dev_tools)
 ├── .env.example                   # Root environment template
 ├── Makefile                       # All-in-one management commands
 ├── bin/                           # Python management logic
@@ -441,7 +445,7 @@ For issues or questions:
 2. Review service-specific `.env.example` files
 3. Check Docker logs: `make logs`
 4. Validate configuration: `make validate`
-5. Inspect network: `docker network inspect infra_shared`
+5. Inspect networks: `docker network inspect infra_shared` and `docker network inspect dev_tools`
 
 ---
 

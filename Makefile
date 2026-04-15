@@ -23,9 +23,11 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
-setup: ## Setup environment files, network and certificates
-	@echo "Creating network if it doesn't exist..."
+setup: ## Setup environment files, networks and certificates
+	@echo "Creating shared networks if they don't exist..."
+	@# Two bridges cannot share one CIDR; use adjacent /16s in 10/8.
 	@docker network create infra_shared --subnet 10.0.0.0/16 --driver bridge 2>/dev/null || true
+	@docker network create dev_tools --subnet 10.1.0.0/16 --driver bridge 2>/dev/null || true
 	@echo "Checking environment files..."
 	@$(PYTHON_ENV_MGR) check all
 	@echo ""
@@ -106,8 +108,9 @@ info: ## Show service information and access URLs
 	@echo "║                     Service Information                        ║"
 	@echo "╚════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "Network: infra_shared"
-	@echo "Subnet: 10.0.0.0/16"
+	@echo "Networks (10/8 plan, two non-overlapping /16s):"
+	@echo "  • infra_shared — 10.0.0.0/16 (Traefik + main stack)"
+	@echo "  • dev_tools — 10.1.0.0/16 (legacy / external compose)"
 	@echo ""
 	@echo "Services:"
 	@echo "  • Adminer - http://localhost:8081"

@@ -18,15 +18,37 @@ def has_fzf():
         stderr=subprocess.DEVNULL,
     ).returncode == 0
 
+# Two bridges cannot share one CIDR; adjacent /16s in 10/8.
+SHARED_NETWORKS = (
+    ("infra_shared", "10.0.0.0/16"),
+    ("dev_tools", "10.1.0.0/16"),
+)
+
 def ensure_network():
-    try:
-        subprocess.run(["docker", "network", "inspect", "infra_shared"], 
-                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except subprocess.CalledProcessError:
-        print("ℹ️  Creating network infra_shared...")
-        subprocess.run(["docker", "network", "create", "infra_shared", 
-                        "--subnet", "10.0.0.0/16", "--driver", "bridge"], check=True)
-        success("Network infra_shared created")
+    for name, subnet in SHARED_NETWORKS:
+        try:
+            subprocess.run(
+                ["docker", "network", "inspect", name],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError:
+            print(f"ℹ️  Creating network {name}...")
+            subprocess.run(
+                [
+                    "docker",
+                    "network",
+                    "create",
+                    name,
+                    "--subnet",
+                    subnet,
+                    "--driver",
+                    "bridge",
+                ],
+                check=True,
+            )
+            success(f"Network {name} created")
 
 def get_compose_cmd(service):
     return [

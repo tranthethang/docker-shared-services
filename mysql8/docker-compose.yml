@@ -22,6 +22,7 @@ services:
       - "${MYSQL_PORT:-3306}:3306"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:

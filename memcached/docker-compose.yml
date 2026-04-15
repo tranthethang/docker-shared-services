@@ -15,6 +15,7 @@ services:
       - "${MEMCACHED_PORT:-11211}:11211"
     networks:
       - infra_shared
+      - dev_tools
     healthcheck:
       test: ["CMD", "memcached-tool", "localhost", "stats"]
       interval: 10s

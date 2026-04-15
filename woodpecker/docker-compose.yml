@@ -32,6 +32,7 @@ services:
       - woodpecker_data:/var/lib/woodpecker
     networks:
       - infra_shared
+      - dev_tools
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.woodpecker.rule=Host(`${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-localhost}`)"
@@ -65,6 +66,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - infra_shared
+      - dev_tools
 
 volumes:
   woodpecker_data:

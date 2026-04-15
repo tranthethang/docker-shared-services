@@ -11,6 +11,7 @@ services:
       - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:

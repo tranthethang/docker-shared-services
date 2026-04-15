@@ -14,5 +14,6 @@ services:
           memory: "${CHROMADB_ADMIN_MEMORY_LIMIT:-512M}"
     networks:
       - infra_shared
+      - dev_tools
 
 networks:

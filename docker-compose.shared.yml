@@ -2,3 +2,6 @@ networks:
   infra_shared:
     name: infra_shared
     external: true
+  dev_tools:
+    name: dev_tools
+    external: true  

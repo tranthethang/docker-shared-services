@@ -14,5 +14,6 @@ services:
       - "${DOZZLE_PORT:-8888}:8080"
     networks:
       - infra_shared
+      - dev_tools
 
 networks:

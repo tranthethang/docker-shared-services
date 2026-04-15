@@ -33,6 +33,7 @@ services:
       CONCOURSE_WORKER_GARDEN_NETWORK: "${CONCOURSE_WORKER_GARDEN_NETWORK:-infra_shared}"
     networks:
       - infra_shared
+      - dev_tools
 
 networks:
 volumes:

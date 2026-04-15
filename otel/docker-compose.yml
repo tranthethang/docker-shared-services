@@ -17,6 +17,7 @@ services:
       - "${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
     networks:
       - infra_shared
+      - dev_tools
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -32,6 +33,7 @@ services:
       - "${JAEGER_PORT:-16686}:16686" # Web UI
     networks:
       - infra_shared
+      - dev_tools
 
   prometheus:
     image: prom/prometheus:latest
@@ -50,6 +52,7 @@ services:
       - "${PROMETHEUS_PORT:-9090}:9090"
     networks:
       - infra_shared
+      - dev_tools
 
 networks:
   infra_shared:

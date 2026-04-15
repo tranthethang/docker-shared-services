@@ -20,6 +20,7 @@ services:
       - "${POSTGRES16_PORT:-5433}:5432"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - ./postgres/bin:/usr/local/bin/postgres-scripts:ro
       - postgres_data:/var/lib/postgresql/data

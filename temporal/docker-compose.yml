@@ -29,6 +29,7 @@ services:
       - TEMPORAL_S3_S3_FORCE_PATH_STYLE=true
     networks:
       - infra_shared
+      - dev_tools
     ports:
       - "${TEMPORAL_GRPC_PORT:-7233}:7233"
 
@@ -49,6 +50,7 @@ services:
       - TEMPORAL_CORS_ORIGINS=http://localhost:8083,https://temporal.localhost
     networks:
       - infra_shared
+      - dev_tools
     ports:
       - "${TEMPORAL_UI_PORT:-8083}:8080"
     depends_on:

@@ -19,6 +19,7 @@ services:
       SONAR_JDBC_PASSWORD: "${POSTGRES_PASSWORD:-password102}"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - sonarqube_conf:/opt/sonarqube/conf
       - sonarqube_data:/opt/sonarqube/data

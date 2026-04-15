@@ -22,6 +22,7 @@ services:
       - "${MARIADB_PORT:-3307}:3306"
     networks:
       - infra_shared
+      - dev_tools
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:

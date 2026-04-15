@@ -17,6 +17,7 @@ services:
     image: your-api-image:latest
     networks:
       - infra_shared
+      - dev_tools
     labels:
       - "traefik.enable=true"
       # Define the domain

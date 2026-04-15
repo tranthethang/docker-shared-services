@@ -26,7 +26,7 @@ services:
       - gitea_data:/data
     networks:
       - infra_shared
-
+      - dev_tools
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
       interval: 30s
