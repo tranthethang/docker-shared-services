@@ -24,31 +24,67 @@ SHARED_NETWORKS = (
     ("dev_tools", "10.1.0.0/16"),
 )
 
+
+def _docker_network_exists(name):
+    return (
+        subprocess.run(
+            ["docker", "network", "inspect", name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+        == 0
+    )
+
+
 def ensure_network():
     for name, subnet in SHARED_NETWORKS:
-        try:
-            subprocess.run(
-                ["docker", "network", "inspect", name],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+        if _docker_network_exists(name):
+            continue
+
+        print(f"ℹ️  Creating network {name}...")
+        attempted = subprocess.run(
+            [
+                "docker",
+                "network",
+                "create",
+                name,
+                "--subnet",
+                subnet,
+                "--driver",
+                "bridge",
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        if attempted.returncode == 0:
+            success(f"Network {name} created ({subnet})")
+            continue
+
+        err = (attempted.stderr or "").lower()
+        if "overlap" in err or "pool" in err:
+            warning(
+                f"Subnet {subnet} for {name} overlaps another Docker address pool; "
+                "creating the bridge with an auto-assigned subnet instead."
             )
-        except subprocess.CalledProcessError:
-            print(f"ℹ️  Creating network {name}...")
+            warning(
+                "Stacks still reach containers by name on this network. To pin 10.0.x.x/10.1.x.x, "
+                "adjust Docker default-address-pools or remove the conflicting network."
+            )
             subprocess.run(
-                [
-                    "docker",
-                    "network",
-                    "create",
-                    name,
-                    "--subnet",
-                    subnet,
-                    "--driver",
-                    "bridge",
-                ],
+                ["docker", "network", "create", name, "--driver", "bridge"],
                 check=True,
             )
-            success(f"Network {name} created")
+            success(f"Network {name} created (auto subnet)")
+            continue
+
+        sys.stderr.write(attempted.stderr or "")
+        raise subprocess.CalledProcessError(
+            attempted.returncode,
+            attempted.args,
+            attempted.stderr,
+        )
 
 def get_compose_cmd(service):
     return [

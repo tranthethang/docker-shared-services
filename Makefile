@@ -24,10 +24,20 @@ help: ## Show this help message
 	@echo ""
 
 setup: ## Setup environment files, networks and certificates
-	@echo "Creating shared networks if they don't exist..."
-	@# Two bridges cannot share one CIDR; use adjacent /16s in 10/8.
-	@docker network create infra_shared --subnet 10.0.0.0/16 --driver bridge 2>/dev/null || true
-	@docker network create dev_tools --subnet 10.1.0.0/16 --driver bridge 2>/dev/null || true
+	@echo "Checking shared Docker networks (infra_shared, dev_tools)..."
+	@# Two bridges cannot share one CIDR; prefer adjacent /16s in 10/8. Fall back if pool overlaps (OrbStack/Docker Desktop).
+	@for pair in "infra_shared:10.0.0.0/16" "dev_tools:10.1.0.0/16"; do \
+		name=$${pair%%:*}; subnet=$${pair#*:}; \
+		if docker network inspect $$name >/dev/null 2>&1; then \
+			echo "  $$name: already exists"; \
+		elif docker network create $$name --subnet $$subnet --driver bridge >/dev/null 2>&1; then \
+			echo "  $$name: created ($$subnet)"; \
+		elif docker network create $$name --driver bridge >/dev/null 2>&1; then \
+			echo "  $$name: created (auto subnet; $$subnet overlapped another Docker pool)"; \
+		else \
+			echo "  ERROR: could not create $$name" >&2; exit 1; \
+		fi; \
+	done
 	@echo "Checking environment files..."
 	@$(PYTHON_ENV_MGR) check all
 	@echo ""
@@ -134,6 +144,7 @@ info: ## Show service information and access URLs
 	@echo "  • MySQL 8 - localhost:3306"
 	@echo "  • n8n - http://localhost:5678 (Host: n8n.localhost)"
 	@echo "  • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP)"
+	@echo "  • PocketBase - http://localhost:8140 (Host: pocketbase.localhost)"
 	@echo "  • PgVector (PostgreSQL 17) - localhost:5432"
 	@echo "  • Portainer - http://localhost:9007 (HTTPS: 9443)"
 	@echo "  • Postgres (PostgreSQL 16) - localhost:5433"
