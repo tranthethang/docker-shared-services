@@ -46,7 +46,7 @@ make ps             # Show status of all services
 make logs           # View aggregated logs
 make down           # Stop and remove services
 make stop           # Stop services but keep containers
-make clean          # Remove containers and volumes (WIPE DATA)
+make remove-all     # Remove containers and volumes (WIPE DATA)
 make health         # Check service health status
 make cert           # Generate SSL certificates using mkcert
 ```

@@ -101,7 +101,7 @@ make down           # Stop and remove services
 make stop           # Stop services (keep containers)
 make ps             # Show service status
 make logs           # View logs
-make clean          # Remove containers & volumes
+make remove-all     # Remove containers & volumes
 make restart        # Restart services
 ```
 
@@ -329,7 +329,7 @@ docker volume prune               # Remove unused volumes
 | Services stuck "starting" | Wait 30-60 seconds, check logs, restart: `make restart`              |
 | Can't connect to database | Verify port mapping, check .env passwords, test: `docker-compose ps` |
 | Out of disk space         | Run `make prune`, remove images: `docker image prune -a`             |
-| Need to reset everything  | Run `make clean` then `make up`                                      |
+| Need to reset everything  | Run `make remove-all` then `make up`                                 |
 
 ### **Getting Help**
 
@@ -355,13 +355,13 @@ make down
 ### **Stop and remove volumes (delete data)**
 
 ```bash
-make clean
+make remove-all
 ```
 
 ### **Deep cleanup**
 
 ```bash
-make clean
+make remove-all
 make prune
 docker system prune -a --volumes
 ```

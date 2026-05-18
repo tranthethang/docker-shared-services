@@ -1,4 +1,4 @@
-.PHONY: help setup ps clean prune info up down stop restart logs cert validate
+.PHONY: help setup ps remove-all prune remove-config info up down stop restart logs cert validate
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -20,7 +20,10 @@ help: ## Show this help message
 	@echo "  make <command> [service=<service_name>]"
 	@echo ""
 	@echo "Commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "} {print $$1 "\t" $$2}' | \
+		LC_ALL=C sort -f -k1,1 -u | \
+		awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
 setup: ## Setup environment files, networks and certificates
@@ -96,7 +99,7 @@ ps: ## Show status of all running services
 	@$(DOCKER_COMPOSE) ps
 	@echo ""
 
-clean: ## Remove all containers and volumes (⚠️ DANGER: Removes all data)
+remove-all: ## Remove all containers and volumes (⚠️ DANGER: Removes all data)
 	@echo "⚠️  WARNING: This will remove all data from all services!"
 	@read -p "Are you sure? (y/n) " -n 1 -r; \
 	echo; \
@@ -111,6 +114,32 @@ prune: ## Remove unused Docker resources
 	@echo "Pruning Docker resources..."
 	@docker system prune -f --volumes
 	@echo "✅ Pruned"
+
+remove-config: ## Remove all .env files that have a matching .env.example
+	@echo "Searching for .env files with a matching .env.example..."
+	@env_files=(); \
+	while IFS= read -r -d '' ex; do \
+		dir=$$(dirname "$$ex"); \
+		env="$$dir/.env"; \
+		[[ -f "$$env" ]] && env_files+=("$$env"); \
+	done < <(find . -maxdepth 2 -name '.env.example' -print0); \
+	if [[ $${#env_files[@]} -eq 0 ]]; then \
+		echo "No .env files found."; \
+		exit 0; \
+	fi; \
+	echo ""; \
+	echo "Found $${#env_files[@]} .env file(s):"; \
+	printf '  %s\n' "$${env_files[@]}"; \
+	echo ""; \
+	read -p "Remove these .env files? (y/n) " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		for f in "$${env_files[@]}"; do rm -f "$$f" && echo "  Removed $$f"; done; \
+		echo ""; \
+		echo "✅ Removed $${#env_files[@]} .env file(s). Run 'make setup' to recreate from .env.example."; \
+	else \
+		echo "Operation cancelled"; \
+	fi
 
 info: ## Show service information and access URLs
 	@echo ""
