@@ -17,7 +17,7 @@ services:
       POSTGRES_DB: "${POSTGRES16_DB:-postgres_db}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
     ports:
-      - "${POSTGRES16_PORT:-5433}:5432"
+      - "${POSTGRES16_PORT:-5432}:5432"
     networks:
       - infra_shared
       - dev_tools
