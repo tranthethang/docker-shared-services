@@ -37,5 +37,9 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password102}
 
 networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true
 volumes:
   jenkins_home:

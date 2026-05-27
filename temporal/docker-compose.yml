@@ -57,3 +57,7 @@ services:
       - temporal
 
 networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true

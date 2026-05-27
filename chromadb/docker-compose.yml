@@ -24,3 +24,7 @@ volumes:
     name: chromadb_data
 
 networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true

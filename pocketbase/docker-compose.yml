@@ -26,5 +26,9 @@ services:
       start_period: 15s
 
 networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true
 volumes:
   pocketbase_data:

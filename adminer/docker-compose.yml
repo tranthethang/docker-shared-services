@@ -11,3 +11,7 @@ services:
     volumes:
       - ./adminer/adminer.css:/var/www/html/adminer.css:ro  
 networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true

@@ -37,3 +37,7 @@ services:
           - s3.minio.localhost
 
 networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true

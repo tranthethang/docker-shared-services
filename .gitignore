@@ -59,6 +59,9 @@ traefik/certs/*.crt
 traefik/certs/*.key
 !traefik/certs/.gitkeep
 
+# --- Dozzle auth (generated) ---
+dozzle/users.yml
+
 # --- Docker Build Artifacts ---
 docker-compose.override.yml
 docker-compose.prod.yml

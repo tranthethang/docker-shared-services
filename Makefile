@@ -43,6 +43,16 @@ setup: ## Setup environment files, networks and certificates
 	done
 	@echo "Checking environment files..."
 	@$(PYTHON_ENV_MGR) check all
+	@echo "Checking Dozzle users file (dozzle/users.yml)..."
+	@if [[ ! -f "dozzle/users.yml" ]]; then \
+		echo "  dozzle/users.yml not found -> generating default admin credentials..."; \
+		docker run --rm -i amir20/dozzle generate admin \
+		  --password password102 \
+		  --email admin@example.com \
+		  --name "Admin" > dozzle/users.yml; \
+	else \
+		echo "  dozzle/users.yml already exists"; \
+	fi
 	@echo ""
 	@read -p "Do you want to create missing .env files from .env.example? (y/n) " -n 1 -r; \
 	echo; \

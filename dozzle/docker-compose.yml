@@ -10,6 +10,10 @@ services:
           memory: "${DOZZLE_MEMORY_LIMIT:-512M}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./users.yml:/data/users.yml:ro
+    environment:
+      DOZZLE_AUTH_PROVIDER: "${DOZZLE_AUTH_PROVIDER:-simple}"
+      DOZZLE_AUTH_TTL: "${DOZZLE_AUTH_TTL:-48h}"
     ports:
       - "${DOZZLE_PORT:-8888}:8080"
     networks:
@@ -17,3 +21,7 @@ services:
       - dev_tools
 
 networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true

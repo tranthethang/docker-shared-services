@@ -35,6 +35,10 @@ services:
       start_period: 60s
 
 networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true
 volumes:
   sonarqube_conf:
   sonarqube_data:
