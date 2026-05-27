@@ -10,7 +10,7 @@ services:
           memory: "${DOZZLE_MEMORY_LIMIT:-512M}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./users.yml:/data/users.yml:ro
+      - ${PWD}/dozzle/data:/data
     environment:
       DOZZLE_AUTH_PROVIDER: "${DOZZLE_AUTH_PROVIDER:-simple}"
       DOZZLE_AUTH_TTL: "${DOZZLE_AUTH_TTL:-48h}"
