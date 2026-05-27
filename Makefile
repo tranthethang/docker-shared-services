@@ -175,6 +175,7 @@ info: ## Show service information and access URLs
 	@echo "  • Dockge - http://localhost:5001"
 	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.localhost)"
 	@echo "  • Gitea - http://localhost:3000"
+	@echo "  • Gotenberg - http://localhost:3030 (container: gotenberg:3000)"
 	@echo "  • Grafana - http://localhost:3001 (Host: grafana.localhost)"
 	@echo "  • Jaeger - http://localhost:16686 (Host: jaeger.localhost)"
 	@echo "  • Jenkins - http://localhost:8090"
