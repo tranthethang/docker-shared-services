@@ -1,4 +1,4 @@
-.PHONY: help setup ps remove-all prune remove-config info up down stop restart logs cert validate
+.PHONY: help setup ps remove-all prune remove-config info up down stop restart logs cert validate manage
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -103,6 +103,9 @@ stop: ## Stop services (usage: make stop [service=pgvector])
 
 restart: ## Restart services (usage: make restart [service=pgvector])
 	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
+
+manage: ## Interactive multi-select service manager (up selected, down unselected)
+	@$(PYTHON_SVC_MGR) manage
 
 logs: ## Show logs (usage: make logs [service=pgvector])
 	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)

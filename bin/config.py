@@ -7,6 +7,12 @@ SERVICES = [
 
 ACTIONS = ["up", "down", "stop", "restart", "logs"]
 
+# Infra-first startup order for batch manage (services not listed start/stop by name).
+START_ORDER = [
+    "traefik", "pgvector", "postgres", "redis", "mysql8", "mariadb",
+    "mongodb", "rabbitmq", "memcached", "minio", "kafka", "mailpit", "otel",
+]
+
 VALIDATION_RULES = {
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["PASSWORD"],
