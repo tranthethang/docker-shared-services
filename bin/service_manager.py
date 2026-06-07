@@ -93,9 +93,23 @@ def get_compose_cmd(service):
         "-f", f"{service}/docker-compose.yml"
     ]
 
-def is_service_running(service):
+def get_stack_services(service):
+    """Compose service names in a stack directory (e.g. monitoring -> grafana, loki, promtail)."""
     result = subprocess.run(
-        get_compose_cmd(service) + ["ps", "-q", "--status", "running"],
+        get_compose_cmd(service) + ["config", "--services"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return [service]
+    names = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    return names or [service]
+
+
+def is_service_running(service):
+    stack_services = get_stack_services(service)
+    result = subprocess.run(
+        get_compose_cmd(service) + ["ps", "-q", "--status", "running", *stack_services],
         capture_output=True,
         text=True,
     )
@@ -139,10 +153,11 @@ def show_multi_select(default_selected):
     print("")
 
     while True:
+        name_width = max(len(s) for s in SERVICES) + 2
         for i, service in enumerate(SERVICES):
             mark = "x" if service in selected else " "
             running = " ● running" if service in default_set else ""
-            print(f"  [{mark}] {i + 1:2}. {service}{running}")
+            print(f"  {i + 1:2}. {service:<{name_width}} [{mark}]{running}")
         print("")
 
         try:

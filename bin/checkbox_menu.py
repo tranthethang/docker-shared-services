@@ -55,11 +55,13 @@ def _render(title, items, selected, cursor, badge_fn):
         "",
     ]
 
+    name_width = max((len(item) for item in items), default=0) + 2
+
     for i, item in enumerate(items):
         check = "x" if item in selected else " "
         badge = badge_fn(item) if badge_fn else ""
         prefix = ">" if i == cursor else " "
-        line = f" {prefix} [{check}] {item}{badge}"
+        line = f" {prefix} {item:<{name_width}} [{check}]{badge}"
         if i == cursor:
             line = f"\033[7m{line:<{width - 2}}\033[0m"
         lines.append(line)
