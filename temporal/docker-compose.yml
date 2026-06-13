@@ -34,6 +34,12 @@ services:
       - "${TEMPORAL_GRPC_PORT:-7233}:7233"
 
   temporal-ui:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.temporal.rule=Host(`temporal.localhost`)"
+      - "traefik.http.routers.temporal.entrypoints=web,websecure"
+      - "traefik.http.routers.temporal.tls=true"
+      - "traefik.http.services.temporal.loadbalancer.server.port=8080"
     container_name: temporal-ui
     image: temporalio/ui:${TEMPORAL_UI_VERSION:-latest}
     restart: "${RESTART_POLICY:-always}"

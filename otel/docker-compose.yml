@@ -6,7 +6,7 @@ services:
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:
-      - ${PWD}/otel/otel-config.yaml:/etc/otel-config.yaml
+      - ./otel-config.yaml:/etc/otel-config.yaml
     deploy:
       resources:
         limits:
@@ -20,6 +20,12 @@ services:
       - dev_tools
 
   jaeger:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jaeger.rule=Host(`jaeger.localhost`)"
+      - "traefik.http.routers.jaeger.entrypoints=web,websecure"
+      - "traefik.http.routers.jaeger.tls=true"
+      - "traefik.http.services.jaeger.loadbalancer.server.port=16686"
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
     environment:
@@ -36,12 +42,18 @@ services:
       - dev_tools
 
   prometheus:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+      - "traefik.http.routers.prometheus.entrypoints=web,websecure"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
     image: prom/prometheus:latest
     container_name: prometheus
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:
-      - ${PWD}/otel/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
       - /etc/localtime:/etc/localtime:ro
     deploy:
       resources:

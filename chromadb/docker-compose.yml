@@ -1,5 +1,11 @@
 services:
   chromadb:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chromadb.rule=Host(`chromadb.localhost`)"
+      - "traefik.http.routers.chromadb.entrypoints=web,websecure"
+      - "traefik.http.routers.chromadb.tls=true"
+      - "traefik.http.services.chromadb.loadbalancer.server.port=8000"
     container_name: chromadb
     image: chromadb/chroma:latest
     restart: "${RESTART_POLICY:-always}"

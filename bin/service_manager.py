@@ -89,6 +89,7 @@ def ensure_network():
 def get_compose_cmd(service):
     return [
         "docker", "compose", 
+        "--project-directory", service,
         "-f", "docker-compose.shared.yml", 
         "-f", f"{service}/docker-compose.yml"
     ]

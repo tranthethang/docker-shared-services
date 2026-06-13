@@ -1,5 +1,11 @@
 services:
   redisinsight:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.redisinsight.rule=Host(`redisinsight.localhost`)"
+      - "traefik.http.routers.redisinsight.entrypoints=web,websecure"
+      - "traefik.http.routers.redisinsight.tls=true"
+      - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"
     container_name: redisinsight
     image: "redis/redisinsight:2.70.1"
     restart: "${RESTART_POLICY:-always}"

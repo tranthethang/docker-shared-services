@@ -1,5 +1,11 @@
 services:
   jenkins:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jenkins.rule=Host(`jenkins.localhost`)"
+      - "traefik.http.routers.jenkins.entrypoints=web,websecure"
+      - "traefik.http.routers.jenkins.tls=true"
+      - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
     image: tranthethang/jenkins:latest
     container_name: jenkins
     restart: "${RESTART_POLICY:-always}"

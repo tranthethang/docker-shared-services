@@ -1,5 +1,11 @@
 services:
   adminer:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`adminer.localhost`)"
+      - "traefik.http.routers.adminer.entrypoints=web,websecure"
+      - "traefik.http.routers.adminer.tls=true"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
     container_name: adminer
     image: adminer:5.4.1
     restart: "${RESTART_POLICY:-always}"
@@ -9,7 +15,7 @@ services:
       - infra_shared
       - dev_tools
     volumes:
-      - ./adminer/adminer.css:/var/www/html/adminer.css:ro  
+      - ./adminer.css:/var/www/html/adminer.css:ro  
 networks:
   infra_shared:
     external: true

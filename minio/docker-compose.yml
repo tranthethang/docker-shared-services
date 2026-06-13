@@ -24,6 +24,16 @@ services:
       - "${MINIO_CONSOLE_PORT:-9003}:9001"
     volumes:
       - minio_data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
+      - "traefik.http.routers.minio.entrypoints=web,websecure"
+      - "traefik.http.routers.minio.tls=true"
+      - "traefik.http.services.minio.loadbalancer.server.port=9001"
+      - "traefik.http.routers.minio-s3.rule=Host(`s3.minio.localhost`)"
+      - "traefik.http.routers.minio-s3.entrypoints=web,websecure"
+      - "traefik.http.routers.minio-s3.tls=true"
+      - "traefik.http.services.minio-s3.loadbalancer.server.port=9000"
     networks:
       - infra_shared
       - dev_tools

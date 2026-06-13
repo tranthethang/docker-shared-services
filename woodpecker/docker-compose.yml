@@ -14,7 +14,7 @@ services:
     ports:
       - "${WOODPECKER_HTTP_PORT:-8012}:8000"
     env_file:
-      - woodpecker/.env
+      - ./.env
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
       - WOODPECKER_OPEN=${WOODPECKER_OPEN:-true}
@@ -55,7 +55,7 @@ services:
     depends_on:
       - woodpecker-server
     env_file:
-      - woodpecker/.env
+      - ./.env
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
       - WOODPECKER_SERVER=woodpecker-server:9000
