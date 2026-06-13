@@ -22,7 +22,7 @@ services:
       - infra_shared
       - dev_tools
     volumes:
-      - ./postgres/bin:/usr/local/bin/postgres-scripts:ro
+      - ./bin:/usr/local/bin/postgres-scripts:ro
       - postgres_data:/var/lib/postgresql/data
     command:
       - sh

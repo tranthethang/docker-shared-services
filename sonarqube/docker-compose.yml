@@ -1,5 +1,11 @@
 services:
   sonarqube:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarqube.rule=Host(`sonarqube.localhost`)"
+      - "traefik.http.routers.sonarqube.entrypoints=web,websecure"
+      - "traefik.http.routers.sonarqube.tls=true"
+      - "traefik.http.services.sonarqube.loadbalancer.server.port=9000"
     container_name: sonarqube
     image: sonarqube:community
     restart: "${RESTART_POLICY:-always}"

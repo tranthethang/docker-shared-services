@@ -1,5 +1,11 @@
 services:
   dozzle:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dozzle.rule=Host(`dozzle.localhost`)"
+      - "traefik.http.routers.dozzle.entrypoints=web,websecure"
+      - "traefik.http.routers.dozzle.tls=true"
+      - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
     container_name: dozzle
     image: amir20/dozzle:latest
     restart: "${RESTART_POLICY:-always}"
@@ -10,7 +16,7 @@ services:
           memory: "${DOZZLE_MEMORY_LIMIT:-512M}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${PWD}/dozzle/data:/data
+      - ./data:/data
     environment:
       DOZZLE_AUTH_PROVIDER: "${DOZZLE_AUTH_PROVIDER:-simple}"
       DOZZLE_AUTH_TTL: "${DOZZLE_AUTH_TTL:-48h}"

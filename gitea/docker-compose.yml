@@ -1,5 +1,11 @@
 services:
   gitea:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gitea.rule=Host(`gitea.localhost`)"
+      - "traefik.http.routers.gitea.entrypoints=web,websecure"
+      - "traefik.http.routers.gitea.tls=true"
+      - "traefik.http.services.gitea.loadbalancer.server.port=3000"
     image: gitea/gitea:1.25.2
     container_name: gitea
     restart: "${RESTART_POLICY:-always}"

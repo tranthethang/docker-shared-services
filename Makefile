@@ -9,7 +9,7 @@ PYTHON_SVC_MGR := python3 bin/service_manager.py
 
 # Dynamic DOCKER_COMPOSE command that includes all services
 DOCKER_COMPOSE = docker compose -f docker-compose.shared.yml \
-	$(shell find . -maxdepth 2 -name "docker-compose.yml" -not -path "./docker-compose.shared.yml" | sed 's|^./|-f |')
+	$(shell find . -maxdepth 2 -name "docker-compose.yml" -not -path "./docker-compose.shared.yml" | LC_ALL=C sort | sed 's|^./|-f |')
 
 help: ## Show this help message
 	@echo "╔════════════════════════════════════════════════════════════════╗"

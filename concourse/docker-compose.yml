@@ -1,5 +1,11 @@
 services:
   concourse:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.concourse.rule=Host(`concourse.localhost`)"
+      - "traefik.http.routers.concourse.entrypoints=web,websecure"
+      - "traefik.http.routers.concourse.tls=true"
+      - "traefik.http.services.concourse.loadbalancer.server.port=8080"
     image: concourse/concourse:7.14.3
     container_name: concourse
     restart: "${RESTART_POLICY:-always}"

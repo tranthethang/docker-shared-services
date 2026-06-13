@@ -5,6 +5,9 @@
 Collection of containerized development services with comprehensive Docker Compose configurations, environment
 management, and orchestration tools.
 
+> [!IMPORTANT]
+> **OS Compatibility:** This repository is designed and optimized exclusively for **macOS** and **Linux**. It relies on Unix-specific tooling and scripts, and **Windows is not supported**.
+
 ## 🚀 Quick Start
 
 ### Setup (5 minutes)
