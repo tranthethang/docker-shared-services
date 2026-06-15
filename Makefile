@@ -83,6 +83,7 @@ cert: ## Generate SSL certificates for Traefik
 		mkcert -cert-file traefik/certs/server.crt \
 		       -key-file traefik/certs/server.key \
 		       "$$CURRENT_IP" \
+		       "*.localhost" \
 		       localhost \
 		       127.0.0.1 \
 		       ::1; \
