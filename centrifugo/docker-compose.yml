@@ -1,0 +1,41 @@
+services:
+  centrifugo:
+    container_name: centrifugo
+    image: centrifugo/centrifugo:v5
+    restart: "${RESTART_POLICY:-always}"
+    command: ["centrifugo", "--config=/centrifugo/config.json"]
+    deploy:
+      resources:
+        limits:
+          cpus: "${CENTRIFUGO_CPUS_LIMIT:-0.25}"
+          memory: "${CENTRIFUGO_MEMORY_LIMIT:-64M}"
+        reservations:
+          cpus: "${CENTRIFUGO_CPUS_RESERVED:-0.05}"
+          memory: "${CENTRIFUGO_MEMORY_RESERVED:-16M}"
+    ports:
+      - "${CENTRIFUGO_PORT:-8010}:8000"
+    volumes:
+      - ./config.json:/centrifugo/config.json:ro
+    environment:
+      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=${JWT_SIGNING_KEY:-password102}
+      - CENTRIFUGO_TOKEN_USER_ID_CLAIM=user_id
+      - CENTRIFUGO_API_KEY=${CENTRIFUGO_API_KEY:-password102}
+      - CENTRIFUGO_ADMIN=false
+      - CENTRIFUGO_ALLOWED_ORIGINS=${CENTRIFUGO_ALLOWED_ORIGINS:-*}
+    networks:
+      infra_shared:
+      dev_tools:
+        aliases:
+          - centrifugo
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true

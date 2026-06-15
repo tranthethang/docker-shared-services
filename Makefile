@@ -174,6 +174,7 @@ info: ## Show service information and access URLs
 	@echo "  • Appsmith - http://localhost:8091 (Host: appsmith.localhost)"
 	@echo "  • ChromaDB - http://localhost:8000 (Host: chromadb.localhost)"
 	@echo "  • ChromaDB Admin - http://localhost:8001 (Host: chromadb-admin.localhost)"
+	@echo "  • Centrifugo - http://localhost:8010 (container: centrifugo:8000)"
 	@echo "  • Concourse - http://localhost:8070"
 	@echo "  • Dockge - http://localhost:5001"
 	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.localhost)"

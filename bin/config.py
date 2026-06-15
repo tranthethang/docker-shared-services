@@ -1,6 +1,6 @@
 SERVICES = [
     "act_runner", "adminer", "appsmith", "chromadb", "chromadb_admin", "concourse", "dockge",
-    "dozzle", "gitea", "gotenberg", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
+    "centrifugo", "dozzle", "gitea", "gotenberg", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
     "minio", "mongodb", "monitoring", "mysql8", "n8n", "otel", "pgvector", "pocketbase", "postgres", "portainer",
     "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik", "woodpecker"
 ]
@@ -26,6 +26,7 @@ SERVICE_INFO_VARS = {
     "appsmith": ["APPSMITH_PORT"],
     "chromadb": ["CHROMADB_PORT"],
     "chromadb_admin": ["CHROMADB_ADMIN_PORT"],
+    "centrifugo": ["CENTRIFUGO_PORT"],
     "dozzle": ["DOZZLE_PORT"],
     "gitea": ["GITEA_HTTP_PORT", "GITEA_SSH_PORT"],
     "gotenberg": ["GOTENBERG_API_PORT"],
