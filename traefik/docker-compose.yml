@@ -27,8 +27,8 @@ services:
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/config.yml:/traefik/config.yml:ro
-      - ./traefik/certs:/certs:ro
+      - ./config.yml:/traefik/config.yml:ro
+      - ./certs:/certs:ro
     restart: "${RESTART_POLICY:-always}"
     networks:
       infra_shared:
