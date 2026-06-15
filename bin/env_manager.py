@@ -6,8 +6,8 @@ from utils import print_header, success, warning, error, generate_password
 
 def get_services(service_arg):
     if not service_arg or service_arg == "all":
-        return SERVICES
-    if service_arg in SERVICES:
+        return ["."] + SERVICES
+    if service_arg in SERVICES or service_arg == ".":
         return [service_arg]
     return []
 
@@ -74,6 +74,8 @@ def show_summary(service_arg):
     services = get_services(service_arg)
     print_header("Services Configuration")
     for s in services:
+        if s == ".":
+            continue
         env_path = os.path.join(s, ".env")
         if os.path.exists(env_path):
             print(f"Service: {s}")

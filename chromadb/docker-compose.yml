@@ -7,7 +7,7 @@ services:
       - "traefik.http.routers.chromadb.tls=true"
       - "traefik.http.services.chromadb.loadbalancer.server.port=8000"
     container_name: chromadb
-    image: chromadb/chroma:latest
+    image: chromadb/chroma:0.5.23
     restart: "${RESTART_POLICY:-always}"
     deploy:
       resources:

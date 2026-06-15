@@ -1,7 +1,7 @@
 services:
   chromadb-admin:
     container_name: chromadb-admin
-    image: fengzhichao/chromadb-admin:latest
+    image: fengzhichao/chromadb-admin:0.0.2
     restart: "${RESTART_POLICY:-always}"
     ports:
       - "${CHROMADB_ADMIN_PORT:-8001}:3001"

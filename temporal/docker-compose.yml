@@ -1,7 +1,7 @@
 services:
   temporal:
     container_name: temporal
-    image: temporalio/auto-setup:${TEMPORAL_VERSION:-latest}
+    image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.25.0}
     restart: "${RESTART_POLICY:-always}"
     deploy:
       resources:
@@ -41,7 +41,7 @@ services:
       - "traefik.http.routers.temporal.tls=true"
       - "traefik.http.services.temporal.loadbalancer.server.port=8080"
     container_name: temporal-ui
-    image: temporalio/ui:${TEMPORAL_UI_VERSION:-latest}
+    image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.30.0}
     restart: "${RESTART_POLICY:-always}"
     deploy:
       resources:

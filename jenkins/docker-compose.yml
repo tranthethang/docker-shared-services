@@ -6,7 +6,7 @@ services:
       - "traefik.http.routers.jenkins.entrypoints=web,websecure"
       - "traefik.http.routers.jenkins.tls=true"
       - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
-    image: tranthethang/jenkins:latest
+    image: jenkins/jenkins:lts-alpine
     container_name: jenkins
     restart: "${RESTART_POLICY:-always}"
     ports:
