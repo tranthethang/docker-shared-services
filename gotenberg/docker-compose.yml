@@ -6,11 +6,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${GOTENBERG_CPUS_LIMIT:-0.5}"
-          memory: "${GOTENBERG_MEMORY_LIMIT:-512M}"
+          cpus: "${GOTENBERG_CPUS_LIMIT:-1}"
+          memory: "${GOTENBERG_MEMORY_LIMIT:-1G}"
         reservations:
           cpus: "${GOTENBERG_CPUS_RESERVED:-0.1}"
-          memory: "${GOTENBERG_MEMORY_RESERVED:-128M}"
+          memory: "${GOTENBERG_MEMORY_RESERVED:-256M}"
     ports:
       - "${GOTENBERG_API_PORT:-3030}:3000"
     networks:
