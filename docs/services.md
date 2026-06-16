@@ -32,6 +32,11 @@
 - **Act Runner** - GitHub Actions runner for Gitea
 - **SonarQube** - Code quality analysis
 
+### Background Jobs & Workflows
+
+- **Inngest** - Event-driven background jobs and workflow engine
+- **Temporal** - Developer-first open-source orchestrator
+
 ### Monitoring & Management
 
 - **Grafana** - Analytics and monitoring dashboard
@@ -54,6 +59,7 @@
 | RabbitMQ UI | `http://localhost:15672` | `guest` / `guest` |
 | Adminer | `http://localhost:8081` | - |
 | Gitea | `http://localhost:3000` | - |
+| Inngest | `http://localhost:8288` (Host: `inngest.localhost`) | - |
 | SonarQube | `http://localhost:9000` | `admin` / `admin` |
 | Jenkins | `http://localhost:8090` | - |
 | MinIO | `http://localhost:9002` | `admin` / `password102` |
@@ -63,16 +69,18 @@
 | Redis Insight | `http://localhost:5540` | - |
 | Grafana | `http://localhost:3001` | `admin` / `password102` |
 | Loki | `http://localhost:3100` | - |
+| Temporal UI | `http://localhost:8083` (Host: `temporal.localhost`) | - |
 | Traefik | `http://localhost:8080` | - |
 
 ---
 
 ## 📊 Service Statistics
 
-- **Total Services**: 16
+- **Total Services**: 18
 - **Databases**: 4 (PostgreSQL, MySQL, MongoDB, Redis)
 - **Message Brokers**: 1 (RabbitMQ)
 - **CI/CD Platforms**: 3 (Jenkins, Concourse, Gitea)
+- **Workflow & Background Jobs**: 2 (Inngest, Temporal)
 - **Analysis Tools**: 1 (SonarQube)
 - **Storage**: 2 (MinIO, Object Storage)
 - **Caching**: 2 (Redis, Memcached)

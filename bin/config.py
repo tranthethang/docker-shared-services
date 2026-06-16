@@ -1,6 +1,6 @@
 SERVICES = [
     "act_runner", "adminer", "appsmith", "chromadb", "chromadb_admin", "concourse", "dockge",
-    "centrifugo", "dozzle", "gitea", "gotenberg", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
+    "centrifugo", "dozzle", "gitea", "gotenberg", "inngest", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
     "minio", "mongodb", "monitoring", "mysql8", "n8n", "otel", "pgvector", "pocketbase", "postgres", "portainer",
     "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik", "woodpecker"
 ]
@@ -14,6 +14,7 @@ START_ORDER = [
 ]
 
 VALIDATION_RULES = {
+    "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["PASSWORD"],
     "mysql8": ["PASSWORD"],
@@ -30,6 +31,7 @@ SERVICE_INFO_VARS = {
     "dozzle": ["DOZZLE_PORT"],
     "gitea": ["GITEA_HTTP_PORT", "GITEA_SSH_PORT"],
     "gotenberg": ["GOTENBERG_API_PORT"],
+    "inngest": ["INNGEST_PORT"],
     "mongodb": ["MONGO_PORT"],
     "monitoring": ["GRAFANA_PORT", "LOKI_PORT"],
     "mysql8": ["MYSQL_PORT", "MYSQL_DATABASE"],

@@ -182,6 +182,7 @@ info: ## Show service information and access URLs
 	@echo "  • Gitea - http://localhost:3000"
 	@echo "  • Gotenberg - http://localhost:3030 (container: gotenberg:3000)"
 	@echo "  • Grafana - http://localhost:3001 (Host: grafana.localhost)"
+	@echo "  • Inngest - http://localhost:8288 (Host: inngest.localhost)"
 	@echo "  • Jaeger - http://localhost:16686 (Host: jaeger.localhost)"
 	@echo "  • Jenkins - http://localhost:8090"
 	@echo "  • Kafka - localhost:9092"
