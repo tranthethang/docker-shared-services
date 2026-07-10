@@ -1,5 +1,5 @@
 SERVICES = [
-    "act_runner", "adminer", "appsmith", "chromadb", "chromadb_admin", "concourse", "dockge",
+    "act_runner", "adminer", "appsmith", "bugsink", "chromadb", "chromadb_admin", "concourse", "dockge",
     "centrifugo", "dozzle", "gitea", "gotenberg", "inngest", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
     "minio", "mongodb", "monitoring", "mysql8", "n8n", "otel", "pgvector", "pocketbase", "postgres", "portainer",
     "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik", "woodpecker"
@@ -25,6 +25,7 @@ VALIDATION_RULES = {
 
 SERVICE_INFO_VARS = {
     "appsmith": ["APPSMITH_PORT"],
+    "bugsink": ["BUGSINK_PORT", "BUGSINK_BASE_URL"],
     "chromadb": ["CHROMADB_PORT"],
     "chromadb_admin": ["CHROMADB_ADMIN_PORT"],
     "centrifugo": ["CENTRIFUGO_PORT"],

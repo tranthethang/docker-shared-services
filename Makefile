@@ -173,6 +173,7 @@ info: ## Show service information and access URLs
 	@echo "Services:"
 	@echo "  • Adminer - http://localhost:8081"
 	@echo "  • Appsmith - http://localhost:8091 (Host: appsmith.localhost)"
+	@echo "  • Bugsink - http://localhost:8150 (Host: bugsink.localhost)"
 	@echo "  • ChromaDB - http://localhost:8000 (Host: chromadb.localhost)"
 	@echo "  • ChromaDB Admin - http://localhost:8001 (Host: chromadb-admin.localhost)"
 	@echo "  • Centrifugo - http://localhost:8010 (container: centrifugo:8000)"
