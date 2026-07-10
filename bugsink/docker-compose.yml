@@ -28,6 +28,16 @@ services:
       BEHIND_HTTPS_PROXY: "${BUGSINK_BEHIND_HTTPS_PROXY:-true}"
       USE_X_FORWARDED_HOST: "${BUGSINK_USE_X_FORWARDED_HOST:-true}"
       BASE_URL: "${BUGSINK_BASE_URL:-https://bugsink.localhost}"
+      SITE_TITLE: "${BUGSINK_SITE_TITLE:-Bugsink}"
+      TIME_ZONE: "${TZ:-Asia/Ho_Chi_Minh}"
+      EMAIL_HOST: "${BUGSINK_EMAIL_HOST:-mailpit}"
+      EMAIL_PORT: "${BUGSINK_EMAIL_PORT:-1025}"
+      EMAIL_HOST_USER: "${BUGSINK_EMAIL_HOST_USER:-}"
+      EMAIL_HOST_PASSWORD: "${BUGSINK_EMAIL_HOST_PASSWORD:-}"
+      EMAIL_USE_TLS: "${BUGSINK_EMAIL_USE_TLS:-false}"
+      EMAIL_USE_SSL: "${BUGSINK_EMAIL_USE_SSL:-false}"
+      DEFAULT_FROM_EMAIL: "${BUGSINK_DEFAULT_FROM_EMAIL:-Bugsink <bugsink@localhost>}"
+      EMAIL_LOGGING: "${BUGSINK_EMAIL_LOGGING:-true}"
     networks:
       - infra_shared
       - dev_tools
