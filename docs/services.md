@@ -37,6 +37,10 @@
 - **Inngest** - Event-driven background jobs and workflow engine
 - **Temporal** - Developer-first open-source orchestrator
 
+### Web Crawling & Scraping
+
+- **Crawl4AI** - LLM-friendly web crawler and scraping service
+
 ### Monitoring & Management
 
 - **Grafana** - Analytics and monitoring dashboard
@@ -59,6 +63,7 @@
 | RabbitMQ UI | `http://localhost:15672` | `guest` / `guest` |
 | Adminer | `http://localhost:8081` | - |
 | Gitea | `http://localhost:3000` | - |
+| Crawl4AI | `http://localhost:11235` (Host: `crawl4ai.localhost`) | - |
 | Inngest | `http://localhost:8288` (Host: `inngest.localhost`) | - |
 | SonarQube | `http://localhost:9000` | `admin` / `admin` |
 | Jenkins | `http://localhost:8090` | - |
@@ -76,11 +81,12 @@
 
 ## 📊 Service Statistics
 
-- **Total Services**: 18
+- **Total Services**: 19
 - **Databases**: 4 (PostgreSQL, MySQL, MongoDB, Redis)
 - **Message Brokers**: 1 (RabbitMQ)
 - **CI/CD Platforms**: 3 (Jenkins, Concourse, Gitea)
 - **Workflow & Background Jobs**: 2 (Inngest, Temporal)
+- **Web Crawling & Scraping**: 1 (Crawl4AI)
 - **Analysis Tools**: 1 (SonarQube)
 - **Storage**: 2 (MinIO, Object Storage)
 - **Caching**: 2 (Redis, Memcached)

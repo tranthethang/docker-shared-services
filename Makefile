@@ -178,6 +178,7 @@ info: ## Show service information and access URLs
 	@echo "  • ChromaDB Admin - http://localhost:8001 (Host: chromadb-admin.localhost)"
 	@echo "  • Centrifugo - http://localhost:8010 (container: centrifugo:8000)"
 	@echo "  • Concourse - http://localhost:8070"
+	@echo "  • Crawl4AI - http://localhost:11235 (Host: crawl4ai.localhost)"
 	@echo "  • Dockge - http://localhost:5001"
 	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.localhost)"
 	@echo "  • Gitea - http://localhost:3000"
