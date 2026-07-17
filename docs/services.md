@@ -35,6 +35,7 @@
 ### Background Jobs & Workflows
 
 - **Inngest** - Event-driven background jobs and workflow engine
+- **Node-RED** - Flow-based programming tool for event-driven applications
 - **Temporal** - Developer-first open-source orchestrator
 
 ### Web Crawling & Scraping
@@ -65,6 +66,7 @@
 | Gitea | `http://localhost:3000` | - |
 | Crawl4AI | `http://localhost:11235` (Host: `crawl4ai.localhost`) | - |
 | Inngest | `http://localhost:8288` (Host: `inngest.localhost`) | - |
+| Node-RED | `http://localhost:1880` (Host: `node-red.localhost`) | - |
 | SonarQube | `http://localhost:9000` | `admin` / `admin` |
 | Jenkins | `http://localhost:8090` | - |
 | MinIO | `http://localhost:9002` | `admin` / `password102` |
@@ -81,11 +83,11 @@
 
 ## 📊 Service Statistics
 
-- **Total Services**: 19
+- **Total Services**: 20
 - **Databases**: 4 (PostgreSQL, MySQL, MongoDB, Redis)
 - **Message Brokers**: 1 (RabbitMQ)
 - **CI/CD Platforms**: 3 (Jenkins, Concourse, Gitea)
-- **Workflow & Background Jobs**: 2 (Inngest, Temporal)
+- **Workflow & Background Jobs**: 3 (Inngest, Temporal, Node-RED)
 - **Web Crawling & Scraping**: 1 (Crawl4AI)
 - **Analysis Tools**: 1 (SonarQube)
 - **Storage**: 2 (MinIO, Object Storage)

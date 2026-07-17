@@ -196,6 +196,7 @@ info: ## Show service information and access URLs
 	@echo "  • MongoDB - localhost:27017"
 	@echo "  • MySQL 8 - localhost:3306"
 	@echo "  • n8n - http://localhost:5678 (Host: n8n.localhost)"
+	@echo "  • Node-RED - http://localhost:1880 (Host: node-red.localhost)"
 	@echo "  • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP)"
 	@echo "  • PocketBase - http://localhost:8140 (Host: pocketbase.localhost)"
 	@echo "  • PgVector (PostgreSQL 17) - localhost:5432"
