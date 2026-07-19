@@ -16,7 +16,8 @@ services:
       --event-key ${INNGEST_EVENT_KEY} 
       --signing-key ${INNGEST_SIGNING_KEY} 
       --postgres-uri postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password102}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-inngest}?sslmode=disable 
-      --redis-uri redis://:${REDIS_PASSWORD:-password102}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
+      --redis-uri redis://:${REDIS_PASSWORD:-password102}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379} 
+      --sdk-url ${INNGEST_SDK_URL:-http://api:8000/api/inngest}
     ports:
       - "${INNGEST_PORT:-8288}:8288"
     environment:
