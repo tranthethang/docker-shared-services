@@ -1,0 +1,43 @@
+services:
+  node-red:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.node-red.rule=Host(`node-red.localhost`)"
+      - "traefik.http.routers.node-red.entrypoints=web,websecure"
+      - "traefik.http.routers.node-red.tls=true"
+      - "traefik.http.services.node-red.loadbalancer.server.port=1880"
+    container_name: node-red
+    image: nodered/node-red:4.0.9
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${NODE_RED_CPUS_LIMIT:-0.5}"
+          memory: "${NODE_RED_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${NODE_RED_CPUS_RESERVED:-0.1}"
+          memory: "${NODE_RED_MEMORY_RESERVED:-128M}"
+    ports:
+      - "${NODE_RED_PORT:-1880}:1880"
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+    volumes:
+      - node_red_data:/data
+    networks:
+      - infra_shared
+      - dev_tools
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:1880/', (res) => { if (res.statusCode >= 200 && res.statusCode < 400) { process.exit(0); } else { process.exit(1); } }).on('error', (e) => { process.exit(1); })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true
+
+volumes:
+  node_red_data:

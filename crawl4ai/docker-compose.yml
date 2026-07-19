@@ -1,0 +1,51 @@
+services:
+  crawl4ai:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.crawl4ai.rule=Host(`crawl4ai.localhost`)"
+      - "traefik.http.routers.crawl4ai.entrypoints=web,websecure"
+      - "traefik.http.routers.crawl4ai.tls=true"
+      - "traefik.http.services.crawl4ai.loadbalancer.server.port=11235"
+    container_name: crawl4ai
+    image: "unclecode/crawl4ai:latest"
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${CRAWL4AI_CPUS_LIMIT:-1.5}"
+          memory: "${CRAWL4AI_MEMORY_LIMIT:-2G}"
+        reservations:
+          cpus: "${CRAWL4AI_CPUS_RESERVED:-0.5}"
+          memory: "${CRAWL4AI_MEMORY_RESERVED:-512M}"
+    environment:
+      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN:-}
+      - CRAWL4_AI_BASE_DIRECTORY=/var/lib/crawl4ai
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - LLM_PROVIDER=${LLM_PROVIDER:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    ports:
+      - "${CRAWL4AI_PORT:-11235}:11235"
+    shm_size: "1gb"
+    volumes:
+      - crawl4ai_data:/var/lib/crawl4ai
+    networks:
+      - infra_shared
+      - dev_tools
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11235/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  crawl4ai_data:
+    name: crawl4ai_data
+
+networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true
