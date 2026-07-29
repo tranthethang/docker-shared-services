@@ -7,6 +7,17 @@ NC='\033[0m' # No Color
 
 echo "Testing OpenTelemetry Setup..."
 
+# Helper: get current time in nanoseconds (compatible with both Linux and macOS)
+get_unix_nano() {
+  if date +%s%N | grep -qv 'N'; then
+    # Linux: date supports %N natively
+    date +%s%N
+  else
+    # macOS fallback: use python3
+    python3 -c "import time; print(int(time.time() * 1e9))"
+  fi
+}
+
 # 1. Check if services are up
 echo -n "Checking OTel Collector (4318)... "
 if curl -s http://localhost:4318 > /dev/null; then
@@ -56,8 +67,8 @@ curl -s -X POST http://localhost:4318/v1/traces \
              "spanId": "EEE19B7EC3C1B174",
              "name": "test-span",
              "kind": 1,
-             "startTimeUnixNano": "'$(date +%s%N)'",
-             "endTimeUnixNano": "'$(($(date +%s%N) + 1000000))'",
+             "startTimeUnixNano": "'$(get_unix_nano)'",
+             "endTimeUnixNano": "'$(($(get_unix_nano) + 1000000))'",
              "attributes": [
                {
                  "key": "test.key",
@@ -103,8 +114,8 @@ curl -s -X POST http://localhost:4318/v1/metrics \
                "dataPoints": [
                  {
                    "asInt": "1",
-                   "startTimeUnixNano": "'$(date +%s%N)'",
-                   "timeUnixNano": "'$(date +%s%N)'"
+                   "startTimeUnixNano": "'$(get_unix_nano)'",
+                   "timeUnixNano": "'$(get_unix_nano)'"
                  }
                ],
                "aggregationTemporality": 1,

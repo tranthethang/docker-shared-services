@@ -11,10 +11,11 @@ services:
       resources:
         limits:
           cpus: ${OTEL_COLLECTOR_CPU_LIMIT:-0.1}
-          memory: ${OTEL_COLLECTOR_MEM_LIMIT:-128M}
+          memory: ${OTEL_COLLECTOR_MEM_LIMIT:-256M}
     ports:
       - "${OTEL_COLLECTOR_PORT_GRPC:-4317}:4317" # OTLP gRPC
       - "${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
+      - "${OTEL_COLLECTOR_PORT_METRICS:-8889}:8889" # Prometheus metric scrape endpoint
     networks:
       - infra_shared
       - dev_tools
@@ -37,6 +38,8 @@ services:
           memory: ${JAEGER_MEM_LIMIT:-512M}
     ports:
       - "${JAEGER_PORT:-16686}:16686" # Web UI
+      # Note: Jaeger OTLP gRPC (4317) is accessible inside Docker network via container name.
+      # No need to expose to host — OTel Collector connects via jaeger:4317 internally.
     networks:
       - infra_shared
       - dev_tools
@@ -59,7 +62,7 @@ services:
       resources:
         limits:
           cpus: ${PROMETHEUS_CPU_LIMIT:-0.1}
-          memory: ${PROMETHEUS_MEM_LIMIT:-256M}
+          memory: ${PROMETHEUS_MEM_LIMIT:-512M}
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
     networks:
