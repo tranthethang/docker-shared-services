@@ -26,7 +26,7 @@ alwaysApply: true
 
 ## Key Resources
 **Main Components**:
-- **Databases**: PgVector (PostgreSQL 17), MySQL 8, MariaDB, MongoDB, ChromaDB
+- **Databases**: PgVector (PostgreSQL 17), MySQL 8, MariaDB, MongoDB, ChromaDB, Qdrant
 - **Caching & Messaging**: Redis, RabbitMQ, Memcached
 - **DevOps & CI/CD**: Gitea, Jenkins, Concourse, SonarQube, Act Runner
 - **Management UIs**: Adminer, Dockge, Portainer, Redis Insight, Dozzle

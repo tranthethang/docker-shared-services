@@ -1,0 +1,61 @@
+services:
+  qdrant:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.localhost`)"
+      - "traefik.http.routers.qdrant.entrypoints=web,websecure"
+      - "traefik.http.routers.qdrant.tls=true"
+      - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
+    container_name: qdrant
+    image: qdrant/qdrant:v1.18.3
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${QDRANT_CPUS_LIMIT:-1}"
+          memory: "${QDRANT_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${QDRANT_CPUS_RESERVED:-0.1}"
+          memory: "${QDRANT_MEMORY_RESERVED:-256M}"
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333" # REST API
+      - "${QDRANT_GRPC_PORT:-6334}:6334" # gRPC
+    environment:
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-password102}
+      - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-INFO}
+      - QDRANT__TELEMETRY_DISABLED=${QDRANT_TELEMETRY_DISABLED:-true}
+    volumes:
+      - qdrant_data:/qdrant/storage
+      - qdrant_snapshots:/qdrant/snapshots
+    networks:
+      - infra_shared
+      - dev_tools
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    stop_grace_period: 30s
+    # Image has no curl/wget; probe /readyz over bash /dev/tcp.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /readyz HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q \"HTTP/1.[01] 200\" <&3'",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true
+
+volumes:
+  qdrant_data:
+    name: qdrant_data
+  qdrant_snapshots:
+    name: qdrant_snapshots

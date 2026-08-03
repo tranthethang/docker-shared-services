@@ -2,7 +2,7 @@ SERVICES = [
     "act_runner", "adminer", "appsmith", "bugsink", "chromadb", "chromadb_admin", "concourse", "crawl4ai", "dockge",
     "centrifugo", "dozzle", "gitea", "gotenberg", "inngest", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
     "minio", "mongodb", "monitoring", "mysql8", "n8n", "node-red", "otel", "pgvector", "pocketbase", "postgres", "portainer",
-    "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik", "woodpecker"
+    "qdrant", "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik", "woodpecker"
 ]
 
 ACTIONS = ["up", "down", "stop", "restart", "logs"]
@@ -10,7 +10,7 @@ ACTIONS = ["up", "down", "stop", "restart", "logs"]
 # Infra-first startup order for batch manage (services not listed start/stop by name).
 START_ORDER = [
     "traefik", "pgvector", "postgres", "redis", "mysql8", "mariadb",
-    "mongodb", "rabbitmq", "memcached", "minio", "kafka", "mailpit", "otel",
+    "mongodb", "chromadb", "qdrant", "rabbitmq", "memcached", "minio", "kafka", "mailpit", "otel",
 ]
 
 VALIDATION_RULES = {
@@ -43,6 +43,7 @@ SERVICE_INFO_VARS = {
     "pocketbase": ["POCKETBASE_PORT"],
     "pgvector": ["POSTGRES_PORT", "POSTGRES_DB"],
     "postgres": ["POSTGRES16_PORT", "POSTGRES16_DB"],
+    "qdrant": ["QDRANT_HTTP_PORT", "QDRANT_GRPC_PORT"],
     "redis": ["REDIS_PORT"],
     "sonarqube": ["SONARQUBE_PORT"],
     "temporal": ["TEMPORAL_UI_PORT", "TEMPORAL_GRPC_PORT"],
