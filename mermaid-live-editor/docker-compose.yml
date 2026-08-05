@@ -1,0 +1,40 @@
+services:
+  mermaid-live-editor:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
+      - "traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.localhost`)"
+      - "traefik.http.routers.mermaid-live-editor.entrypoints=web,websecure"
+      - "traefik.http.routers.mermaid-live-editor.tls=true"
+      - "traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080"
+    container_name: mermaid-live-editor
+    # GHCR only publishes latest (master/stable) and nightly (develop).
+    # Pinned digest = app package 2.0.67 (master @ 2026-07-14).
+    image: ghcr.io/mermaid-js/mermaid-live-editor:latest@sha256:836616adc144fdc0f711a8fb149cc572eed63fe4de347c2ab6448831c8992c28
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${MERMAID_LIVE_EDITOR_CPUS_LIMIT:-1.0}"
+          memory: "${MERMAID_LIVE_EDITOR_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${MERMAID_LIVE_EDITOR_CPUS_RESERVED:-0.1}"
+          memory: "${MERMAID_LIVE_EDITOR_MEMORY_RESERVED:-128M}"
+    ports:
+      # Host 8160 avoids conflicts (8080 Traefik, 8081 Adminer, 8082 Kafka UI, 8083 Temporal).
+      - "${MERMAID_LIVE_EDITOR_PORT:-8160}:8080"
+    networks:
+      - infra_shared
+      - dev_tools
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true

@@ -192,6 +192,7 @@ info: ## Show service information and access URLs
 	@echo "  • Mailpit - localhost:8025 (SMTP: 1025)"
 	@echo "  • MariaDB 11 - localhost:3307"
 	@echo "  • Memcached - localhost:11211"
+	@echo "  • Mermaid Live Editor - http://localhost:8160 (Host: mermaid.localhost)"
 	@echo "  • MinIO - http://localhost:9002"
 	@echo "  • MongoDB - localhost:27017"
 	@echo "  • MySQL 8 - localhost:3306"

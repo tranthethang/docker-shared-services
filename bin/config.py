@@ -1,8 +1,9 @@
 SERVICES = [
     "act_runner", "adminer", "appsmith", "bugsink", "chromadb", "chromadb_admin", "concourse", "crawl4ai", "dockge",
     "centrifugo", "dozzle", "gitea", "gotenberg", "inngest", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
-    "minio", "mongodb", "monitoring", "mysql8", "n8n", "node-red", "otel", "pgvector", "pocketbase", "postgres", "portainer",
-    "qdrant", "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal", "traefik", "woodpecker"
+    "mermaid-live-editor", "minio", "mongodb", "monitoring", "mysql8", "n8n", "node-red", "otel", "pgvector",
+    "pocketbase", "postgres", "portainer", "qdrant", "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal",
+    "traefik", "woodpecker",
 ]
 
 ACTIONS = ["up", "down", "stop", "restart", "logs"]
@@ -34,6 +35,7 @@ SERVICE_INFO_VARS = {
     "gitea": ["GITEA_HTTP_PORT", "GITEA_SSH_PORT"],
     "gotenberg": ["GOTENBERG_API_PORT"],
     "inngest": ["INNGEST_PORT"],
+    "mermaid-live-editor": ["MERMAID_LIVE_EDITOR_PORT"],
     "mongodb": ["MONGO_PORT"],
     "monitoring": ["GRAFANA_PORT", "LOKI_PORT"],
     "mysql8": ["MYSQL_PORT", "MYSQL_DATABASE"],
