@@ -6,35 +6,35 @@ Postgres here is a **dedicated** `supabase/postgres` container. It does not shar
 
 ## Services
 
-| Compose service    | Container                        | Role                                                                       |
-| ------------------ | -------------------------------- | -------------------------------------------------------------------------- |
-| `supabase-db`      | `supabase-db`                    | PostgreSQL 17 — Auth/Storage metadata and application schemas              |
-| `supabase-auth`    | `supabase-auth`                  | GoTrue — email/password, OAuth/SSO hooks, JWT issuance                     |
-| `supabase-storage` | `supabase-storage`               | Object storage API (local file backend by default)                         |
-| `realtime`         | `realtime-dev.supabase-realtime` | Elixir Realtime — postgres_changes, broadcast, presence                    |
-| `supabase-meta`    | `supabase-meta`                  | postgres-meta — schema introspection for Studio                            |
-| `supabase-studio`  | `supabase-studio`                | Web dashboard                                                              |
-| `supabase-kong`    | `supabase-kong`                  | API gateway (routes, CORS, key-auth, dashboard basic-auth) + Traefik entry |
+| Compose service    | Container                        | Role                                                                |
+| ------------------ | -------------------------------- | ------------------------------------------------------------------- |
+| `supabase-db`      | `supabase-db`                    | PostgreSQL 17 — Auth/Storage metadata and application schemas       |
+| `supabase-auth`    | `supabase-auth`                  | GoTrue — email/password, OAuth/SSO hooks, JWT issuance              |
+| `supabase-storage` | `supabase-storage`               | Object storage API (local file backend by default)                  |
+| `realtime`         | `realtime-dev.supabase-realtime` | Elixir Realtime — postgres_changes, broadcast, presence             |
+| `supabase-meta`    | `supabase-meta`                  | postgres-meta — schema introspection for Studio                     |
+| `supabase-studio`  | `supabase-studio`                | Web dashboard                                                       |
+| `supabase-kong`    | `supabase-kong`                  | API gateway (routes, CORS, key-auth) + Traefik; Studio via Authelia |
 
 The Realtime container name **must** stay `realtime-dev.supabase-realtime`: the service derives its tenant id from the `realtime-dev` subdomain.
 
 ```
-                    ┌─────────────┐
-  Browser / SDK ──► │ Traefik     │
-  supabase.localhost│ (infra)     │
-                    └──────┬──────┘
-                           ▼
-                    ┌─────────────┐
-                    │    Kong     │──► Studio (:3000)
-                    │  :8000/8443 │──► Auth  (:9999)
-   host :8002/:8445 └──────┬──────┘──► Storage (:5000)
-                           │         ──► Realtime (:4000)
-                           │         ──► Meta (:8080)
-                           ▼
-                     ┌──────────┐
-                     │ Postgres │
-                     │  :5432   │  (host: SUPABASE_DB_PORT=5434)
-                     └──────────┘
+                         ┌─────────────┐
+  APIs  supabase.localhost │ Traefik     │
+  Studio studio.dss.localhost│ (+ Authelia)│
+                         └──────┬──────┘
+                                ▼
+                         ┌─────────────┐
+                         │    Kong     │──► Studio (:3000)
+                         │  :8000/8443 │──► Auth  (:9999)
+        host :8002/:8445 └──────┬──────┘──► Storage (:5000)
+                                │         ──► Realtime (:4000)
+                                │         ──► Meta (:8080)
+                                ▼
+                          ┌──────────┐
+                          │ Postgres │
+                          │  :5432   │  (host: SUPABASE_DB_PORT=5434)
+                          └──────────┘
 ```
 
 ## What was removed
@@ -76,4 +76,8 @@ Realtime stores its tenant metadata in the `_realtime` schema (created/seeded on
 
 All services join external networks `infra_shared` and `dev_tools` (same as other stacks in this repo). Kong registers the alias `api-gw` on `infra_shared` so other containers can reach the gateway by that name.
 
-Traefik labels on `supabase-kong` use `Host(\`${SUPABASE_SUBDOMAIN}.${DOMAIN_NAME}\`)`(default`supabase.localhost`) on entrypoints `web`/`websecure\`.
+Traefik labels on `supabase-kong`:
+
+- APIs: `Host(\`supabase.localhost\`)` + PathPrefix (`/auth`, `/storage\`, …) — public
+- Studio: `Host(\`studio.dss.localhost\`)`+ middleware`authelia@docker\`
+- Legacy UI on `supabase.localhost` redirects to `studio.dss.localhost`

@@ -1,0 +1,4 @@
+.env
+config/db.sqlite3
+config/db.sqlite3-*
+config/notification.txt
