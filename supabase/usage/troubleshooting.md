@@ -116,6 +116,7 @@ docker exec realtime-dev.supabase-realtime \
 
 1. Client must use the same `SUPABASE_PUBLIC_URL` and anon/publishable key as Kong expects.
 1. Solo-dev memory: default limit is `512M` (`SUPABASE_REALTIME_MEMORY_LIMIT`). Increase if the container OOMs under many channels.
+
 ## “No such file” / scripts fail
 
 Run helpers from the **supabase directory** (or use `make up service=supabase` from repo root):

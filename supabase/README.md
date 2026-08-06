@@ -21,14 +21,14 @@ sh utils/generate-keys.sh --update-env
 sh run.sh start
 ```
 
-| Resource                 | URL                                   |
-| ------------------------ | ------------------------------------- |
-| Studio / API (Traefik)   | https://supabase.localhost            |
-| Studio / API (host port) | http://localhost:8002                 |
-| Auth                     | https://supabase.localhost/auth/v1    |
-| Storage                  | https://supabase.localhost/storage/v1 |
+| Resource                 | URL                                    |
+| ------------------------ | -------------------------------------- |
+| Studio / API (Traefik)   | https://supabase.localhost             |
+| Studio / API (host port) | http://localhost:8002                  |
+| Auth                     | https://supabase.localhost/auth/v1     |
+| Storage                  | https://supabase.localhost/storage/v1  |
 | Realtime                 | https://supabase.localhost/realtime/v1 |
-| Postgres                 | `localhost:5434`                      |
+| Postgres                 | `localhost:5434`                       |
 
 Studio uses HTTP basic auth from `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD` in `.env` (defaults: `admin` / `password102`).
 

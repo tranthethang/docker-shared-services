@@ -6,15 +6,15 @@ Postgres here is a **dedicated** `supabase/postgres` container. It does not shar
 
 ## Services
 
-| Compose service    | Container                       | Role                                                                       |
-| ------------------ | ------------------------------- | -------------------------------------------------------------------------- |
-| `supabase-db`      | `supabase-db`                   | PostgreSQL 17 — Auth/Storage metadata and application schemas              |
-| `supabase-auth`    | `supabase-auth`                 | GoTrue — email/password, OAuth/SSO hooks, JWT issuance                     |
-| `supabase-storage` | `supabase-storage`              | Object storage API (local file backend by default)                         |
-| `realtime`         | `realtime-dev.supabase-realtime`| Elixir Realtime — postgres_changes, broadcast, presence                    |
-| `supabase-meta`    | `supabase-meta`                 | postgres-meta — schema introspection for Studio                            |
-| `supabase-studio`  | `supabase-studio`               | Web dashboard                                                              |
-| `supabase-kong`    | `supabase-kong`                 | API gateway (routes, CORS, key-auth, dashboard basic-auth) + Traefik entry |
+| Compose service    | Container                        | Role                                                                       |
+| ------------------ | -------------------------------- | -------------------------------------------------------------------------- |
+| `supabase-db`      | `supabase-db`                    | PostgreSQL 17 — Auth/Storage metadata and application schemas              |
+| `supabase-auth`    | `supabase-auth`                  | GoTrue — email/password, OAuth/SSO hooks, JWT issuance                     |
+| `supabase-storage` | `supabase-storage`               | Object storage API (local file backend by default)                         |
+| `realtime`         | `realtime-dev.supabase-realtime` | Elixir Realtime — postgres_changes, broadcast, presence                    |
+| `supabase-meta`    | `supabase-meta`                  | postgres-meta — schema introspection for Studio                            |
+| `supabase-studio`  | `supabase-studio`                | Web dashboard                                                              |
+| `supabase-kong`    | `supabase-kong`                  | API gateway (routes, CORS, key-auth, dashboard basic-auth) + Traefik entry |
 
 The Realtime container name **must** stay `realtime-dev.supabase-realtime`: the service derives its tenant id from the `realtime-dev` subdomain.
 

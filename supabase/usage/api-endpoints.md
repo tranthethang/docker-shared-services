@@ -33,12 +33,12 @@ curl 'https://supabase.localhost/auth/v1/health' \
 
 ## Realtime
 
-| Path                   | Notes                                                                 |
-| ---------------------- | --------------------------------------------------------------------- |
-| `/realtime/v1/`        | WebSocket (`protocol: ws`) — phoenix socket for channels / changes    |
-| `/realtime/v1/api/*`   | HTTP Realtime API (key-auth + ACL)                                    |
-| `/realtime/v1/api/openapi` | Blocked (`403`)                                                   |
-| `/realtime/v1/api/tenants` | Blocked (`403`)                                                   |
+| Path                       | Notes                                                              |
+| -------------------------- | ------------------------------------------------------------------ |
+| `/realtime/v1/`            | WebSocket (`protocol: ws`) — phoenix socket for channels / changes |
+| `/realtime/v1/api/*`       | HTTP Realtime API (key-auth + ACL)                                 |
+| `/realtime/v1/api/openapi` | Blocked (`403`)                                                    |
+| `/realtime/v1/api/tenants` | Blocked (`403`)                                                    |
 
 Clients connect via the Supabase JS client (`supabase.channel(...)`). The SDK uses `SUPABASE_PUBLIC_URL` and the anon/publishable key; Kong forwards WebSocket traffic to `realtime-dev.supabase-realtime:4000`.
 

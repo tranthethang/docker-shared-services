@@ -52,7 +52,7 @@ See [Secrets and keys](./secrets-and-keys.md).
 | ------------------ | ------------- | ----------------------------------------------------------------- |
 | `POSTGRES_HOST`    | `supabase-db` | Compose service name                                              |
 | `POSTGRES_DB`      | `postgres`    | Database name                                                     |
-| `POSTGRES_PORT`    | `5432`        | **Container-internal** port (used by Auth/Storage/Realtime/Meta) |
+| `POSTGRES_PORT`    | `5432`        | **Container-internal** port (used by Auth/Storage/Realtime/Meta)  |
 | `SUPABASE_DB_PORT` | `5434`        | **Host** publish port (avoids pgvector `5432`, postgres16 `5433`) |
 
 This is a dedicated Supabase Postgres image, not the shared `pgvector` / `postgres` services. To point at an **external** Postgres, comment out the `supabase-db` service and related `depends_on` health checks in `docker-compose.yml`, then set `POSTGRES_HOST` / credentials accordingly.
@@ -83,10 +83,10 @@ OAuth, SAML, MFA, and Auth hooks can be added under the `supabase-auth` service 
 
 ## Realtime
 
-| Variable              | Default            | Notes                                                                 |
-| --------------------- | ------------------ | --------------------------------------------------------------------- |
+| Variable              | Default                | Notes                                                              |
+| --------------------- | ---------------------- | ------------------------------------------------------------------ |
 | `SECRET_KEY_BASE`     | *(see `.env.example`)* | Phoenix secret; regenerate for non-dev (`openssl rand -base64 48`) |
-| `REALTIME_DB_ENC_KEY` | `supabaserealtime` | Exactly 16 characters (`openssl rand -hex 8`)                         |
+| `REALTIME_DB_ENC_KEY` | `supabaserealtime`     | Exactly 16 characters (`openssl rand -hex 8`)                      |
 
 Compose service name is `realtime`; container name is fixed as `realtime-dev.supabase-realtime`. Resource limits: `SUPABASE_REALTIME_CPUS_*` / `SUPABASE_REALTIME_MEMORY_*`.
 
