@@ -1,6 +1,6 @@
-# Supabase (minimal)
+# Supabase (minimal + Realtime)
 
-Self-hosted Supabase pruned to **Auth + dedicated Postgres + Storage + Studio**, behind Kong. Part of [docker-shared-services](../): shared networks (`infra_shared`, `dev_tools`), Traefik TLS, and optional Mailpit for auth email.
+Self-hosted Supabase pruned to **Auth + dedicated Postgres + Storage + Realtime + Studio**, behind Kong. Part of [docker-shared-services](../): shared networks (`infra_shared`, `dev_tools`), Traefik TLS, and optional Mailpit for auth email.
 
 This stack uses its **own** Postgres (`supabase-db` on host port `5434`). It does **not** use the shared PgVector or Postgres 16 services.
 
@@ -27,6 +27,7 @@ sh run.sh start
 | Studio / API (host port) | http://localhost:8002                 |
 | Auth                     | https://supabase.localhost/auth/v1    |
 | Storage                  | https://supabase.localhost/storage/v1 |
+| Realtime                 | https://supabase.localhost/realtime/v1 |
 | Postgres                 | `localhost:5434`                      |
 
 Studio uses HTTP basic auth from `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD` in `.env` (defaults: `admin` / `password102`).
@@ -38,11 +39,12 @@ Studio uses HTTP basic auth from `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD` in 
 | `supabase-db`      | Dedicated PostgreSQL 17 (auth / storage metadata / app schemas) |
 | `supabase-auth`    | GoTrue (JWT / email / SSO hooks)                                |
 | `supabase-storage` | File / object storage API (local file backend)                  |
+| `realtime`         | WebSocket change feeds / broadcast / presence                   |
 | `supabase-meta`    | postgres-meta for Studio                                        |
 | `supabase-studio`  | Dashboard                                                       |
 | `supabase-kong`    | API gateway + Traefik entrypoint                                |
 
-**Not included:** PostgREST, Realtime, GraphQL, imgproxy, Edge Functions, Logflare/Vector, Supavisor, TLS proxy overlays (Traefik handles TLS).
+**Not included:** PostgREST, GraphQL, imgproxy, Edge Functions, Logflare/Vector, Supavisor, TLS proxy overlays (Traefik handles TLS).
 
 SMTP defaults to shared Mailpit (`mailpit:1025` on `infra_shared` / `dev_tools`).
 

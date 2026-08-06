@@ -7,7 +7,7 @@ docker-shared-services/
 ├── Makefile                    # make up service=supabase, …
 ├── docker-compose.shared.yml   # external networks infra_shared / dev_tools
 └── supabase/
-    ├── docker-compose.yml      # Stack definition (6 services)
+    ├── docker-compose.yml      # Stack definition (7 services)
     ├── .env.example            # Environment template
     ├── .env                    # Local secrets (gitignored)
     ├── run.sh                  # Start / stop / logs / helpers
@@ -26,6 +26,8 @@ docker-shared-services/
     │   │   ├── roles.sql
     │   │   ├── jwt.sql
     │   │   ├── auth-owner.sql
+    │   │   ├── storage-grants.sql
+    │   │   ├── realtime.sql
     │   │   └── data/           # Postgres data (runtime)
     │   ├── snippets/           # Studio SQL snippets
     │   └── storage/            # File-backend objects (runtime)
@@ -37,7 +39,7 @@ docker-shared-services/
 Tracked config under `volumes/`:
 
 - `volumes/api/kong.yml`, `volumes/api/kong-entrypoint.sh`
-- `volumes/db/roles.sql`, `jwt.sql`, `auth-owner.sql`
+- `volumes/db/roles.sql`, `jwt.sql`, `auth-owner.sql`, `storage-grants.sql`, `realtime.sql`
 - `volumes/snippets/.gitkeep`
 
 Runtime / secret paths must not be committed:

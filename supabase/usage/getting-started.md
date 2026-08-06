@@ -1,6 +1,6 @@
 # Getting Started
 
-Spin up the **minimal Supabase** stack (Auth, dedicated Postgres, Storage, Studio behind Kong) on this repo’s shared Docker networks and Traefik.
+Spin up the **minimal Supabase** stack (Auth, dedicated Postgres, Storage, Realtime, Studio behind Kong) on this repo’s shared Docker networks and Traefik.
 
 ## Prerequisites
 
@@ -37,13 +37,14 @@ sh run.sh start
 
 Wait until containers are healthy, then open Studio:
 
-| Resource                   | URL                                   |
-| -------------------------- | ------------------------------------- |
-| Studio / gateway (Traefik) | https://supabase.localhost            |
-| Studio / gateway (host)    | http://localhost:8002                 |
-| Auth API                   | https://supabase.localhost/auth/v1    |
-| Storage API                | https://supabase.localhost/storage/v1 |
-| Postgres                   | `localhost:5434`                      |
+| Resource                   | URL                                    |
+| -------------------------- | -------------------------------------- |
+| Studio / gateway (Traefik) | https://supabase.localhost             |
+| Studio / gateway (host)    | http://localhost:8002                  |
+| Auth API                   | https://supabase.localhost/auth/v1     |
+| Storage API                | https://supabase.localhost/storage/v1  |
+| Realtime                   | https://supabase.localhost/realtime/v1 |
+| Postgres                   | `localhost:5434`                       |
 
 Studio is protected by **HTTP basic auth** using `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` from `.env` (defaults: `admin` / `password102`).
 
@@ -55,9 +56,12 @@ make ps
 sh run.sh status
 sh run.sh logs
 sh run.sh logs supabase-auth
+sh run.sh logs realtime
 ```
 
-Compose service names are prefixed: `supabase-db`, `supabase-auth`, `supabase-storage`, `supabase-meta`, `supabase-studio`, `supabase-kong`.
+Compose service names: `supabase-db`, `supabase-auth`, `supabase-storage`, `realtime`, `supabase-meta`, `supabase-studio`, `supabase-kong`.
+
+Realtime’s **container** name is `realtime-dev.supabase-realtime` (required by the Realtime tenant id).
 
 ## Client apps
 
@@ -68,9 +72,17 @@ const supabase = createClient(
   'https://supabase.localhost',
   process.env.ANON_KEY! // or SUPABASE_PUBLISHABLE_KEY if using opaque keys
 )
+
+// Realtime example (broadcast / postgres_changes / presence)
+const channel = supabase
+  .channel('room-1')
+  .on('broadcast', { event: 'ping' }, (payload) => console.log(payload))
+  .subscribe()
+
+await channel.send({ type: 'broadcast', event: 'ping', payload: { ok: true } })
 ```
 
-**Note:** This stack has no PostgREST (`/rest/v1`). Use Auth + Storage via the client, and talk to Postgres with SQL, your own API, or Studio.
+**Note:** This stack has no PostgREST (`/rest/v1`). Use Auth + Storage + Realtime via the client, and talk to Postgres with SQL, your own API, or Studio. For `postgres_changes`, enable replication on the relevant tables (publication / replica identity) as in upstream Supabase docs.
 
 ## Next steps
 

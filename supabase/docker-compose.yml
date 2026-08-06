@@ -1,6 +1,6 @@
 # Minimal Supabase stack for docker-shared-services
-# Services: Identity (Auth) + Catalog DB + Asset Storage + Studio + Kong
-# Removed: rest, realtime, graphql, imgproxy, edge-runtime, analytics/logflare,
+# Services: Identity (Auth) + Catalog DB + Asset Storage + Realtime + Studio + Kong
+# Removed: rest, graphql, imgproxy, edge-runtime, analytics/logflare,
 #          vector, supavisor/pooler
 #
 # Usage (via repo Makefile):
@@ -89,6 +89,8 @@ services:
       supabase-auth:
         condition: service_healthy
       supabase-storage:
+        condition: service_healthy
+      realtime:
         condition: service_healthy
       supabase-meta:
         condition: service_started
@@ -223,6 +225,56 @@ services:
       - infra_shared
       - dev_tools
 
+  # Container name is intentional: Realtime derives tenant id from the subdomain
+  # (realtime-dev). Do not rename to supabase-realtime.
+  realtime:
+    container_name: realtime-dev.supabase-realtime
+    image: supabase/realtime:v2.102.3
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${SUPABASE_REALTIME_CPUS_LIMIT:-0.5}"
+          memory: "${SUPABASE_REALTIME_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${SUPABASE_REALTIME_CPUS_RESERVED:-0.1}"
+          memory: "${SUPABASE_REALTIME_MEMORY_RESERVED:-128M}"
+    depends_on:
+      supabase-db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sSfL --head -o /dev/null -H \"Authorization: Bearer ${ANON_KEY}\" http://localhost:4000/api/tenants/realtime-dev/health"
+        ]
+      timeout: 5s
+      interval: 30s
+      retries: 3
+      start_period: 10s
+    environment:
+      PORT: 4000
+      DB_HOST: ${POSTGRES_HOST:-supabase-db}
+      DB_PORT: ${POSTGRES_PORT:-5432}
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-password102}
+      DB_NAME: ${POSTGRES_DB:-postgres}
+      DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
+      DB_ENC_KEY: ${REALTIME_DB_ENC_KEY:-supabaserealtime}
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      METRICS_JWT_SECRET: ${JWT_SECRET}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      DNS_NODES: "''"
+      RLIMIT_NOFILE: "10000"
+      APP_NAME: realtime
+      SEED_SELF_HOST: "true"
+      RUN_JANITOR: "true"
+      DISABLE_HEALTHCHECK_LOGGING: "true"
+    networks:
+      - infra_shared
+      - dev_tools
+
   supabase-meta:
     container_name: supabase-meta
     image: supabase/postgres-meta:v0.96.6
@@ -271,6 +323,10 @@ services:
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
       # Fix auth.uid/role/email ownership for GoTrue (see auth-owner.sql)
       - ./volumes/db/auth-owner.sql:/docker-entrypoint-initdb.d/init-scripts/99-auth-owner.sql:Z
+      # Storage SET ROLE grants for Studio bucket list (see storage-grants.sql)
+      - ./volumes/db/storage-grants.sql:/docker-entrypoint-initdb.d/init-scripts/99-storage-grants.sql:Z
+      # Realtime Elixir metadata schema (_realtime)
+      - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
       - ./volumes/db/data:/var/lib/postgresql/data:Z
       - supabase_db_config:/etc/postgresql-custom
     healthcheck:

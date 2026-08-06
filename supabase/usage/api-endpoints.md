@@ -31,6 +31,24 @@ curl 'https://supabase.localhost/auth/v1/health' \
   -H "apikey: $ANON_KEY"
 ```
 
+## Realtime
+
+| Path                   | Notes                                                                 |
+| ---------------------- | --------------------------------------------------------------------- |
+| `/realtime/v1/`        | WebSocket (`protocol: ws`) — phoenix socket for channels / changes    |
+| `/realtime/v1/api/*`   | HTTP Realtime API (key-auth + ACL)                                    |
+| `/realtime/v1/api/openapi` | Blocked (`403`)                                                   |
+| `/realtime/v1/api/tenants` | Blocked (`403`)                                                   |
+
+Clients connect via the Supabase JS client (`supabase.channel(...)`). The SDK uses `SUPABASE_PUBLIC_URL` and the anon/publishable key; Kong forwards WebSocket traffic to `realtime-dev.supabase-realtime:4000`.
+
+Health (from inside the Realtime container / compose network):
+
+```sh
+curl -sSfL -H "Authorization: Bearer $ANON_KEY" \
+  http://realtime-dev.supabase-realtime:4000/api/tenants/realtime-dev/health
+```
+
 ## Storage API
 
 | Path            | Notes                                                       |
@@ -79,14 +97,13 @@ There is **no** `/rest/v1` PostgREST endpoint in this stack. Query Postgres with
 These paths exist in full Supabase deployments but are **not** routed here:
 
 - `/rest/v1` — PostgREST
-- `/realtime/v1` — Realtime
 - `/functions/v1` — Edge Functions
 - `/graphql/v1` — GraphQL
 - Analytics / Logs Explorer APIs
 
 ## Kong configuration
 
-Entrypoint substitutes env placeholders: [`volumes/api/kong-entrypoint.sh`](../volumes/api/kong-entrypoint.sh).
+Entrypoint substitutes env placeholders: [`volumes/api/kong-entrypoint.sh`](../volumes/api/kong-entrypoint.sh). Realtime WebSocket `apikey` query params are rewritten via `LUA_RT_WS_EXPR`.
 
 After editing `kong.yml` or related env vars:
 

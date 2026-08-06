@@ -33,7 +33,7 @@ basicauth_credentials:
     password: '$DASHBOARD_PASSWORD'
 
 ###
-### API Routes — minimal stack (Auth + Storage + Meta + Studio)
+### API Routes — Auth + Storage + Realtime + Meta + Studio
 ###
 services:
   ## Open Auth routes
@@ -107,6 +107,95 @@ services:
         strip_path: true
         paths:
           - /auth/v1/
+    plugins:
+      - name: cors
+      - name: key-auth
+        config:
+          hide_credentials: false
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+          replace:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - admin
+            - anon
+
+  ## Secure Realtime routes
+  - name: realtime-v1-ws
+    _comment: 'Realtime: /realtime/v1/* -> ws://realtime-dev.supabase-realtime:4000/socket/*'
+    url: http://realtime-dev.supabase-realtime:4000/socket
+    protocol: ws
+    routes:
+      - name: realtime-v1-ws
+        strip_path: true
+        paths:
+          - /realtime/v1/
+    plugins:
+      - name: cors
+      - name: key-auth
+        config:
+          hide_credentials: false
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "x-api-key:$LUA_RT_WS_EXPR"
+          replace:
+            querystring:
+              - "apikey:$LUA_RT_WS_EXPR"
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - admin
+            - anon
+
+  - name: realtime-v1-rest-openapi
+    _comment: 'Realtime: /realtime/v1/api/openapi/* blocked'
+    url: http://realtime-dev.supabase-realtime:4000/api/openapi
+    protocol: http
+    routes:
+      - name: realtime-v1-rest-openapi
+        strip_path: true
+        paths:
+          - /realtime/v1/api/openapi
+    plugins:
+      - name: request-termination
+        config:
+          status_code: 403
+          message: "Access is forbidden."
+
+  - name: realtime-v1-rest-tenants
+    _comment: 'Realtime: /realtime/v1/api/tenants/* blocked'
+    url: http://realtime-dev.supabase-realtime:4000/api/tenants
+    protocol: http
+    routes:
+      - name: realtime-v1-rest-tenants
+        strip_path: true
+        paths:
+          - /realtime/v1/api/tenants
+    plugins:
+      - name: request-termination
+        config:
+          status_code: 403
+          message: "Access is forbidden."
+
+  - name: realtime-v1-rest
+    _comment: 'Realtime: /realtime/v1/api/* -> http://realtime-dev.supabase-realtime:4000/api/*'
+    url: http://realtime-dev.supabase-realtime:4000/api
+    protocol: http
+    routes:
+      - name: realtime-v1-rest
+        strip_path: true
+        paths:
+          - /realtime/v1/api
     plugins:
       - name: cors
       - name: key-auth

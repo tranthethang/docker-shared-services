@@ -12,6 +12,7 @@ How to create and rotate credentials for the minimal stack. Run scripts from `su
 | Opaque API key rotation only | `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`                                          | [`utils/rotate-new-api-keys.sh`](../utils/rotate-new-api-keys.sh)                             |
 | Studio login                 | `DASHBOARD_USERNAME`, `DASHBOARD_PASSWORD`                                                 | Edit `.env`, then recreate Kong                                                               |
 | Meta crypto                  | `PG_META_CRYPTO_KEY`                                                                       | Edit `.env` before first Studio use                                                           |
+| Realtime                     | `SECRET_KEY_BASE`, `REALTIME_DB_ENC_KEY`                                                   | Edit `.env` (`openssl rand -base64 48` / `openssl rand -hex 8`)                               |
 | Storage S3 protocol          | `S3_PROTOCOL_ACCESS_KEY_*`                                                                 | Edit `.env`                                                                                   |
 
 Print a subset of secrets:
