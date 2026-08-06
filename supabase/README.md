@@ -11,7 +11,8 @@ This stack uses its **own** Postgres (`supabase-db` on host port `5434`). It doe
 cp supabase/.env.example supabase/.env
 (cd supabase && sh utils/generate-keys.sh --update-env)
 make setup                    # networks + .env files if needed
-make up service=traefik       # TLS for supabase.localhost
+make up service=traefik       # TLS
+make up service=authelia      # Studio SSO portal
 make up service=mailpit       # optional: catch auth emails
 make up service=supabase
 
@@ -21,16 +22,17 @@ sh utils/generate-keys.sh --update-env
 sh run.sh start
 ```
 
-| Resource                 | URL                                    |
-| ------------------------ | -------------------------------------- |
-| Studio / API (Traefik)   | https://supabase.localhost             |
-| Studio / API (host port) | http://localhost:8002                  |
-| Auth                     | https://supabase.localhost/auth/v1     |
-| Storage                  | https://supabase.localhost/storage/v1  |
-| Realtime                 | https://supabase.localhost/realtime/v1 |
-| Postgres                 | `localhost:5434`                       |
+| Resource                    | URL                                         |
+| --------------------------- | ------------------------------------------- |
+| Studio (Traefik + Authelia) | https://studio.dss.localhost                |
+| API gateway (Traefik)       | https://supabase.localhost                  |
+| Studio / API (host port)    | http://localhost:8002 *(bypasses Authelia)* |
+| Auth                        | https://supabase.localhost/auth/v1          |
+| Storage                     | https://supabase.localhost/storage/v1       |
+| Realtime                    | https://supabase.localhost/realtime/v1      |
+| Postgres                    | `localhost:5434`                            |
 
-Studio uses HTTP basic auth from `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD` in `.env` (defaults: `admin` / `password102`).
+Studio login is **Authelia** at https://auth.dss.localhost (`admin` / `password102`). Visiting https://supabase.localhost redirects Studio UI to https://studio.dss.localhost.
 
 ## Services
 

@@ -78,7 +78,8 @@ docker restart supabase-auth
 
 - Use the current `ANON_KEY` / `SERVICE_ROLE_KEY` (or opaque keys) from `.env`.
 - After regenerating keys, recreate `supabase-kong` (and usually `supabase-auth` / `supabase-storage` / `realtime` / `supabase-studio`).
-- Dashboard basic-auth failures mean `DASHBOARD_*` mismatch — recreate `supabase-kong` after edits.
+- Studio SSO: ensure Authelia is up (`make up service=authelia`) and open https://studio.dss.localhost.
+- Host port `http://localhost:8002` bypasses Traefik/Authelia — local debugging only.
 
 ## Realtime unhealthy or WebSocket fails
 
