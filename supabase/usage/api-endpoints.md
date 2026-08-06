@@ -1,8 +1,11 @@
 # API Endpoints
 
-Kong listens on container ports `8000` / `8443`, published as `SUPABASE_KONG_HTTP_PORT` / `SUPABASE_KONG_HTTPS_PORT` (defaults **8002** / **8445**). Traefik also routes `https://supabase.localhost` to Kong when Traefik is running.
+Kong listens on container ports `8000` / `8443`, published as `SUPABASE_KONG_HTTP_PORT` / `SUPABASE_KONG_HTTPS_PORT` (defaults **8002** / **8445**). Traefik routes:
 
-Preferred base URL: `https://supabase.localhost` (`SUPABASE_PUBLIC_URL`). Direct host access: `http://localhost:8002`.
+- APIs → `https://supabase.localhost`
+- Studio → `https://studio.dss.localhost` (Authelia)
+
+Preferred API base URL: `https://supabase.localhost` (`SUPABASE_PUBLIC_URL`). Direct host access: `http://localhost:8002` (bypasses Authelia).
 
 Declarative routes live in [`volumes/api/kong.yml`](../volumes/api/kong.yml).
 
@@ -65,11 +68,11 @@ No Kong `key-auth` on Storage (S3 protocol / SigV4 and user JWTs). Image transfo
 
 ## Studio / dashboard
 
-| Path                     | Auth                            |
-| ------------------------ | ------------------------------- |
-| `/` and Studio UI routes | HTTP basic auth (`DASHBOARD_*`) |
+| Path                     | Auth                                                          |
+| ------------------------ | ------------------------------------------------------------- |
+| `/` and Studio UI routes | Authelia on `studio.dss.localhost` (Kong basic-auth disabled) |
 
-Open https://supabase.localhost or http://localhost:8002 and sign in with the dashboard credentials from `.env`.
+Open https://studio.dss.localhost and sign in via Authelia (`admin` / `password102`). Non-API paths on https://supabase.localhost redirect there.
 
 ## MCP
 

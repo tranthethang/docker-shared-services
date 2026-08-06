@@ -1,0 +1,70 @@
+# Authelia config for docker-shared-services
+# Cookie domain cannot be bare "localhost" (browser + Authelia reject it).
+# Portal and protected apps share parent domain: *.dss.localhost
+# Docs: https://www.authelia.com/configuration/session/introduction/
+
+theme: 'auto'
+
+server:
+  address: 'tcp://:9091/'
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: 'ForwardAuth'
+
+log:
+  level: 'info'
+  format: 'text'
+
+totp:
+  disable: false
+  issuer: 'docker-shared-services'
+
+authentication_backend:
+  password_reset:
+    disable: false
+  refresh_interval: '5 minutes'
+  file:
+    path: '/config/users_database.yml'
+    watch: true
+
+access_control:
+  default_policy: 'deny'
+  rules:
+    - domain: 'auth.dss.localhost'
+      policy: 'bypass'
+    - domain: 'dss.localhost'
+      policy: 'one_factor'
+    - domain: '*.dss.localhost'
+      policy: 'one_factor'
+
+session:
+  name: 'authelia_session'
+  same_site: 'lax'
+  inactivity: '1 hour'
+  expiration: '12 hours'
+  cookies:
+    - domain: 'dss.localhost'
+      authelia_url: 'https://auth.dss.localhost'
+      # Landing when opening the portal directly (must differ from authelia_url)
+      default_redirection_url: 'https://auth.dss.localhost/settings'
+
+regulation:
+  max_retries: 5
+  find_time: '2 minutes'
+  ban_time: '5 minutes'
+
+storage:
+  local:
+    path: '/config/db.sqlite3'
+
+notifier:
+  disable_startup_check: true
+  filesystem:
+    filename: '/config/notification.txt'
+  # Optional: use shared Mailpit instead of filesystem dumps
+  # smtp:
+  #   address: 'smtp://mailpit:1025'
+  #   sender: 'Authelia <authelia@localhost>'
+  #   subject: '[Authelia] {title}'
+  #   disable_require_tls: true

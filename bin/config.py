@@ -2,6 +2,7 @@ SERVICES = [
     "act_runner",
     "adminer",
     "appsmith",
+    "authelia",
     "bugsink",
     "chromadb",
     "chromadb_admin",
@@ -46,6 +47,7 @@ ACTIONS = ["up", "down", "stop", "restart", "logs"]
 # Infra-first startup order for batch manage (services not listed start/stop by name).
 START_ORDER = [
     "traefik",
+    "authelia",
     "pgvector",
     "postgres",
     "redis",
@@ -64,6 +66,11 @@ START_ORDER = [
 ]
 
 VALIDATION_RULES = {
+    "authelia": [
+        "AUTHELIA_JWT_SECRET",
+        "AUTHELIA_SESSION_SECRET",
+        "AUTHELIA_STORAGE_ENCRYPTION_KEY",
+    ],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["PASSWORD"],
@@ -75,6 +82,7 @@ VALIDATION_RULES = {
 
 SERVICE_INFO_VARS = {
     "appsmith": ["APPSMITH_PORT"],
+    "authelia": ["AUTHELIA_PORT", "AUTHELIA_HOSTNAME"],
     "bugsink": ["BUGSINK_PORT", "BUGSINK_BASE_URL"],
     "chromadb": ["CHROMADB_PORT"],
     "chromadb_admin": ["CHROMADB_ADMIN_PORT"],
@@ -97,7 +105,12 @@ SERVICE_INFO_VARS = {
     "qdrant": ["QDRANT_HTTP_PORT", "QDRANT_GRPC_PORT"],
     "redis": ["REDIS_PORT"],
     "sonarqube": ["SONARQUBE_PORT"],
-    "supabase": ["SUPABASE_KONG_HTTP_PORT", "SUPABASE_DB_PORT", "SUPABASE_PUBLIC_URL"],
+    "supabase": [
+        "SUPABASE_KONG_HTTP_PORT",
+        "SUPABASE_DB_PORT",
+        "SUPABASE_PUBLIC_URL",
+        "SUPABASE_STUDIO_HOSTNAME",
+    ],
     "temporal": ["TEMPORAL_UI_PORT", "TEMPORAL_GRPC_PORT"],
     "woodpecker": ["WOODPECKER_HTTP_PORT"],
 }

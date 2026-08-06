@@ -6,17 +6,18 @@ Prefer starting via the repo Makefile (`make up service=supabase`) so shared net
 
 ## Secrets (change before first start)
 
-| Variable                                                      | Description                                                    |
-| ------------------------------------------------------------- | -------------------------------------------------------------- |
-| `POSTGRES_PASSWORD`                                           | Shared password for Postgres roles used by Auth/Storage        |
-| `JWT_SECRET`                                                  | Legacy HS256 signing secret (min 32 characters)                |
-| `ANON_KEY`                                                    | Legacy anon JWT (signed with `JWT_SECRET`)                     |
-| `SERVICE_ROLE_KEY`                                            | Legacy service_role JWT — **server-side only**                 |
-| `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD`                   | Kong basic-auth for Studio (defaults: `admin` / `password102`) |
-| `PG_META_CRYPTO_KEY`                                          | Studio ↔ postgres-meta encryption (min 32 chars)               |
-| `SECRET_KEY_BASE`                                             | Realtime Phoenix secret (min 64 chars)                         |
-| `REALTIME_DB_ENC_KEY`                                         | Realtime `_realtime` field encryption (exactly 16 chars)       |
-| `S3_PROTOCOL_ACCESS_KEY_ID` / `S3_PROTOCOL_ACCESS_KEY_SECRET` | Storage S3-protocol credentials                                |
+| Variable                                                      | Description                                               |
+| ------------------------------------------------------------- | --------------------------------------------------------- |
+| `POSTGRES_PASSWORD`                                           | Shared password for Postgres roles used by Auth/Storage   |
+| `JWT_SECRET`                                                  | Legacy HS256 signing secret (min 32 characters)           |
+| `ANON_KEY`                                                    | Legacy anon JWT (signed with `JWT_SECRET`)                |
+| `SERVICE_ROLE_KEY`                                            | Legacy service_role JWT — **server-side only**            |
+| `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD`                   | Legacy Kong basic-auth (plugin off; Studio uses Authelia) |
+| `SUPABASE_STUDIO_HOSTNAME`                                    | Studio Traefik host (default `studio.dss.localhost`)      |
+| `PG_META_CRYPTO_KEY`                                          | Studio ↔ postgres-meta encryption (min 32 chars)          |
+| `SECRET_KEY_BASE`                                             | Realtime Phoenix secret (min 64 chars)                    |
+| `REALTIME_DB_ENC_KEY`                                         | Realtime `_realtime` field encryption (exactly 16 chars)  |
+| `S3_PROTOCOL_ACCESS_KEY_ID` / `S3_PROTOCOL_ACCESS_KEY_SECRET` | Storage S3-protocol credentials                           |
 
 Generate JWT + legacy API keys with:
 

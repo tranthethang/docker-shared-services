@@ -85,6 +85,8 @@ cert: ## Generate SSL certificates for Traefik
 		       -key-file traefik/certs/server.key \
 		       "$$CURRENT_IP" \
 		       "*.localhost" \
+		       "*.dss.localhost" \
+		       "dss.localhost" \
 		       localhost \
 		       127.0.0.1 \
 		       ::1; \

@@ -48,6 +48,7 @@ ______________________________________________________________________
 - **Loki** - Log aggregation system
 - **Promtail** - Log shipper for Docker containers
 - **Traefik** - Reverse proxy and load balancer
+- **Authelia** - Lightweight SSO / ForwardAuth login portal (Traefik middleware)
 - **Redis Insight** - Redis management UI
 
 ______________________________________________________________________
@@ -78,6 +79,7 @@ ______________________________________________________________________
 | Loki          | `http://localhost:3100`                               | -                          |
 | Temporal UI   | `http://localhost:8083` (Host: `temporal.localhost`)  | -                          |
 | Traefik       | `http://localhost:8080`                               | -                          |
+| Authelia      | `https://auth.dss.localhost` (Host port: `9091`)      | `admin` / `password102`    |
 
 ______________________________________________________________________
 
