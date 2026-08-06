@@ -288,6 +288,8 @@ services:
     volumes:
       - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
+      # Fix auth.uid/role/email ownership for GoTrue (see auth-owner.sql)
+      - ./volumes/db/auth-owner.sql:/docker-entrypoint-initdb.d/init-scripts/99-auth-owner.sql:Z
       - ./volumes/db/data:/var/lib/postgresql/data:Z
       - supabase_db_config:/etc/postgresql-custom
     healthcheck:

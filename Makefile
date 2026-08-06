@@ -1,4 +1,4 @@
-.PHONY: help setup ps remove-all prune remove-config info up down stop restart logs cert validate manage
+.PHONY: help setup ps remove-all prune remove-config info up down stop restart logs cert validate manage sync format format-check
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -6,6 +6,7 @@ SHELL := /bin/bash
 # Python managers
 PYTHON_ENV_MGR := python3 bin/env_manager.py
 PYTHON_SVC_MGR := python3 bin/service_manager.py
+UV ?= uv
 
 # Dynamic DOCKER_COMPOSE command that includes all services
 DOCKER_COMPOSE = docker compose -f docker-compose.shared.yml \
@@ -218,3 +219,15 @@ validate: ## Validate all Docker Compose files
 	@echo "Validating Docker Compose configuration..."
 	@$(DOCKER_COMPOSE) config >/dev/null
 	@echo "✅ Compose configuration is valid"
+
+sync: ## Install Python tooling deps with uv (ruff, yamlfix, mdformat, …)
+	@$(UV) sync --group dev
+	@echo "✅ uv sync complete"
+
+format: ## Format YAML, JSON, Markdown, Python, and .env.example files
+	@$(UV) sync --group dev --quiet
+	@PYTHONUNBUFFERED=1 $(UV) run python scripts/format_repo.py
+
+format-check: ## Check formatting without writing changes
+	@$(UV) sync --group dev --quiet
+	@PYTHONUNBUFFERED=1 $(UV) run python scripts/format_repo.py --check

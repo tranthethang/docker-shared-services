@@ -1,6 +1,6 @@
 # Secrets and Keys
 
-How to create and rotate credentials for the minimal stack.
+How to create and rotate credentials for the minimal stack. Run scripts from `supabase/` unless noted.
 
 ## Overview
 
@@ -17,17 +17,25 @@ How to create and rotate credentials for the minimal stack.
 Print a subset of secrets:
 
 ```sh
+cd supabase
 sh run.sh secrets
 ```
 
 ## Generate legacy JWT keys
 
-Requires `openssl`. Run from the repo root with a `.env` present (or create one first).
+Requires `openssl`. Run with a `.env` present (or create one first):
 
 ```sh
+cd supabase
 cp .env.example .env
 sh utils/generate-keys.sh              # print + prompt to update .env
 sh utils/generate-keys.sh --update-env # write without interactive prompt for the update step
+```
+
+From repo root:
+
+```sh
+(cd supabase && sh utils/generate-keys.sh --update-env)
 ```
 
 This sets a new `JWT_SECRET` and re-signs `ANON_KEY` / `SERVICE_ROLE_KEY`.
@@ -39,6 +47,7 @@ This sets a new `JWT_SECRET` and re-signs `ANON_KEY` / `SERVICE_ROLE_KEY`.
 Prerequisites: `.env` with `JWT_SECRET` already set; Node ≥ 16 **or** Docker (pulls `node:22-alpine` on first run).
 
 ```sh
+cd supabase
 sh utils/add-new-auth-keys.sh
 sh utils/add-new-auth-keys.sh --update-env
 ```
@@ -48,7 +57,7 @@ Writes publishable/secret opaque keys and ES256-related fields used by Kong cons
 After updating `.env`, recreate affected services:
 
 ```sh
-sh run.sh recreate kong auth storage studio
+sh run.sh recreate supabase-kong supabase-auth supabase-storage supabase-studio
 ```
 
 If you enable `GOTRUE_JWT_KEYS` / `JWT_JWKS` in Compose (commented by default), Auth and Storage must be recreated as well so they pick up JWKS verification.
@@ -58,25 +67,27 @@ If you enable `GOTRUE_JWT_KEYS` / `JWT_JWKS` in Compose (commented by default), 
 Leaves the EC key pair / JWKS untouched; regenerates `SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`.
 
 ```sh
+cd supabase
 sh utils/rotate-new-api-keys.sh
 sh utils/rotate-new-api-keys.sh --update-env
-sh run.sh recreate kong
+sh run.sh recreate supabase-kong
 ```
 
 Update every client that embeds the publishable key.
 
 ## Rotate Postgres password (live)
 
-With the `db` container healthy:
+With `supabase-db` healthy:
 
 ```sh
+cd supabase
 sh utils/db-passwd.sh
 ```
 
 The script generates a new password, updates roles inside Postgres, and writes `POSTGRES_PASSWORD` into `.env`. Then recreate services that embed the DB URL:
 
 ```sh
-sh run.sh recreate auth storage meta studio
+sh run.sh recreate supabase-auth supabase-storage supabase-meta supabase-studio
 ```
 
 ## Dashboard password
@@ -85,7 +96,7 @@ sh run.sh recreate auth storage meta studio
 2. Recreate Kong so `kong.yml` template substitution picks up the new values:
 
 ```sh
-sh run.sh recreate kong
+sh run.sh recreate supabase-kong
 ```
 
 ## Security checklist
@@ -94,4 +105,4 @@ sh run.sh recreate kong
 - Treat `SERVICE_ROLE_KEY` / `SUPABASE_SECRET_KEY` as root — never ship them to browsers.
 - Replace every default in `.env.example` before exposing ports beyond localhost.
 - Prefer `ENABLE_EMAIL_AUTOCONFIRM=false` and a real SMTP relay in production.
-- Restrict host firewall / bind addresses if Postgres (`5432`) and Kong (`8000`) are reachable from untrusted networks.
+- Restrict host firewall / bind addresses if Postgres (`SUPABASE_DB_PORT`, default `5434`) and Kong (`SUPABASE_KONG_HTTP_PORT`, default `8002`) are reachable from untrusted networks.

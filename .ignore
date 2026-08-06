@@ -1,0 +1,51 @@
+# Extra ignore patterns (ripgrep, fd, and scripts/format_repo.py).
+# Merged with .gitignore by the formatter.
+
+# Python / uv
+.venv/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+uv.lock
+
+# Generated / runtime data
+**/data/
+**/volumes/
+**/.docker/
+**/*_data/
+**/jenkins_home/
+**/sonarqube_*/
+
+# Secrets & machine-local env (format .env.example only)
+.env
+.env.local
+.env.production
+.env.*.local
+.env.test
+
+# Certs & ACME state
+**/server.crt
+**/server.key
+traefik/certs/
+traefik/acme.json
+
+# Logs / backups / OS
+*.log
+logs/
+*.tmp
+tmp/
+temp/
+*.sql
+*.sql.gz
+*.bak
+*.backup
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+.zencoder/
+.zenflow/

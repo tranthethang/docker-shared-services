@@ -1,8 +1,8 @@
 # Configuration
 
-All runtime settings live in `.env` (copied from [`.env.example`](../.env.example)). Never commit `.env`.
+All runtime settings live in `supabase/.env` (copied from [`.env.example`](../.env.example)). Never commit `.env`.
 
-Prefer starting via the repo Makefile (`make up service=supabase`) so shared networks exist. Compose also reads `COMPOSE_FILE` from `.env` for local `run.sh` usage.
+Prefer starting via the repo Makefile (`make up service=supabase`) so shared networks exist. Local helpers (`run.sh`) read `COMPOSE_FILE` from `.env` when you work inside `supabase/`.
 
 ## Secrets (change before first start)
 
@@ -19,6 +19,7 @@ Prefer starting via the repo Makefile (`make up service=supabase`) so shared net
 Generate JWT + legacy API keys with:
 
 ```sh
+cd supabase
 sh utils/generate-keys.sh --update-env
 ```
 
@@ -52,7 +53,7 @@ See [Secrets and keys](./secrets-and-keys.md).
 | `POSTGRES_PORT` | `5432` | **Container-internal** port (used by Auth/Storage/Meta) |
 | `SUPABASE_DB_PORT` | `5434` | **Host** publish port (avoids pgvector `5432`, postgres16 `5433`) |
 
-To use an **external** Postgres, comment out the `supabase-db` service and related `depends_on` health checks in `docker-compose.yml`, then set `POSTGRES_HOST` / credentials accordingly.
+This is a dedicated Supabase Postgres image, not the shared `pgvector` / `postgres` services. To point at an **external** Postgres, comment out the `supabase-db` service and related `depends_on` health checks in `docker-compose.yml`, then set `POSTGRES_HOST` / credentials accordingly.
 
 ## Studio
 
@@ -86,7 +87,7 @@ OAuth, SAML, MFA, and Auth hooks can be added under the `supabase-auth` service 
 | `REGION` | `stub` | Required by Storage API |
 | `STORAGE_TENANT_ID` | `stub` | Tenant id |
 
-Default backend is **file** under `./volumes/storage`.
+Default backend is **file** under `./volumes/storage`. Image transforms are off.
 
 ## Kong host ports
 
@@ -96,3 +97,7 @@ Default backend is **file** under `./volumes/storage`.
 | `SUPABASE_KONG_HTTPS_PORT` | `8445` | Appsmith `8444` |
 
 Traefik terminates TLS on `supabase.localhost`; host ports remain available for direct access.
+
+## Resource limits
+
+Each Compose service has `deploy.resources` limits/reservations via `SUPABASE_*_CPUS_*` and `SUPABASE_*_MEMORY_*` (see `.env.example`). `RESTART_POLICY` defaults to `always`.

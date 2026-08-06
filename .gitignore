@@ -47,7 +47,11 @@ temp/
 .DS_Store
 Thumbs.db
 
-# --- Python ---
+# --- Python / uv ---
+.venv/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
 **/__pycache__/
 *.py[cod]
 *$py.class
@@ -90,6 +94,18 @@ docker-compose.lock
 
 # Giữ lại mã nguồn Python trong bin/
 !bin/*.py
+
+# Supabase: track Kong + init SQL (not runtime data/storage)
+# Overrides **/volumes/ and *.sql above
+!supabase/volumes/
+!supabase/volumes/api/
+!supabase/volumes/api/**
+!supabase/volumes/db/
+!supabase/volumes/db/*.sql
+!supabase/volumes/snippets/
+!supabase/volumes/snippets/.gitkeep
+supabase/volumes/db/data/
+supabase/volumes/storage/
 
 .zencoder/
 .zenflow/

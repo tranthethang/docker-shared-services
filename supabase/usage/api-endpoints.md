@@ -1,8 +1,10 @@
 # API Endpoints
 
-Kong listens on container ports `8000` / `8443`, published as `SUPABASE_KONG_HTTP_PORT` / `SUPABASE_KONG_HTTPS_PORT` (defaults **8002** / **8445**). Traefik also routes `https://supabase.localhost` to Kong.
+Kong listens on container ports `8000` / `8443`, published as `SUPABASE_KONG_HTTP_PORT` / `SUPABASE_KONG_HTTPS_PORT` (defaults **8002** / **8445**). Traefik also routes `https://supabase.localhost` to Kong when Traefik is running.
 
 Preferred base URL: `https://supabase.localhost` (`SUPABASE_PUBLIC_URL`). Direct host access: `http://localhost:8002`.
+
+Declarative routes live in [`volumes/api/kong.yml`](../volumes/api/kong.yml).
 
 ## Public Auth routes (no API key)
 
@@ -12,6 +14,9 @@ Preferred base URL: `https://supabase.localhost` (`SUPABASE_PUBLIC_URL`). Direct
 | `/auth/v1/callback` | OAuth callback |
 | `/auth/v1/authorize` | OAuth authorize |
 | `/auth/v1/.well-known/jwks.json` | JWKS |
+| `/auth/v1/sso/saml/acs` | SAML ACS |
+| `/auth/v1/sso/saml/metadata` | SAML metadata |
+| `/.well-known/oauth-authorization-server` | OAuth AS metadata (RFC 8414) |
 
 ## Auth API (API key)
 
@@ -32,16 +37,28 @@ curl 'https://supabase.localhost/auth/v1/health' \
 |------|-------|
 | `/storage/v1/*` | File/object API; max upload size 50 MiB (`FILE_SIZE_LIMIT`) |
 
-Image transforms are **disabled** (no imgproxy).
+No Kong `key-auth` on Storage (S3 protocol / SigV4 and user JWTs). Image transforms are **disabled** (no imgproxy).
+
+## Meta (admin API key)
+
+| Path | Notes |
+|------|-------|
+| `/pg/*` | postgres-meta — requires service_role / secret key (`admin` ACL) |
 
 ## Studio / dashboard
 
 | Path | Auth |
 |------|------|
 | `/` and Studio UI routes | HTTP basic auth (`DASHBOARD_*`) |
-| Internal Meta via Studio | Not exposed as a first-class public REST surface in the same way as Auth/Storage |
 
-Open http://localhost:8000 and sign in with the dashboard credentials from `.env`.
+Open https://supabase.localhost or http://localhost:8002 and sign in with the dashboard credentials from `.env`.
+
+## MCP
+
+| Path | Behavior |
+|------|----------|
+| `/api/mcp` | Blocked (`403`) |
+| `/mcp` | Blocked by default (`403`); can be opened for local IPs by editing `kong.yml` |
 
 ## Postgres
 
@@ -49,7 +66,7 @@ Direct TCP access (no pooler):
 
 ```
 host: localhost
-port: 5432          # POSTGRES_PORT
+port: 5434          # SUPABASE_DB_PORT (container listens on 5432)
 database: postgres  # POSTGRES_DB
 user: postgres
 password: <POSTGRES_PASSWORD>
@@ -69,11 +86,11 @@ These paths exist in full Supabase deployments but are **not** routed here:
 
 ## Kong configuration
 
-Declarative config: [`volumes/api/kong.yml`](../volumes/api/kong.yml).  
 Entrypoint substitutes env placeholders: [`volumes/api/kong-entrypoint.sh`](../volumes/api/kong-entrypoint.sh).
 
 After editing `kong.yml` or related env vars:
 
 ```sh
+cd supabase
 sh run.sh recreate supabase-kong
 ```

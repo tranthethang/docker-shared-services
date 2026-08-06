@@ -1,6 +1,8 @@
 # Supabase (minimal)
 
-Self-hosted Supabase pruned to **Identity (Auth) + Catalog DB + Asset Storage + Studio**, integrated with this repo’s shared networks and Traefik.
+Self-hosted Supabase pruned to **Auth + dedicated Postgres + Storage + Studio**, behind Kong. Part of [docker-shared-services](../): shared networks (`infra_shared`, `dev_tools`), Traefik TLS, and optional Mailpit for auth email.
+
+This stack uses its **own** Postgres (`supabase-db` on host port `5434`). It does **not** use the shared PgVector or Postgres 16 services.
 
 ## Quick start
 
@@ -9,6 +11,7 @@ Self-hosted Supabase pruned to **Identity (Auth) + Catalog DB + Asset Storage + 
 cp supabase/.env.example supabase/.env
 (cd supabase && sh utils/generate-keys.sh --update-env)
 make setup                    # networks + .env files if needed
+make up service=traefik       # TLS for supabase.localhost
 make up service=mailpit       # optional: catch auth emails
 make up service=supabase
 
@@ -32,16 +35,16 @@ Studio uses HTTP basic auth from `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD` in 
 
 | Compose service | Purpose |
 |-----------------|---------|
-| `supabase-db` | PostgreSQL catalog / auth / storage metadata |
-| `supabase-auth` | GoTrue (JWT / SSO hooks) |
-| `supabase-storage` | File / object storage API |
+| `supabase-db` | Dedicated PostgreSQL 17 (auth / storage metadata / app schemas) |
+| `supabase-auth` | GoTrue (JWT / email / SSO hooks) |
+| `supabase-storage` | File / object storage API (local file backend) |
 | `supabase-meta` | postgres-meta for Studio |
 | `supabase-studio` | Dashboard |
-| `supabase-kong` | API gateway (Traefik entrypoint) |
+| `supabase-kong` | API gateway + Traefik entrypoint |
 
-**Removed:** PostgREST, Realtime, GraphQL, imgproxy, Edge Functions, Logflare/Vector, Supavisor, TLS proxy overlays.
+**Not included:** PostgREST, Realtime, GraphQL, imgproxy, Edge Functions, Logflare/Vector, Supavisor, TLS proxy overlays (Traefik handles TLS).
 
-Networks: `infra_shared` + `dev_tools` (same as other stacks). SMTP defaults to Mailpit (`mailpit:1025`).
+SMTP defaults to shared Mailpit (`mailpit:1025` on `infra_shared` / `dev_tools`).
 
 ## Port map (host)
 
@@ -51,9 +54,23 @@ Networks: `infra_shared` + `dev_tools` (same as other stacks). SMTP defaults to 
 | `SUPABASE_KONG_HTTPS_PORT` | `8445` | Appsmith `8444` |
 | `SUPABASE_DB_PORT` | `5434` | PgVector `5432`, Postgres16 `5433` |
 
+## Makefile integration
+
+From the repo root:
+
+```sh
+make up service=supabase
+make down service=supabase
+make logs service=supabase
+make ps
+make info    # lists supabase.localhost / :8002 / DB :5434
+```
+
+Day-to-day helpers live under `supabase/` (`run.sh`, `reset.sh`, `utils/`).
+
 ## Documentation
 
-Detailed guides in [`usage/`](./usage/):
+Guides in [`usage/`](./usage/):
 
 | Guide | Description |
 |-------|-------------|
@@ -68,6 +85,8 @@ Detailed guides in [`usage/`](./usage/):
 
 ## Helpers
 
+Run from `supabase/` (or prefix with `(cd supabase && …)`):
+
 ```sh
 sh run.sh start|stop|status|logs   # day-to-day Compose wrapper
 sh reset.sh                        # wipe containers + bind-mounted data
@@ -75,8 +94,9 @@ sh utils/generate-keys.sh          # JWT + legacy anon/service keys
 sh utils/add-new-auth-keys.sh      # asymmetric + opaque API keys
 sh utils/rotate-new-api-keys.sh    # rotate opaque keys only
 sh utils/db-passwd.sh              # rotate Postgres password live
+sh utils/reassign-owner.sh         # reassign schema ownership to postgres
 ```
 
 ## License / upstream
 
-Derived from the [Supabase](https://github.com/supabase/supabase) Docker self-hosting layout, reduced for a minimal production-adjacent footprint.
+Derived from the [Supabase](https://github.com/supabase/supabase) Docker self-hosting layout, reduced for a minimal footprint inside this shared-services repo.

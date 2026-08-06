@@ -1,12 +1,13 @@
 # Getting Started
 
-Spin up a self-hosted **minimal Supabase** stack: Auth, Postgres, Storage, and Studio behind Kong — on this repo’s shared Docker networks and Traefik.
+Spin up the **minimal Supabase** stack (Auth, dedicated Postgres, Storage, Studio behind Kong) on this repo’s shared Docker networks and Traefik.
 
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) with Compose v2 (`docker compose`)
-- Shared networks from repo root: `make setup`
+- Shared networks from repo root: `make setup` (creates `infra_shared` and `dev_tools`)
 - `openssl` (used by key-generation scripts)
+- Optional: `make up service=traefik` for `https://supabase.localhost`
 - Optional: `make up service=mailpit` for auth confirmation emails
 - Optional: Node.js ≥ 16 (for asymmetric API keys; Docker can substitute)
 
@@ -17,6 +18,7 @@ Spin up a self-hosted **minimal Supabase** stack: Auth, Postgres, Storage, and S
 cp supabase/.env.example supabase/.env
 (cd supabase && sh utils/generate-keys.sh --update-env)
 
+make up service=traefik
 # Optional but recommended for email auth flows
 make up service=mailpit
 
@@ -30,6 +32,8 @@ cp .env.example .env
 sh utils/generate-keys.sh --update-env
 sh run.sh start
 ```
+
+`run.sh` always `cd`s to `supabase/` before calling Compose, so you can invoke it via absolute path from elsewhere.
 
 Wait until containers are healthy, then open Studio:
 
@@ -53,6 +57,8 @@ sh run.sh logs
 sh run.sh logs supabase-auth
 ```
 
+Compose service names are prefixed: `supabase-db`, `supabase-auth`, `supabase-storage`, `supabase-meta`, `supabase-studio`, `supabase-kong`.
+
 ## Client apps
 
 ```ts
@@ -63,6 +69,8 @@ const supabase = createClient(
   process.env.ANON_KEY! // or SUPABASE_PUBLISHABLE_KEY if using opaque keys
 )
 ```
+
+**Note:** This stack has no PostgREST (`/rest/v1`). Use Auth + Storage via the client, and talk to Postgres with SQL, your own API, or Studio.
 
 ## Next steps
 

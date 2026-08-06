@@ -1,13 +1,15 @@
 # Architecture
 
-This repository ships a **pruned** self-hosted Supabase stack focused on identity, catalog data, and file assets — without Realtime, PostgREST, Edge Functions, or the analytics pipeline.
+This service under **docker-shared-services** ships a **pruned** self-hosted Supabase stack: identity, catalog data, and file assets — without Realtime, PostgREST, Edge Functions, or the analytics pipeline.
+
+Postgres here is a **dedicated** `supabase/postgres` container. It does not share data with the repo’s `pgvector` (host `5432`) or `postgres` (host `5433`) stacks.
 
 ## Services
 
 | Compose service | Container | Role |
 |-----------------|-----------|------|
-| `supabase-db` | `supabase-db` | PostgreSQL 17 — Auth/Storage metadata and your application schemas |
-| `supabase-auth` | `supabase-auth` | GoTrue — email/password, OAuth hooks, JWT issuance |
+| `supabase-db` | `supabase-db` | PostgreSQL 17 — Auth/Storage metadata and application schemas |
+| `supabase-auth` | `supabase-auth` | GoTrue — email/password, OAuth/SSO hooks, JWT issuance |
 | `supabase-storage` | `supabase-storage` | Object storage API (local file backend by default) |
 | `supabase-meta` | `supabase-meta` | postgres-meta — schema introspection for Studio |
 | `supabase-studio` | `supabase-studio` | Web dashboard |
@@ -16,13 +18,13 @@ This repository ships a **pruned** self-hosted Supabase stack focused on identit
 ```
                     ┌─────────────┐
   Browser / SDK ──► │ Traefik     │
-  supabase.localhost│             │
+  supabase.localhost│ (infra)     │
                     └──────┬──────┘
                            ▼
                     ┌─────────────┐
-                    │    Kong     │──► Studio
+                    │    Kong     │──► Studio (:3000)
                     │  :8000/8443 │──► Auth  (:9999)
-                    └──────┬──────┘──► Storage (:5000)
+   host :8002/:8445 └──────┬──────┘──► Storage (:5000)
                            │         ──► Meta (:8080)
                            ▼
                      ┌──────────┐
@@ -50,15 +52,21 @@ Use this stack when you need Auth + Storage + Studio on a small footprint, and y
 
 | Path | Purpose |
 |------|---------|
-| `volumes/db/data` | Postgres data directory (gitignored) |
+| `volumes/db/data` | Postgres data directory (runtime, gitignored) |
 | `volumes/db/roles.sql` | Init: role passwords / grants |
 | `volumes/db/jwt.sql` | Init: JWT settings from env |
-| `volumes/storage` | Local file-backend objects (gitignored) |
+| `volumes/db/auth-owner.sql` | Init: transfer `auth.uid`/`role`/`email` ownership to GoTrue |
+| `volumes/storage` | Local file-backend objects (runtime, gitignored) |
 | `volumes/api/kong.yml` | Kong declarative routes |
+| `volumes/api/kong-entrypoint.sh` | Env substitution into Kong config |
 | `volumes/snippets` | Studio SQL snippets mount |
 
 Named Docker volume `supabase_db_config` holds Postgres custom config (including pgsodium key material) across restarts.
 
+Init SQL under `volumes/db/*.sql` runs only on **first** database initialization (empty data dir). See [Troubleshooting](./troubleshooting.md) for already-initialized databases.
+
 ## Networks
 
-All services join external networks `infra_shared` and `dev_tools` (same as other stacks in this repo). Kong registers the alias `api-gw` on `infra_shared`.
+All services join external networks `infra_shared` and `dev_tools` (same as other stacks in this repo). Kong registers the alias `api-gw` on `infra_shared` so other containers can reach the gateway by that name.
+
+Traefik labels on `supabase-kong` use `Host(\`${SUPABASE_SUBDOMAIN}.${DOMAIN_NAME}\`)` (default `supabase.localhost`) on entrypoints `web` / `websecure`.
