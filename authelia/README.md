@@ -23,6 +23,16 @@ Ensure TLS covers the namespace (`make cert` includes `*.dss.localhost`).
 ```bash
 # From repo root
 cp authelia/.env.example authelia/.env
+cp authelia/config/users_database.yml.example authelia/config/users_database.yml
+
+# Generate secrets (≥64 chars each) into authelia/.env
+docker run --rm authelia/authelia:4.39.4 \
+  authelia crypto rand --length 64 --charset alphanumeric
+
+# Generate Argon2 hash for admin password and paste into users_database.yml
+docker run --rm authelia/authelia:4.39.4 \
+  authelia crypto hash generate argon2 --password 'password102'
+
 make cert                 # if certs are missing / outdated
 make up service=traefik
 make up service=authelia
@@ -56,15 +66,19 @@ Start both stacks: `make up service=authelia` then `make up service=supabase`.
 
 ## Users & secrets
 
-- Users: `config/users_database.yml`
-- Hash a password:
+Committed templates only — never commit real secrets:
+
+- Users template: `config/users_database.yml.example` → copy to `users_database.yml` (gitignored)
+- Env template: `.env.example` → copy to `.env` (gitignored)
+
+Hash a password:
 
 ```bash
 docker run --rm authelia/authelia:4.39.4 \
   authelia crypto hash generate argon2 --password 'your-password'
 ```
 
-- Secrets in `.env` (`AUTHELIA_JWT_SECRET`, `AUTHELIA_SESSION_SECRET`, `AUTHELIA_STORAGE_ENCRYPTION_KEY`):
+Secrets in `.env` (`AUTHELIA_JWT_SECRET`, `AUTHELIA_SESSION_SECRET`, `AUTHELIA_STORAGE_ENCRYPTION_KEY`):
 
 ```bash
 docker run --rm authelia/authelia:4.39.4 \
@@ -80,7 +94,7 @@ authelia/
 ├── docker-compose.yml
 ├── .env.example
 ├── config/
-│   ├── configuration.yml   # Authelia settings
-│   └── users_database.yml  # File-based users
+│   ├── configuration.yml              # Authelia settings
+│   └── users_database.yml.example     # File-based users template
 └── README.md
 ```

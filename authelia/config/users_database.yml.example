@@ -1,15 +1,15 @@
-# Default local users. Change passwords before any non-local exposure.
+# Copy to users_database.yml (gitignored) and set a real Argon2 hash.
 # Generate a hash:
 #   docker run --rm authelia/authelia:4.39.4 \
 #     authelia crypto hash generate argon2 --password 'your-password'
 #
-# Default: admin / password102
+# Suggested local default user: admin / password102
 
 users:
   admin:
     disabled: false
     displayname: 'Admin'
-    password: '$argon2id$v=19$m=65536,t=3,p=4$VbRE+J5LHurINkhgkAucjw$izG4a7DBW0EtPQZTJ3lkhc4h4Rx8SJN3qLMhjE/s+54'
+    password: 'REPLACE_ME_WITH_ARGON2_HASH_FROM_authelia_crypto_hash_generate'
     email: 'admin@localhost'
     groups:
       - admins
