@@ -4,11 +4,12 @@ This directory contains the Docker Compose configuration and environment templat
 
 Crawl4AI is an open-source, LLM-friendly web crawler and scraper designed to crawl pages, handle dynamic client-side rendering (using Playwright/Chromium), and extract clean, structured Markdown or HTML results suitable for LLMs.
 
----
+______________________________________________________________________
 
 ## 🚀 Setup & Installation
 
 ### 1. Environment Setup
+
 The service environment variables are managed via the central workspace. You can initialize the configuration file by running:
 
 ```bash
@@ -17,22 +18,24 @@ make setup
 ```
 
 Alternatively, manually copy the template:
+
 ```bash
 cp crawl4ai/.env.example crawl4ai/.env
 ```
 
 ### 2. Configuration Parameters
+
 Customize the variables in `crawl4ai/.env`:
 
-*   `CRAWL4AI_PORT`: Host port to expose the service (default: `11235`).
-*   `CRAWL4AI_API_TOKEN`: API Token for security (default: `crawl4ai102`).
-    > [!IMPORTANT]
-    > If `CRAWL4AI_API_TOKEN` is left empty, the server will bind to loopback (`127.0.0.1`) only for security and cannot be accessed externally. Setting this token allows the container to bind to `0.0.0.0`, making it accessible via Traefik or external networks.
-*   `LLM_PROVIDER`: Default LLM model provider format (e.g. `openai/gpt-4o-mini`).
-*   `OPENAI_API_KEY` / `OPENAI_BASE_URL`: Configure these if you route LLM calls through a custom OpenAI-compatible proxy (e.g., LiteLLM, Ollama, Portkey).
-*   Resource limits: Memory and CPU limitations (`CRAWL4AI_MEMORY_LIMIT` defaults to `2G` to support Playwright/Chromium requirements).
+- `CRAWL4AI_PORT`: Host port to expose the service (default: `11235`).
+- `CRAWL4AI_API_TOKEN`: API Token for security (default: `crawl4ai102`).
+  > [!IMPORTANT]
+  > If `CRAWL4AI_API_TOKEN` is left empty, the server will bind to loopback (`127.0.0.1`) only for security and cannot be accessed externally. Setting this token allows the container to bind to `0.0.0.0`, making it accessible via Traefik or external networks.
+- `LLM_PROVIDER`: Default LLM model provider format (e.g. `openai/gpt-4o-mini`).
+- `OPENAI_API_KEY` / `OPENAI_BASE_URL`: Configure these if you route LLM calls through a custom OpenAI-compatible proxy (e.g., LiteLLM, Ollama, Portkey).
+- Resource limits: Memory and CPU limitations (`CRAWL4AI_MEMORY_LIMIT` defaults to `2G` to support Playwright/Chromium requirements).
 
----
+______________________________________________________________________
 
 ## 🛠️ Operations
 
@@ -49,23 +52,28 @@ make logs service=crawl4ai
 make down service=crawl4ai
 ```
 
----
+______________________________________________________________________
 
 ## 🔌 API Integration
 
 ### Service Endpoints
-*   **Host URL**: `http://localhost:11235` (mapped port) or `http://crawl4ai.localhost` (if Traefik reverse proxy is active).
-*   **Authentication**: Include the token in your HTTP headers using the Bearer scheme:
-    ```http
-    Authorization: Bearer <CRAWL4AI_API_TOKEN>
-    ```
+
+- **Host URL**: `http://localhost:11235` (mapped port) or `http://crawl4ai.localhost` (if Traefik reverse proxy is active).
+- **Authentication**: Include the token in your HTTP headers using the Bearer scheme:
+  ```http
+  Authorization: Bearer <CRAWL4AI_API_TOKEN>
+  ```
 
 ### 1. Health Check (Unauthenticated)
+
 Verify if the container is healthy:
+
 ```bash
 curl http://localhost:11235/health
 ```
+
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -75,9 +83,11 @@ curl http://localhost:11235/health
 ```
 
 ### 2. Crawl Endpoint `/crawl` (Authenticated)
+
 Request the crawler to fetch page contents and return Markdown.
 
 #### cURL Example
+
 ```bash
 curl -X POST http://localhost:11235/crawl \
   -H "Authorization: Bearer crawl4ai102" \
@@ -91,6 +101,7 @@ curl -X POST http://localhost:11235/crawl \
 ```
 
 #### Python Example
+
 ```python
 import requests
 

@@ -97,8 +97,8 @@ sh reset.sh -y       # skip prompts (still destructive)
 What it does:
 
 1. `docker compose down -v --remove-orphans`
-2. Removes `./volumes/db/data` and `./volumes/storage` (with confirm)
-3. Renames `.env` → `.env.old` and copies `.env.example` → `.env`
+1. Removes `./volumes/db/data` and `./volumes/storage` (with confirm)
+1. Renames `.env` → `.env.old` and copies `.env.example` → `.env`
 
 After reset:
 
@@ -123,15 +123,17 @@ Pin versions by editing image tags in `docker-compose.yml`.
 This repo does not include a backup tool. At minimum:
 
 1. Stop or quiesce writes if you need a consistent dump.
-2. Dump Postgres:
+
+1. Dump Postgres:
 
    ```sh
    cd supabase
    docker compose exec supabase-db pg_dumpall -U postgres > backup.sql
    ```
 
-3. Archive `./volumes/storage` for file objects.
-4. Keep a secure copy of `.env` (secrets) offline.
+1. Archive `./volumes/storage` for file objects.
+
+1. Keep a secure copy of `.env` (secrets) offline.
 
 ## Reassign schema ownership
 

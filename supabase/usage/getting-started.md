@@ -37,13 +37,13 @@ sh run.sh start
 
 Wait until containers are healthy, then open Studio:
 
-| Resource | URL |
-|----------|-----|
-| Studio / gateway (Traefik) | https://supabase.localhost |
-| Studio / gateway (host) | http://localhost:8002 |
-| Auth API | https://supabase.localhost/auth/v1 |
-| Storage API | https://supabase.localhost/storage/v1 |
-| Postgres | `localhost:5434` |
+| Resource                   | URL                                   |
+| -------------------------- | ------------------------------------- |
+| Studio / gateway (Traefik) | https://supabase.localhost            |
+| Studio / gateway (host)    | http://localhost:8002                 |
+| Auth API                   | https://supabase.localhost/auth/v1    |
+| Storage API                | https://supabase.localhost/storage/v1 |
+| Postgres                   | `localhost:5434`                      |
 
 Studio is protected by **HTTP basic auth** using `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` from `.env` (defaults: `admin` / `password102`).
 

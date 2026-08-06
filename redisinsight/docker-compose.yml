@@ -30,5 +30,6 @@ networks:
     external: true
   dev_tools:
     external: true
+
 volumes:
   redisinsight_data:

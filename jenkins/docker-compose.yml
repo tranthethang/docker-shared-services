@@ -25,7 +25,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - infra_shared
-      - dev_tools  
+      - dev_tools
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
@@ -47,5 +47,6 @@ networks:
     external: true
   dev_tools:
     external: true
+
 volumes:
   jenkins_home:

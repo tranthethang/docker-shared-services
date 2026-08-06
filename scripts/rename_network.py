@@ -6,7 +6,6 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-
 DEFAULT_OLD = "infra_shared"
 DEFAULT_NEW = "infra_shared"
 

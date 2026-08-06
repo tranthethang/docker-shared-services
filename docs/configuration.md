@@ -2,7 +2,7 @@
 
 > Guide on how to configure environment variables, change default passwords, customize ports, adjust resource limits, set up internal Docker networks, and generate SSL/TLS certificates for Traefik.
 
----
+______________________________________________________________________
 
 ## ⚙️ Configuration
 
@@ -45,16 +45,16 @@ POSTGRES_MEMORY_RESERVED=1G
 
 Edit `start-services.sh` or `Makefile` and comment out unwanted services.
 
----
+______________________________________________________________________
 
 ## 🌐 Network Configuration
 
 Services use two **external** bridge networks (created by `make setup` if missing). Docker does not allow two networks to share the same CIDR, so both use adjacent `/16` blocks in `10.0.0.0/8`:
 
-| Network | Subnet | Role |
-| :--- | :--- | :--- |
+| Network        | Subnet        | Role                                                                         |
+| :------------- | :------------ | :--------------------------------------------------------------------------- |
 | `infra_shared` | `10.0.0.0/16` | Primary stack, Traefik discovery (`--providers.docker.network=infra_shared`) |
-| `dev_tools` | `10.1.0.0/16` | Legacy or external compose projects that attach to `dev_tools` |
+| `dev_tools`    | `10.1.0.0/16` | Legacy or external compose projects that attach to `dev_tools`               |
 
 Most service containers join **both** networks so they can reach Traefik on `infra_shared` and legacy workloads on `dev_tools`.
 
@@ -86,7 +86,7 @@ docker network inspect infra_shared | grep -A 20 "Containers"  # List attached c
 docker exec [container] ping [other_container]  # Test connectivity
 ```
 
----
+______________________________________________________________________
 
 ## 🔒 SSL/TLS Certificate Setup (Traefik)
 
@@ -130,7 +130,7 @@ openssl x509 -in traefik/certs/server.crt -text -noout
 openssl x509 -in traefik/certs/server.crt -noout -dates
 ```
 
----
+______________________________________________________________________
 
 ## 🔗 Quick Links
 

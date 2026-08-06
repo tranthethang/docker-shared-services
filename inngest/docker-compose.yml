@@ -12,12 +12,9 @@ services:
           cpus: "${INNGEST_CPUS_RESERVED:-0.1}"
           memory: "${INNGEST_MEMORY_RESERVED:-128M}"
     command: >
-      inngest start --host 0.0.0.0 --port 8288 
-      --event-key ${INNGEST_EVENT_KEY} 
-      --signing-key ${INNGEST_SIGNING_KEY} 
-      --postgres-uri postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password102}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-inngest}?sslmode=disable 
-      --redis-uri redis://:${REDIS_PASSWORD:-password102}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379} 
-      --sdk-url ${INNGEST_SDK_URL:-http://api:8000/api/inngest}
+      inngest start --host 0.0.0.0 --port 8288  --event-key ${INNGEST_EVENT_KEY}  --signing-key ${INNGEST_SIGNING_KEY}  --postgres-uri
+      postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password102}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-inngest}?sslmode=disable  --redis-uri
+      redis://:${REDIS_PASSWORD:-password102}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}  --sdk-url ${INNGEST_SDK_URL:-http://api:8000/api/inngest}
     ports:
       - "${INNGEST_PORT:-8288}:8288"
     environment:
@@ -36,7 +33,8 @@ services:
       - infra_shared
       - dev_tools
     healthcheck:
-      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8288 && echo -e 'GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8288 && echo -e 'GET /health HTTP/1.1\\r\\nHost: localhost\\\
+            r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
       interval: 10s
       timeout: 5s
       retries: 5

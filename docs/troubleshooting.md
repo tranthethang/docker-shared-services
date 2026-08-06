@@ -2,7 +2,7 @@
 
 > Solutions for common issues, debugging guides, support channels, and security instructions.
 
----
+______________________________________________________________________
 
 ## 🔐 Security Notes
 
@@ -12,10 +12,10 @@
 ### Before Production
 
 1. Change all default passwords (minimum 32 characters).
-2. Use strong, unique passwords for each service.
-3. Secure sensitive data with proper secrets management.
-4. Review and customize resource limits.
-5. Set appropriate firewall rules.
+1. Use strong, unique passwords for each service.
+1. Secure sensitive data with proper secrets management.
+1. Review and customize resource limits.
+1. Set appropriate firewall rules.
 
 ### Generate Strong Passwords
 
@@ -23,7 +23,7 @@
 openssl rand -base64 32
 ```
 
----
+______________________________________________________________________
 
 ## 🐛 Troubleshooting
 
@@ -71,12 +71,12 @@ docker volume prune               # Remove unused volumes
 
 ### Common Issues
 
-| Problem | Solution |
-| :--- | :--- |
-| Services stuck "starting" | Wait 30-60 seconds, check logs, restart: `make restart` |
+| Problem                   | Solution                                                             |
+| :------------------------ | :------------------------------------------------------------------- |
+| Services stuck "starting" | Wait 30-60 seconds, check logs, restart: `make restart`              |
 | Can't connect to database | Verify port mapping, check .env passwords, test: `docker-compose ps` |
-| Out of disk space | Run `make prune`, remove images: `docker image prune -a` |
-| Need to reset everything | Run `make remove-all` then `make up` |
+| Out of disk space         | Run `make prune`, remove images: `docker image prune -a`             |
+| Need to reset everything  | Run `make remove-all` then `make up`                                 |
 
 ### Getting Help
 
@@ -91,19 +91,19 @@ docker compose exec redis redis-cli ping
 docker compose exec mysql8 mysqladmin ping -u root -p
 ```
 
----
+______________________________________________________________________
 
 ## 📞 Support
 
 For issues or questions:
 
 1. Check this troubleshooting guide for common solutions.
-2. Review service-specific `.env.example` files.
-3. Check Docker logs: `make logs`
-4. Validate configuration: `make validate`
-5. Inspect networks: `docker network inspect infra_shared` and `docker network inspect dev_tools`
+1. Review service-specific `.env.example` files.
+1. Check Docker logs: `make logs`
+1. Validate configuration: `make validate`
+1. Inspect networks: `docker network inspect infra_shared` and `docker network inspect dev_tools`
 
----
+______________________________________________________________________
 
 ## 🔗 Quick Links
 

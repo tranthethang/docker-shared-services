@@ -1,5 +1,7 @@
 {
-  "allowed_origins": ["*"],
+  "allowed_origins": [
+    "*"
+  ],
   "token_hmac_secret_key": "change-me",
   "token_user_id_claim": "user_id",
   "api_key": "change-me",

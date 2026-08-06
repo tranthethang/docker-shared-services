@@ -46,6 +46,7 @@ networks:
     external: true
   dev_tools:
     external: true
+
 volumes:
   sonarqube_conf:
   sonarqube_data:

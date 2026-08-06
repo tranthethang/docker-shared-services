@@ -4,15 +4,15 @@ How to create and rotate credentials for the minimal stack. Run scripts from `su
 
 ## Overview
 
-| Kind | Variables | Script |
-|------|-----------|--------|
-| Postgres password | `POSTGRES_PASSWORD` | [`utils/db-passwd.sh`](../utils/db-passwd.sh) (live rotate) or edit `.env` before first start |
-| Legacy HS256 JWT | `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY` | [`utils/generate-keys.sh`](../utils/generate-keys.sh) |
-| Asymmetric + opaque API keys | `JWT_KEYS`, `JWT_JWKS`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, asymmetric JWTs | [`utils/add-new-auth-keys.sh`](../utils/add-new-auth-keys.sh) |
-| Opaque API key rotation only | `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` | [`utils/rotate-new-api-keys.sh`](../utils/rotate-new-api-keys.sh) |
-| Studio login | `DASHBOARD_USERNAME`, `DASHBOARD_PASSWORD` | Edit `.env`, then recreate Kong |
-| Meta crypto | `PG_META_CRYPTO_KEY` | Edit `.env` before first Studio use |
-| Storage S3 protocol | `S3_PROTOCOL_ACCESS_KEY_*` | Edit `.env` |
+| Kind                         | Variables                                                                                  | Script                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Postgres password            | `POSTGRES_PASSWORD`                                                                        | [`utils/db-passwd.sh`](../utils/db-passwd.sh) (live rotate) or edit `.env` before first start |
+| Legacy HS256 JWT             | `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`                                               | [`utils/generate-keys.sh`](../utils/generate-keys.sh)                                         |
+| Asymmetric + opaque API keys | `JWT_KEYS`, `JWT_JWKS`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, asymmetric JWTs | [`utils/add-new-auth-keys.sh`](../utils/add-new-auth-keys.sh)                                 |
+| Opaque API key rotation only | `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`                                          | [`utils/rotate-new-api-keys.sh`](../utils/rotate-new-api-keys.sh)                             |
+| Studio login                 | `DASHBOARD_USERNAME`, `DASHBOARD_PASSWORD`                                                 | Edit `.env`, then recreate Kong                                                               |
+| Meta crypto                  | `PG_META_CRYPTO_KEY`                                                                       | Edit `.env` before first Studio use                                                           |
+| Storage S3 protocol          | `S3_PROTOCOL_ACCESS_KEY_*`                                                                 | Edit `.env`                                                                                   |
 
 Print a subset of secrets:
 
@@ -93,7 +93,7 @@ sh run.sh recreate supabase-auth supabase-storage supabase-meta supabase-studio
 ## Dashboard password
 
 1. Edit `DASHBOARD_PASSWORD` (and optionally `DASHBOARD_USERNAME`) in `.env`.
-2. Recreate Kong so `kong.yml` template substitution picks up the new values:
+1. Recreate Kong so `kong.yml` template substitution picks up the new values:
 
 ```sh
 sh run.sh recreate supabase-kong

@@ -1,8 +1,10 @@
+import argparse
 import os
 import shutil
-import argparse
-from config import SERVICES, VALIDATION_RULES, SERVICE_INFO_VARS
-from utils import print_header, success, warning, error, generate_password
+
+from config import SERVICE_INFO_VARS, SERVICES, VALIDATION_RULES
+from utils import error, generate_password, print_header, success, warning
+
 
 def get_services(service_arg):
     if not service_arg or service_arg == "all":
@@ -10,6 +12,7 @@ def get_services(service_arg):
     if service_arg in SERVICES or service_arg == ".":
         return [service_arg]
     return []
+
 
 def check_env(service_arg):
     services = get_services(service_arg)
@@ -25,12 +28,13 @@ def check_env(service_arg):
             missing.append(s)
         else:
             error(f"{s}/.env.example not found")
-    
+
     if missing:
         print(f"\nFound {len(missing)} services missing .env files")
         # Note: Interactive prompt handled by shell script to keep python logic clean
         return True
     return False
+
 
 def create_env(service_arg):
     services = get_services(service_arg)
@@ -44,6 +48,7 @@ def create_env(service_arg):
     print("\n✅ .env files created successfully!")
     warning("Remember to update password and sensitive values in .env files!")
 
+
 def validate_env(service_arg):
     services = get_services(service_arg)
     print("\nValidating environment variables...\n")
@@ -52,9 +57,9 @@ def validate_env(service_arg):
         env_path = os.path.join(s, ".env")
         if not os.path.exists(env_path):
             continue
-        
+
         rules = VALIDATION_RULES.get(s, [])
-        with open(env_path, 'r') as f:
+        with open(env_path) as f:
             content = f.read()
             for var in rules:
                 if var not in content:
@@ -62,13 +67,14 @@ def validate_env(service_arg):
                     errors += 1
                 else:
                     success(f"{s}: {var} configured")
-    
+
     if errors > 0:
         print(f"\n❌ Found {errors} validation errors")
         return False
     else:
         print("\n✅ All environment variables validated!")
         return True
+
 
 def show_summary(service_arg):
     services = get_services(service_arg)
@@ -86,7 +92,7 @@ def show_summary(service_arg):
                 print("  (configured)")
             else:
                 found = False
-                with open(env_path, 'r') as f:
+                with open(env_path) as f:
                     for line in f:
                         for var in vars_to_check:
                             if var in line:
@@ -96,27 +102,29 @@ def show_summary(service_arg):
                     print("  (no specific ports configured in .env)")
             print("")
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Docker Services Environment Manager')
-    parser.add_argument('command', choices=['check', 'create', 'validate', 'summary', 'passwords'])
-    parser.add_argument('service', nargs='?', default='all')
-    
+    parser = argparse.ArgumentParser(description="Docker Services Environment Manager")
+    parser.add_argument("command", choices=["check", "create", "validate", "summary", "passwords"])
+    parser.add_argument("service", nargs="?", default="all")
+
     args = parser.parse_args()
-    
-    if args.command == 'check':
+
+    if args.command == "check":
         check_env(args.service)
-    elif args.command == 'create':
+    elif args.command == "create":
         create_env(args.service)
-    elif args.command == 'validate':
+    elif args.command == "validate":
         if not validate_env(args.service):
             exit(1)
-    elif args.command == 'summary':
+    elif args.command == "summary":
         show_summary(args.service)
-    elif args.command == 'passwords':
+    elif args.command == "passwords":
         print("\nGenerating strong passwords...\n")
         print("Generated strong passwords (save these):\n")
         print(f"PASSWORD_102: {generate_password()}")
         print("\nYou can update .env files with these passwords")
+
 
 if __name__ == "__main__":
     main()

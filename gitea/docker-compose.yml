@@ -45,5 +45,6 @@ networks:
     external: true
   dev_tools:
     external: true
+
 volumes:
   gitea_data:

@@ -33,5 +33,6 @@ networks:
     external: true
   dev_tools:
     external: true
+
 volumes:
   pgvector_data:

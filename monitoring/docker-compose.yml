@@ -81,6 +81,7 @@ networks:
     external: true
   dev_tools:
     external: true
+
 volumes:
   grafana_data:
   loki_data:

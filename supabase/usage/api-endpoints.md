@@ -8,20 +8,20 @@ Declarative routes live in [`volumes/api/kong.yml`](../volumes/api/kong.yml).
 
 ## Public Auth routes (no API key)
 
-| Path | Upstream |
-|------|----------|
-| `/auth/v1/verify` | Auth verify |
-| `/auth/v1/callback` | OAuth callback |
-| `/auth/v1/authorize` | OAuth authorize |
-| `/auth/v1/.well-known/jwks.json` | JWKS |
-| `/auth/v1/sso/saml/acs` | SAML ACS |
-| `/auth/v1/sso/saml/metadata` | SAML metadata |
+| Path                                      | Upstream                     |
+| ----------------------------------------- | ---------------------------- |
+| `/auth/v1/verify`                         | Auth verify                  |
+| `/auth/v1/callback`                       | OAuth callback               |
+| `/auth/v1/authorize`                      | OAuth authorize              |
+| `/auth/v1/.well-known/jwks.json`          | JWKS                         |
+| `/auth/v1/sso/saml/acs`                   | SAML ACS                     |
+| `/auth/v1/sso/saml/metadata`              | SAML metadata                |
 | `/.well-known/oauth-authorization-server` | OAuth AS metadata (RFC 8414) |
 
 ## Auth API (API key)
 
-| Path | Notes |
-|------|-------|
+| Path         | Notes                                                                     |
+| ------------ | ------------------------------------------------------------------------- |
 | `/auth/v1/*` | GoTrue — send `apikey` header with anon/publishable or service/secret key |
 
 Example:
@@ -33,32 +33,32 @@ curl 'https://supabase.localhost/auth/v1/health' \
 
 ## Storage API
 
-| Path | Notes |
-|------|-------|
+| Path            | Notes                                                       |
+| --------------- | ----------------------------------------------------------- |
 | `/storage/v1/*` | File/object API; max upload size 50 MiB (`FILE_SIZE_LIMIT`) |
 
 No Kong `key-auth` on Storage (S3 protocol / SigV4 and user JWTs). Image transforms are **disabled** (no imgproxy).
 
 ## Meta (admin API key)
 
-| Path | Notes |
-|------|-------|
+| Path    | Notes                                                            |
+| ------- | ---------------------------------------------------------------- |
 | `/pg/*` | postgres-meta — requires service_role / secret key (`admin` ACL) |
 
 ## Studio / dashboard
 
-| Path | Auth |
-|------|------|
+| Path                     | Auth                            |
+| ------------------------ | ------------------------------- |
 | `/` and Studio UI routes | HTTP basic auth (`DASHBOARD_*`) |
 
 Open https://supabase.localhost or http://localhost:8002 and sign in with the dashboard credentials from `.env`.
 
 ## MCP
 
-| Path | Behavior |
-|------|----------|
-| `/api/mcp` | Blocked (`403`) |
-| `/mcp` | Blocked by default (`403`); can be opened for local IPs by editing `kong.yml` |
+| Path       | Behavior                                                                      |
+| ---------- | ----------------------------------------------------------------------------- |
+| `/api/mcp` | Blocked (`403`)                                                               |
+| `/mcp`     | Blocked by default (`403`); can be opened for local IPs by editing `kong.yml` |
 
 ## Postgres
 

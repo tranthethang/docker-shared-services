@@ -2,4 +2,3 @@ tls:
   certificates:
     - certFile: /certs/server.crt
       keyFile: /certs/server.key
-

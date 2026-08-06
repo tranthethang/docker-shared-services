@@ -31,5 +31,6 @@ networks:
     external: true
   dev_tools:
     external: true
+
 volumes:
   rabbitmq_data:

@@ -1,22 +1,30 @@
-import subprocess
 import argparse
+import subprocess
 import sys
-from config import SERVICES, ACTIONS, START_ORDER
-from utils import print_header, success, error, warning
+
 from checkbox_menu import show_checkbox_menu
+from config import ACTIONS, SERVICES, START_ORDER
+from utils import error, print_header, success, warning
+
 
 def is_valid_service(service):
     return service in SERVICES
 
+
 def is_valid_action(action):
     return action in ACTIONS
 
+
 def has_fzf():
-    return subprocess.run(
-        ["bash", "-lc", "command -v fzf >/dev/null 2>&1"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    ).returncode == 0
+    return (
+        subprocess.run(
+            ["bash", "-lc", "command -v fzf >/dev/null 2>&1"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+        == 0
+    )
+
 
 # Two bridges cannot share one CIDR; adjacent /16s in 10/8.
 SHARED_NETWORKS = (
@@ -86,13 +94,19 @@ def ensure_network():
             attempted.stderr,
         )
 
+
 def get_compose_cmd(service):
     return [
-        "docker", "compose", 
-        "--project-directory", service,
-        "-f", "docker-compose.shared.yml", 
-        "-f", f"{service}/docker-compose.yml"
+        "docker",
+        "compose",
+        "--project-directory",
+        service,
+        "-f",
+        "docker-compose.shared.yml",
+        "-f",
+        f"{service}/docker-compose.yml",
     ]
+
 
 def get_stack_services(service):
     """Compose service names in a stack directory (e.g. monitoring -> grafana, loki, promtail)."""
@@ -116,12 +130,15 @@ def is_service_running(service):
     )
     return bool(result.stdout.strip())
 
+
 def get_running_services():
     return [s for s in SERVICES if is_service_running(s)]
+
 
 def sort_for_startup(services):
     order_map = {s: i for i, s in enumerate(START_ORDER)}
     return sorted(services, key=lambda s: (order_map.get(s, 999), s))
+
 
 def sort_for_shutdown(services):
     order_map = {s: i for i, s in enumerate(START_ORDER)}
@@ -132,6 +149,7 @@ def sort_for_shutdown(services):
         return (order_map.get(service, 500), service)
 
     return sorted(services, key=shutdown_key, reverse=True)
+
 
 def show_multi_select(default_selected):
     default_set = set(default_selected)
@@ -192,6 +210,7 @@ def show_multi_select(default_selected):
         if invalid:
             print("")
 
+
 def confirm_apply(to_up, to_down):
     if not to_up and not to_down:
         print("ℹ️  No changes needed.")
@@ -211,6 +230,7 @@ def confirm_apply(to_up, to_down):
         sys.exit(0)
 
     return reply in ("", "y", "yes")
+
 
 def apply_manage_changes(selected):
     running = set(get_running_services())
@@ -254,6 +274,7 @@ def apply_manage_changes(selected):
         sys.exit(1)
     success("All changes applied successfully")
 
+
 def manage_services():
     print("ℹ️  Detecting running services...")
     running = get_running_services()
@@ -266,6 +287,7 @@ def manage_services():
     selected = show_multi_select(running)
     print("")
     apply_manage_changes(selected)
+
 
 def execute_action(service, action):
     if not is_valid_service(service):
@@ -282,7 +304,7 @@ def execute_action(service, action):
         sys.exit(1)
 
     cmd = get_compose_cmd(service)
-    
+
     if action == "up":
         ensure_network()
         success(f"Starting {service}...")
@@ -307,11 +329,16 @@ def execute_action(service, action):
         except KeyboardInterrupt:
             print("\nStopped log streaming.")
 
+
 def show_menu(items, title):
     if has_fzf():
         try:
             selected = subprocess.run(
-                ["bash", "-lc", f"printf '%s\n' \"$@\" | fzf --prompt='{title}> ' --height=20% --border"],
+                [
+                    "bash",
+                    "-lc",
+                    f"printf '%s\n' \"$@\" | fzf --prompt='{title}> ' --height=20% --border",
+                ],
                 check=False,
                 input="\n".join(items),
                 text=True,
@@ -326,7 +353,7 @@ def show_menu(items, title):
 
     print(f"ℹ️  {title}:")
     for i, item in enumerate(items):
-        print(f"  [{i+1}] {item}")
+        print(f"  [{i + 1}] {item}")
     print("")
 
     while True:
@@ -343,6 +370,7 @@ def show_menu(items, title):
         except ValueError:
             error(f"Invalid selection. Please enter 1-{len(items)} or 'q'")
 
+
 def interactive_menu(preselected_action=None):
     print_header("Docker Shared Services Manager")
 
@@ -353,6 +381,7 @@ def interactive_menu(preselected_action=None):
     print("")
 
     execute_action(service, action)
+
 
 def normalize_args(args):
     """
@@ -372,12 +401,13 @@ def normalize_args(args):
 
     return args.service, args.action
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Docker Shared Services Manager')
-    parser.add_argument('service', nargs='?', help='Service name')
-    parser.add_argument('action', nargs='?', help='Action (up, down, restart, logs)')
-    parser.add_argument('--list-services', action='store_true', help='List all available services')
-    parser.add_argument('--list-actions', action='store_true', help='List all available actions')
+    parser = argparse.ArgumentParser(description="Docker Shared Services Manager")
+    parser.add_argument("service", nargs="?", help="Service name")
+    parser.add_argument("action", nargs="?", help="Action (up, down, restart, logs)")
+    parser.add_argument("--list-services", action="store_true", help="List all available services")
+    parser.add_argument("--list-actions", action="store_true", help="List all available actions")
 
     args = parser.parse_args()
 
@@ -410,6 +440,7 @@ def main():
         return
 
     execute_action(service, action)
+
 
 if __name__ == "__main__":
     main()

@@ -2,7 +2,7 @@
 
 > Detailed command references for managing services, performing cleanups, and development pro-tips.
 
----
+______________________________________________________________________
 
 ## 🔧 Usage & Commands
 
@@ -31,7 +31,7 @@ docker compose down                  # Stop all
 docker compose down -v               # Stop and remove volumes
 ```
 
----
+______________________________________________________________________
 
 ## 🗑️ Cleanup
 
@@ -55,19 +55,19 @@ make prune
 docker system prune -a --volumes
 ```
 
----
+______________________________________________________________________
 
 ## 🎯 Pro Tips
 
 1. **Use Makefile** - Easier than docker-compose commands.
-2. **Keep backups** of important databases before major changes.
-3. **Monitor resources** - Watch with `docker stats`.
-4. **Use .env files** - Don't hardcode sensitive values.
-5. **Check logs first** - Most issues are revealed in logs.
-6. **Use container names** for inter-service communication.
-7. **Always use healthchecks** for critical services.
+1. **Keep backups** of important databases before major changes.
+1. **Monitor resources** - Watch with `docker stats`.
+1. **Use .env files** - Don't hardcode sensitive values.
+1. **Check logs first** - Most issues are revealed in logs.
+1. **Use container names** for inter-service communication.
+1. **Always use healthchecks** for critical services.
 
----
+______________________________________________________________________
 
 ## 🔗 Quick Links
 

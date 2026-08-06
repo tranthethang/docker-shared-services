@@ -34,7 +34,7 @@ docker compose -f docker-compose.shared.yml \
   up -d
 ```
 
----
+______________________________________________________________________
 
 ## 📚 Detailed Documentation
 
@@ -45,7 +45,7 @@ To explore service options, networking details, commands, and troubleshooting, r
 - **[Commands & Operations Guide](docs/usage.md)**: Complete Makefile orchestrations, Docker Compose command examples, cleanup procedures, and development pro-tips.
 - **[Troubleshooting & Support](docs/troubleshooting.md)**: Common startup issues, port conflicts, out-of-memory errors, and diagnostic steps.
 
----
+______________________________________________________________________
 
 ## 📋 Project Structure
 
@@ -62,7 +62,7 @@ docker-shared-services/
 ├── [service directories]/         # (e.g., pgvector/, redis/, mongodb/, etc.)
 ```
 
----
+______________________________________________________________________
 
 ## 🤝 Contributing & Support
 
@@ -70,6 +70,6 @@ docker-shared-services/
 - Contributions are welcome! Feel free to open issues or submit pull requests.
 - License: See [LICENSE](LICENSE) file.
 
----
+______________________________________________________________________
 
 **Docker Version Required**: 20.10+ | **Docker Compose Version Required**: 2.0+
