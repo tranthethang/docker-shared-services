@@ -208,6 +208,7 @@ info: ## Show service information and access URLs
 	@echo "  • Redis - localhost:6379"
 	@echo "  • Redis Insight - http://localhost:5540"
 	@echo "  • SonarQube - http://localhost:9000"
+	@echo "  • Supabase - http://localhost:8002 (Host: supabase.localhost, DB: 5434)"
 	@echo "  • Temporal - localhost:7233 (UI: http://localhost:8083 or temporal.localhost)"
 	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
 	@echo "  • Woodpecker CI - http://localhost:8012 (Host: woodpecker.localhost)"

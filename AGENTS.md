@@ -26,11 +26,11 @@ alwaysApply: true
 
 ## Key Resources
 **Main Components**:
-- **Databases**: PgVector (PostgreSQL 17), MySQL 8, MariaDB, MongoDB, ChromaDB, Qdrant
+- **Databases**: PgVector (PostgreSQL 17), MySQL 8, MariaDB, MongoDB, ChromaDB, Qdrant, Supabase (minimal Auth/DB/Storage/Studio)
 - **Caching & Messaging**: Redis, RabbitMQ, Memcached
 - **DevOps & CI/CD**: Gitea, Jenkins, Concourse, SonarQube, Act Runner
 - **Management UIs**: Adminer, Dockge, Portainer, Redis Insight, Dozzle
-- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit
+- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit, PocketBase
 
 **Configuration Structure**:
 - **Global `.env`**: Created from root `.env.example`, contains shared variables and resource limits.

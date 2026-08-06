@@ -2,8 +2,8 @@ SERVICES = [
     "act_runner", "adminer", "appsmith", "bugsink", "chromadb", "chromadb_admin", "concourse", "crawl4ai", "dockge",
     "centrifugo", "dozzle", "gitea", "gotenberg", "inngest", "jenkins", "kafka", "mailpit", "mariadb", "memcached",
     "mermaid-live-editor", "minio", "mongodb", "monitoring", "mysql8", "n8n", "node-red", "otel", "pgvector",
-    "pocketbase", "postgres", "portainer", "qdrant", "rabbitmq", "redis", "redisinsight", "sonarqube", "temporal",
-    "traefik", "woodpecker",
+    "pocketbase", "postgres", "portainer", "qdrant", "rabbitmq", "redis", "redisinsight", "sonarqube", "supabase",
+    "temporal", "traefik", "woodpecker",
 ]
 
 ACTIONS = ["up", "down", "stop", "restart", "logs"]
@@ -12,6 +12,7 @@ ACTIONS = ["up", "down", "stop", "restart", "logs"]
 START_ORDER = [
     "traefik", "pgvector", "postgres", "redis", "mysql8", "mariadb",
     "mongodb", "chromadb", "qdrant", "rabbitmq", "memcached", "minio", "kafka", "mailpit", "otel",
+    "supabase",
 ]
 
 VALIDATION_RULES = {
@@ -48,6 +49,7 @@ SERVICE_INFO_VARS = {
     "qdrant": ["QDRANT_HTTP_PORT", "QDRANT_GRPC_PORT"],
     "redis": ["REDIS_PORT"],
     "sonarqube": ["SONARQUBE_PORT"],
+    "supabase": ["SUPABASE_KONG_HTTP_PORT", "SUPABASE_DB_PORT", "SUPABASE_PUBLIC_URL"],
     "temporal": ["TEMPORAL_UI_PORT", "TEMPORAL_GRPC_PORT"],
     "woodpecker": ["WOODPECKER_HTTP_PORT"],
 }

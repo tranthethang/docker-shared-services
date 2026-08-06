@@ -1,0 +1,10 @@
+volumes/db/data
+volumes/storage
+volumes/snippets/*
+!volumes/snippets/.gitkeep
+.env
+test.http
+docker-compose.override.yml
+.supabase-version
+backups
+.DS_Store
