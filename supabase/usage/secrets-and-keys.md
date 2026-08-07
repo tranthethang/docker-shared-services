@@ -10,7 +10,7 @@ How to create and rotate credentials for the minimal stack. Run scripts from `su
 | Legacy HS256 JWT             | `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`                                               | [`utils/generate-keys.sh`](../utils/generate-keys.sh)                                         |
 | Asymmetric + opaque API keys | `JWT_KEYS`, `JWT_JWKS`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, asymmetric JWTs | [`utils/add-new-auth-keys.sh`](../utils/add-new-auth-keys.sh)                                 |
 | Opaque API key rotation only | `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`                                          | [`utils/rotate-new-api-keys.sh`](../utils/rotate-new-api-keys.sh)                             |
-| Studio login                 | Authelia (`authelia/` users DB); legacy `DASHBOARD_*` unused while Kong basic-auth is off  | Edit `authelia/config/users_database.yml`, or restore Kong basic-auth in `kong.yml`           |
+| Studio login                 | Direct un-gated local dev access; legacy `DASHBOARD_*` unused while Kong basic-auth is off | Restore Kong basic-auth in `kong.yml` if needed                                               |
 | Meta crypto                  | `PG_META_CRYPTO_KEY`                                                                       | Edit `.env` before first Studio use                                                           |
 | Realtime                     | `SECRET_KEY_BASE`, `REALTIME_DB_ENC_KEY`                                                   | Edit `.env` (`openssl rand -base64 48` / `openssl rand -hex 8`)                               |
 | Storage S3 protocol          | `S3_PROTOCOL_ACCESS_KEY_*`                                                                 | Edit `.env`                                                                                   |
@@ -93,12 +93,11 @@ sh run.sh recreate supabase-auth supabase-storage supabase-meta supabase-studio
 
 ## Dashboard password
 
-Studio uses **Authelia** (see [`authelia/README.md`](../../authelia/README.md)). Update `authelia/config/users_database.yml` to change users/passwords.
+Studio UI is open directly for local development.
 
-Legacy Kong basic-auth (`DASHBOARD_*`) is disabled in `volumes/api/kong.yml`. To restore the browser popup instead of Authelia:
+Legacy Kong basic-auth (`DASHBOARD_*`) is disabled in `volumes/api/kong.yml`. To enable basic auth for Studio:
 
 1. Re-enable the `basic-auth` plugin under `dashboard` in `kong.yml`.
-1. Remove `authelia@docker` from the `supabase-studio` Traefik router (and optionally drop the `studio.dss.localhost` host).
 1. Recreate Kong:
 
 ```sh

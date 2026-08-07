@@ -1,0 +1,131 @@
+services:
+  zitadel:
+    container_name: zitadel
+    image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.16.0}
+    # root so first-instance bootstrap can write login-client.pat into the shared volume
+    user: "0"
+    command: start-from-init --masterkey "${ZITADEL_MASTERKEY:-MasterkeyNeedsToHave32Characters}"
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${ZITADEL_CPUS_LIMIT:-1}"
+          memory: "${ZITADEL_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${ZITADEL_CPUS_RESERVED:-0.2}"
+          memory: "${ZITADEL_MEMORY_RESERVED:-256M}"
+    # Host 8180 avoids Traefik dashboard on 8080 (container still listens on 8080)
+    ports:
+      - "${ZITADEL_PORT:-8180}:8080"
+    environment:
+      - ZITADEL_EXTERNALDOMAIN=${ZITADEL_HOSTNAME:-zitadel.dss.localhost}
+      - ZITADEL_EXTERNALPORT=443
+      - ZITADEL_EXTERNALSECURE=true
+      - ZITADEL_TLS_ENABLED=false
+      - ZITADEL_DATABASE_POSTGRES_HOST=${POSTGRES16_HOST:-postgres}
+      - ZITADEL_DATABASE_POSTGRES_PORT=${POSTGRES16_PORT:-5432}
+      - ZITADEL_DATABASE_POSTGRES_DATABASE=${POSTGRES16_DB:-zitadel}
+      - ZITADEL_DATABASE_POSTGRES_USER_USERNAME=${POSTGRES16_USER:-postgres}
+      - ZITADEL_DATABASE_POSTGRES_USER_PASSWORD=${POSTGRES16_PASSWORD:-password102}
+      - ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE=disable
+      - ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME=${POSTGRES16_USER:-postgres}
+      - ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD=${POSTGRES16_PASSWORD:-password102}
+      - ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE=disable
+      - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD=${ZITADEL_ADMIN_PASSWORD:-Password102!}
+      - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED=false
+      - ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME=login-client
+      - ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME=Login Client
+      - ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH=/machinekey/login-client.pat
+      - ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE=${LOGIN_CLIENT_PAT_EXPIRATION:-2099-01-01T00:00:00Z}
+      # Login V2 is required when using the separate zitadel-login container (Zitadel v4+)
+      - ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=true
+      - ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI=https://${ZITADEL_HOSTNAME:-zitadel.dss.localhost}/ui/v2/login/
+      - ZITADEL_OIDC_DEFAULTLOGINURLV2=https://${ZITADEL_HOSTNAME:-zitadel.dss.localhost}/ui/v2/login/login?authRequest=
+      - ZITADEL_OIDC_DEFAULTLOGOUTURLV2=https://${ZITADEL_HOSTNAME:-zitadel.dss.localhost}/ui/v2/login/logout?post_logout_redirect=
+      - ZITADEL_SAML_DEFAULTLOGINURLV2=https://${ZITADEL_HOSTNAME:-zitadel.dss.localhost}/ui/v2/login/login?samlRequest=
+      # Optional Redis cache (off by default; set ENABLED=true after `make up service=redis`)
+      - ZITADEL_CACHES_CONNECTORS_REDIS_ENABLED=${ZITADEL_CACHES_CONNECTORS_REDIS_ENABLED:-false}
+      - ZITADEL_CACHES_CONNECTORS_REDIS_URL=${ZITADEL_CACHES_CONNECTORS_REDIS_URL:-redis://:password102@redis:6379/0}
+      - ZITADEL_CACHES_INSTANCE_CONNECTOR=${ZITADEL_CACHES_INSTANCE_CONNECTOR:-}
+      - ZITADEL_CACHES_MILESTONES_CONNECTOR=${ZITADEL_CACHES_MILESTONES_CONNECTOR:-}
+      - ZITADEL_CACHES_ORGANIZATION_CONNECTOR=${ZITADEL_CACHES_ORGANIZATION_CONNECTOR:-}
+    volumes:
+      - zitadel-machinekey:/machinekey
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
+      - "traefik.http.routers.zitadel-api.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.dss.localhost}`) && !PathPrefix(`/ui/v2/login`)"
+      - "traefik.http.routers.zitadel-api.entrypoints=web,websecure"
+      - "traefik.http.routers.zitadel-api.tls=true"
+      - "traefik.http.routers.zitadel-api.priority=10"
+      - "traefik.http.routers.zitadel-api.service=zitadel-api"
+      - "traefik.http.services.zitadel-api.loadbalancer.server.port=8080"
+      - "traefik.http.services.zitadel-api.loadbalancer.server.scheme=h2c"
+    networks:
+      - infra_shared
+      - dev_tools
+    healthcheck:
+      test: ["CMD", "/app/zitadel", "ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  zitadel-login:
+    container_name: zitadel-login
+    image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION:-v4.16.0}
+    user: "0"
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${ZITADEL_LOGIN_CPUS_LIMIT:-0.5}"
+          memory: "${ZITADEL_LOGIN_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${ZITADEL_LOGIN_CPUS_RESERVED:-0.1}"
+          memory: "${ZITADEL_LOGIN_MEMORY_RESERVED:-128M}"
+    environment:
+      - ZITADEL_API_URL=http://zitadel:8080
+      - NEXT_PUBLIC_BASE_PATH=/ui/v2/login
+      - ZITADEL_SERVICE_USER_TOKEN_FILE=/machinekey/login-client.pat
+      # Host must match EXTERNALDOMAIN or API returns "Instance not found"
+      - CUSTOM_REQUEST_HEADERS=Host:${ZITADEL_HOSTNAME:-zitadel.dss.localhost},X-Forwarded-Proto:https
+    volumes:
+      - zitadel-machinekey:/machinekey:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
+      - "traefik.http.middlewares.zitadel-root-rewrite.replacepath.path=/ui/v2/login/"
+      - "traefik.http.routers.zitadel-root.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.dss.localhost}`) && Path(`/`)"
+      - "traefik.http.routers.zitadel-root.entrypoints=web,websecure"
+      - "traefik.http.routers.zitadel-root.tls=true"
+      - "traefik.http.routers.zitadel-root.priority=400"
+      - "traefik.http.routers.zitadel-root.middlewares=zitadel-root-rewrite"
+      - "traefik.http.routers.zitadel-root.service=zitadel-login"
+      - "traefik.http.routers.zitadel-login.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.dss.localhost}`) && PathPrefix(`/ui/v2/login`)"
+      - "traefik.http.routers.zitadel-login.entrypoints=web,websecure"
+      - "traefik.http.routers.zitadel-login.tls=true"
+      - "traefik.http.routers.zitadel-login.priority=100"
+      - "traefik.http.routers.zitadel-login.service=zitadel-login"
+      - "traefik.http.services.zitadel-login.loadbalancer.server.port=3000"
+    networks:
+      - infra_shared
+      - dev_tools
+    depends_on:
+      zitadel:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true
+
+volumes:
+  zitadel-machinekey:

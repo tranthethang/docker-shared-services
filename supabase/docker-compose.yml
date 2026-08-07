@@ -75,7 +75,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=infra_shared"
       - "traefik.http.services.supabase.loadbalancer.server.port=8000"
-      # Public APIs — no Authelia (clients use anon/service keys)
+      # Public APIs (clients use anon/service keys)
       - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-localhost}`) && (PathPrefix(`/auth`)\
         \ || PathPrefix(`/storage`) || PathPrefix(`/realtime`) || PathPrefix(`/pg`) || PathPrefix(`/.well-known`) || PathPrefix(`/api/mcp`)\
         \ || PathPrefix(`/mcp`))"
@@ -83,12 +83,11 @@ services:
       - "traefik.http.routers.supabase-api.tls=true"
       - "traefik.http.routers.supabase-api.priority=100"
       - "traefik.http.routers.supabase-api.service=supabase"
-      # Studio UI — Authelia SSO (cookie parent dss.localhost)
+      # Studio UI (un-gated local dev)
       - "traefik.http.routers.supabase-studio.rule=Host(`${SUPABASE_STUDIO_HOSTNAME:-studio.dss.localhost}`)"
       - "traefik.http.routers.supabase-studio.entrypoints=web,websecure"
       - "traefik.http.routers.supabase-studio.tls=true"
       - "traefik.http.routers.supabase-studio.priority=50"
-      - "traefik.http.routers.supabase-studio.middlewares=authelia@docker"
       - "traefik.http.routers.supabase-studio.service=supabase"
       # Legacy Studio on supabase.localhost → redirect to studio.dss.localhost
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.regex=^https?://[^/]+/(.*)"

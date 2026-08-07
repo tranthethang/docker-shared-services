@@ -215,6 +215,7 @@ info: ## Show service information and access URLs
 	@echo "  • Temporal - localhost:7233 (UI: http://localhost:8083 or temporal.localhost)"
 	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
 	@echo "  • Woodpecker CI - http://localhost:8012 (Host: woodpecker.localhost)"
+	@echo "  • Zitadel - https://zitadel.dss.localhost (Host port: 8180)"
 	@echo ""
 
 validate: ## Validate all Docker Compose files

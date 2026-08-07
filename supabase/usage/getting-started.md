@@ -8,7 +8,6 @@ Spin up the **minimal Supabase** stack (Auth, dedicated Postgres, Storage, Realt
 - Shared networks from repo root: `make setup` (creates `infra_shared` and `dev_tools`)
 - `openssl` (used by key-generation scripts)
 - Optional: `make up service=traefik` for TLS hosts
-- Optional: `make up service=authelia` for Studio SSO (https://studio.dss.localhost)
 - Optional: `make up service=mailpit` for auth confirmation emails
 - Optional: Node.js ≥ 16 (for asymmetric API keys; Docker can substitute)
 
@@ -20,7 +19,6 @@ cp supabase/.env.example supabase/.env
 (cd supabase && sh utils/generate-keys.sh --update-env)
 
 make up service=traefik
-make up service=authelia
 # Optional but recommended for email auth flows
 make up service=mailpit
 
@@ -41,15 +39,15 @@ Wait until containers are healthy, then open Studio:
 
 | Resource                | URL                                    |
 | ----------------------- | -------------------------------------- |
-| Studio (Authelia SSO)   | https://studio.dss.localhost           |
+| Studio (Traefik)        | https://studio.dss.localhost           |
 | API gateway (Traefik)   | https://supabase.localhost             |
-| Studio / gateway (host) | http://localhost:8002 *(no Authelia)*  |
+| Studio / gateway (host) | http://localhost:8002                  |
 | Auth API                | https://supabase.localhost/auth/v1     |
 | Storage API             | https://supabase.localhost/storage/v1  |
 | Realtime                | https://supabase.localhost/realtime/v1 |
 | Postgres                | `localhost:5434`                       |
 
-Studio is protected by **Authelia** (`admin` / `password102` in `authelia/config/users_database.yml`). API routes on `supabase.localhost` stay public (key-auth). Kong dashboard basic-auth is disabled.
+Studio UI is open directly for local development at https://studio.dss.localhost. API routes on `supabase.localhost` stay public (key-auth). Kong dashboard basic-auth is disabled.
 
 ## Verify the stack
 

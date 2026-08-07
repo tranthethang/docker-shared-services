@@ -2,7 +2,6 @@ SERVICES = [
     "act_runner",
     "adminer",
     "appsmith",
-    "authelia",
     "bugsink",
     "chromadb",
     "chromadb_admin",
@@ -40,6 +39,7 @@ SERVICES = [
     "temporal",
     "traefik",
     "woodpecker",
+    "zitadel",
 ]
 
 ACTIONS = ["up", "down", "stop", "restart", "logs"]
@@ -47,9 +47,9 @@ ACTIONS = ["up", "down", "stop", "restart", "logs"]
 # Infra-first startup order for batch manage (services not listed start/stop by name).
 START_ORDER = [
     "traefik",
-    "authelia",
     "pgvector",
     "postgres",
+    "zitadel",
     "redis",
     "mysql8",
     "mariadb",
@@ -66,11 +66,6 @@ START_ORDER = [
 ]
 
 VALIDATION_RULES = {
-    "authelia": [
-        "AUTHELIA_JWT_SECRET",
-        "AUTHELIA_SESSION_SECRET",
-        "AUTHELIA_STORAGE_ENCRYPTION_KEY",
-    ],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["PASSWORD"],
@@ -78,11 +73,11 @@ VALIDATION_RULES = {
     "pgvector": ["PASSWORD"],
     "postgres": ["POSTGRES16_PASSWORD"],
     "rabbitmq": ["RABBITMQ_PASSWORD"],
+    "zitadel": ["ZITADEL_MASTERKEY"],
 }
 
 SERVICE_INFO_VARS = {
     "appsmith": ["APPSMITH_PORT"],
-    "authelia": ["AUTHELIA_PORT", "AUTHELIA_HOSTNAME"],
     "bugsink": ["BUGSINK_PORT", "BUGSINK_BASE_URL"],
     "chromadb": ["CHROMADB_PORT"],
     "chromadb_admin": ["CHROMADB_ADMIN_PORT"],
@@ -113,4 +108,5 @@ SERVICE_INFO_VARS = {
     ],
     "temporal": ["TEMPORAL_UI_PORT", "TEMPORAL_GRPC_PORT"],
     "woodpecker": ["WOODPECKER_HTTP_PORT"],
+    "zitadel": ["ZITADEL_PORT", "ZITADEL_HOSTNAME"],
 }

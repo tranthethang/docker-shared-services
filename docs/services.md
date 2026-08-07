@@ -48,38 +48,38 @@ ______________________________________________________________________
 - **Loki** - Log aggregation system
 - **Promtail** - Log shipper for Docker containers
 - **Traefik** - Reverse proxy and load balancer
-- **Authelia** - Lightweight SSO / ForwardAuth login portal (Traefik middleware)
+- **Zitadel** - Central Identity Provider / OIDC & OAuth2 Server
 - **Redis Insight** - Redis management UI
 
 ______________________________________________________________________
 
 ## 🌐 Service Access
 
-| Service       | Access Point                                          | Default Credentials        |
-| :------------ | :---------------------------------------------------- | :------------------------- |
-| PgVector      | `localhost:5432`                                      | `postgres` / `password102` |
-| MySQL 8       | `localhost:3306`                                      | `uid` / `password102`      |
-| MongoDB       | `localhost:27017`                                     | `root` / `password102`     |
-| Redis         | `localhost:6379`                                      | - / `password102`          |
-| RabbitMQ      | `localhost:5672`                                      | `guest` / `guest`          |
-| RabbitMQ UI   | `http://localhost:15672`                              | `guest` / `guest`          |
-| Adminer       | `http://localhost:8081`                               | -                          |
-| Gitea         | `http://localhost:3000`                               | -                          |
-| Crawl4AI      | `http://localhost:11235` (Host: `crawl4ai.localhost`) | -                          |
-| Inngest       | `http://localhost:8288` (Host: `inngest.localhost`)   | -                          |
-| Node-RED      | `http://localhost:1880` (Host: `node-red.localhost`)  | -                          |
-| SonarQube     | `http://localhost:9000`                               | `admin` / `admin`          |
-| Jenkins       | `http://localhost:8090`                               | -                          |
-| MinIO         | `http://localhost:9002`                               | `admin` / `password102`    |
-| MinIO Console | `http://localhost:9003`                               | `admin` / `password102`    |
-| Mailpit       | `http://localhost:8025`                               | -                          |
-| Concourse     | `http://localhost:8070`                               | `admin` / `password102`    |
-| Redis Insight | `http://localhost:5540`                               | -                          |
-| Grafana       | `http://localhost:3001`                               | `admin` / `password102`    |
-| Loki          | `http://localhost:3100`                               | -                          |
-| Temporal UI   | `http://localhost:8083` (Host: `temporal.localhost`)  | -                          |
-| Traefik       | `http://localhost:8080`                               | -                          |
-| Authelia      | `https://auth.dss.localhost` (Host port: `9091`)      | `admin` / `password102`    |
+| Service       | Access Point                                          | Default Credentials                                            |
+| :------------ | :---------------------------------------------------- | :------------------------------------------------------------- |
+| PgVector      | `localhost:5432`                                      | `postgres` / `password102`                                     |
+| MySQL 8       | `localhost:3306`                                      | `uid` / `password102`                                          |
+| MongoDB       | `localhost:27017`                                     | `root` / `password102`                                         |
+| Redis         | `localhost:6379`                                      | - / `password102`                                              |
+| RabbitMQ      | `localhost:5672`                                      | `guest` / `guest`                                              |
+| RabbitMQ UI   | `http://localhost:15672`                              | `guest` / `guest`                                              |
+| Adminer       | `http://localhost:8081`                               | -                                                              |
+| Gitea         | `http://localhost:3000`                               | -                                                              |
+| Crawl4AI      | `http://localhost:11235` (Host: `crawl4ai.localhost`) | -                                                              |
+| Inngest       | `http://localhost:8288` (Host: `inngest.localhost`)   | -                                                              |
+| Node-RED      | `http://localhost:1880` (Host: `node-red.localhost`)  | -                                                              |
+| SonarQube     | `http://localhost:9000`                               | `admin` / `admin`                                              |
+| Jenkins       | `http://localhost:8090`                               | -                                                              |
+| MinIO         | `http://localhost:9002`                               | `admin` / `password102`                                        |
+| MinIO Console | `http://localhost:9003`                               | `admin` / `password102`                                        |
+| Mailpit       | `http://localhost:8025`                               | -                                                              |
+| Concourse     | `http://localhost:8070`                               | `admin` / `password102`                                        |
+| Redis Insight | `http://localhost:5540`                               | -                                                              |
+| Grafana       | `http://localhost:3001`                               | `admin` / `password102`                                        |
+| Loki          | `http://localhost:3100`                               | -                                                              |
+| Temporal UI   | `http://localhost:8083` (Host: `temporal.localhost`)  | -                                                              |
+| Traefik       | `http://localhost:8080`                               | -                                                              |
+| Zitadel       | `https://zitadel.dss.localhost` (Host port: `8180`)   | `zitadel-admin@zitadel.zitadel.dss.localhost` / `Password102!` |
 
 ______________________________________________________________________
 

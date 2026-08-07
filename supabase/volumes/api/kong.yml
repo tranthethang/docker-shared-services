@@ -326,8 +326,8 @@ services:
       #    deny: []
 
   ## Dashboard - catch all remaining routes
-  ## Auth: Traefik ForwardAuth (Authelia) on https://studio.dss.localhost
-  ## Kong basic-auth disabled to avoid double login with Authelia.
+  ## Auth: Direct un-gated local dev access on https://studio.dss.localhost
+  ## Kong basic-auth disabled for easy local access.
   - name: dashboard
     _comment: 'Studio: /* -> http://supabase-studio:3000/*'
     url: http://supabase-studio:3000/
@@ -338,7 +338,7 @@ services:
           - /
     plugins:
       - name: cors
-      # Re-enable only if Authelia is not used (browser Basic Auth popup):
+      # Re-enable only if basic auth is required (browser Basic Auth popup):
       # - name: basic-auth
       #   config:
       #     hide_credentials: true
