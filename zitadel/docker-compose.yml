@@ -1,7 +1,7 @@
 services:
   zitadel:
     container_name: zitadel
-    image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.16.0}
+    image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.16.3}
     # root so first-instance bootstrap can write login-client.pat into the shared volume
     user: "0"
     command: start-from-init --masterkey "${ZITADEL_MASTERKEY:-MasterkeyNeedsToHave32Characters}"
@@ -73,7 +73,7 @@ services:
 
   zitadel-login:
     container_name: zitadel-login
-    image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION:-v4.16.0}
+    image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION:-v4.16.3}
     user: "0"
     restart: "${RESTART_POLICY:-always}"
     deploy:

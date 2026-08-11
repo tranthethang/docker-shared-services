@@ -33,7 +33,7 @@ Zitadel stores its schema in the `zitadel` database inside the shared `postgres`
 - **Traefik TLS**: Traefik terminates TLS for `zitadel.dss.localhost`.
 - **API Upstream (h2c)**: Non-login paths go to container port `8080` with scheme `h2c` (required for Console / gRPC).
 - **Login UI Upstream**: `/ui/v2/login` (and `/`) go to `zitadel-login` on port `3000`.
-- **Images**: API and Login must share the same `ZITADEL_VERSION` (default `v4.16.0`).
+- **Images**: API and Login must share the same `ZITADEL_VERSION` (default `v4.16.3`).
 
 ## Optional Caching (Redis)
 
