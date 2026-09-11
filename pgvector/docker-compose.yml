@@ -13,7 +13,7 @@ services:
           memory: "${POSTGRES_MEMORY_RESERVED:-512M}"
     environment:
       POSTGRES_USER: "${POSTGRES_USER:-postgres}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-password102}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-Password102!}"
       POSTGRES_DB: "${POSTGRES_DB:-sonarqube}"
     ports:
       - "${POSTGRES_PORT:-5432}:5432"

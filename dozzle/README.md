@@ -7,7 +7,7 @@ Mặc định Dozzle được cấu hình với `--auth-provider=simple`, đọc
 ## Tài khoản mặc định
 
 - Username: `admin`
-- Password (plaintext): `password102`
+- Password (plaintext): `Password102!`
 
 Dozzle lưu password dưới dạng **bcrypt hash** trong file `users.yml`.
 
@@ -17,7 +17,7 @@ Chạy lệnh sau (nó sẽ tự generate bcrypt hash và ghi vào `dozzle/data/
 
 ```bash
 docker run --rm -i amir20/dozzle generate admin \
-  --password password102 \
+  --password Password102! \
   --email admin@example.com \
   --name "Admin" > ./dozzle/data/users.yml
 ```

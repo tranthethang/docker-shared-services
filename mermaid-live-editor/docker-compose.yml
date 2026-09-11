@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=infra_shared"
-      - "traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.localhost`)"
+      - "traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.dss.localhost`)"
       - "traefik.http.routers.mermaid-live-editor.entrypoints=web,websecure"
       - "traefik.http.routers.mermaid-live-editor.tls=true"
       - "traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080"

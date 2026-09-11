@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=infra_shared"
-      - "traefik.http.routers.sonarqube.rule=Host(`sonarqube.localhost`)"
+      - "traefik.http.routers.sonarqube.rule=Host(`sonarqube.dss.localhost`)"
       - "traefik.http.routers.sonarqube.entrypoints=web,websecure"
       - "traefik.http.routers.sonarqube.tls=true"
       - "traefik.http.services.sonarqube.loadbalancer.server.port=9000"
@@ -23,7 +23,7 @@ services:
     environment:
       SONAR_JDBC_URL: jdbc:postgresql://${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-sonarqube}
       SONAR_JDBC_USERNAME: "${POSTGRES_USER:-postgres}"
-      SONAR_JDBC_PASSWORD: "${POSTGRES_PASSWORD:-password102}"
+      SONAR_JDBC_PASSWORD: "${POSTGRES_PASSWORD:-Password102!}"
     networks:
       - infra_shared
       - dev_tools

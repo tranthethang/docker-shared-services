@@ -2,7 +2,7 @@ services:
   pocketbase:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.pocketbase.rule=Host(`pocketbase.localhost`)"
+      - "traefik.http.routers.pocketbase.rule=Host(`pocketbase.dss.localhost`)"
       - "traefik.http.routers.pocketbase.entrypoints=web,websecure"
       - "traefik.http.routers.pocketbase.tls=true"
       - "traefik.http.services.pocketbase.loadbalancer.server.port=8090"

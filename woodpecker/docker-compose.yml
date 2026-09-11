@@ -18,7 +18,7 @@ services:
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
       - WOODPECKER_OPEN=${WOODPECKER_OPEN:-true}
-      - WOODPECKER_HOST=https://${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-localhost}
+      - WOODPECKER_HOST=https://${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-dss.localhost}
       - WOODPECKER_ADMIN=${WOODPECKER_ADMIN:-}
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET:-change_me}
       - WOODPECKER_LOG_LEVEL=${WOODPECKER_LOG_LEVEL:-info}
@@ -35,7 +35,7 @@ services:
       - dev_tools
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.woodpecker.rule=Host(`${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-localhost}`)"
+      - "traefik.http.routers.woodpecker.rule=Host(`${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-dss.localhost}`)"
       - "traefik.http.routers.woodpecker.entrypoints=web,websecure"
       - "traefik.http.routers.woodpecker.tls=true"
       - "traefik.http.services.woodpecker.loadbalancer.server.port=8000"

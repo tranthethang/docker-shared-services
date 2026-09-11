@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=infra_shared"
-      - "traefik.http.routers.qdrant.rule=Host(`qdrant.localhost`)"
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.dss.localhost`)"
       - "traefik.http.routers.qdrant.entrypoints=web,websecure"
       - "traefik.http.routers.qdrant.tls=true"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
@@ -22,7 +22,7 @@ services:
       - "${QDRANT_HTTP_PORT:-6333}:6333" # REST API
       - "${QDRANT_GRPC_PORT:-6334}:6334" # gRPC
     environment:
-      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-password102}
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-Password102!}
       - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-INFO}
       - QDRANT__TELEMETRY_DISABLED=${QDRANT_TELEMETRY_DISABLED:-true}
     volumes:

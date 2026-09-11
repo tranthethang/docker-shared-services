@@ -2,7 +2,7 @@ services:
   mailpit:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.mailpit.rule=Host(`mailpit.localhost`)"
+      - "traefik.http.routers.mailpit.rule=Host(`mailpit.dss.localhost`)"
       - "traefik.http.routers.mailpit.entrypoints=web,websecure"
       - "traefik.http.routers.mailpit.tls=true"
       - "traefik.http.services.mailpit.loadbalancer.server.port=8025"

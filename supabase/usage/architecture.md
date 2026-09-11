@@ -20,7 +20,7 @@ The Realtime container name **must** stay `realtime-dev.supabase-realtime`: the 
 
 ```
                          ┌─────────────┐
-  APIs  supabase.localhost │ Traefik     │
+  APIs  supabase.dss.localhost │ Traefik     │
   Studio studio.dss.localhost│            │
                          └──────┬──────┘
                                 ▼
@@ -78,6 +78,6 @@ All services join external networks `infra_shared` and `dev_tools` (same as othe
 
 Traefik labels on `supabase-kong`:
 
-- APIs: `Host(`supabase.localhost`)` + PathPrefix (`/auth`, `/storage`, …) — public
+- APIs: `Host(`supabase.dss.localhost`)` + PathPrefix (`/auth`, `/storage`, …) — public
 - Studio: `Host(`studio.dss.localhost`)` (un-gated local dev)
-- Legacy UI on `supabase.localhost` redirects to `studio.dss.localhost`
+- Legacy UI on `supabase.dss.localhost` redirects to `studio.dss.localhost`

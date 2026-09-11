@@ -41,9 +41,9 @@ See [Secrets and keys](./secrets-and-keys.md).
 
 | Variable                             | Typical local value                  | Notes                                  |
 | ------------------------------------ | ------------------------------------ | -------------------------------------- |
-| `SUPABASE_PUBLIC_URL`                | `https://supabase.localhost`         | Public base URL for clients / Storage  |
-| `API_EXTERNAL_URL`                   | `https://supabase.localhost/auth/v1` | External Auth base (issuer, redirects) |
-| `SITE_URL`                           | `https://supabase.localhost`         | App site URL for Auth redirects        |
+| `SUPABASE_PUBLIC_URL`                | `https://supabase.dss.localhost`         | Public base URL for clients / Storage  |
+| `API_EXTERNAL_URL`                   | `https://supabase.dss.localhost/auth/v1` | External Auth base (issuer, redirects) |
+| `SITE_URL`                           | `https://supabase.dss.localhost`         | App site URL for Auth redirects        |
 | `SUPABASE_SUBDOMAIN` / `DOMAIN_NAME` | `supabase` / `localhost`             | Traefik `Host()` rule                  |
 | `ADDITIONAL_REDIRECT_URLS`           | *(empty)*                            | Comma-separated allow-list             |
 
@@ -108,7 +108,7 @@ Default backend is **file** under `./volumes/storage`. Image transforms are off.
 | `SUPABASE_KONG_HTTP_PORT`  | `8002`  | ChromaDB `8000` |
 | `SUPABASE_KONG_HTTPS_PORT` | `8445`  | Appsmith `8444` |
 
-Traefik terminates TLS on `supabase.localhost`; host ports remain available for direct access.
+Traefik terminates TLS on `supabase.dss.localhost`; host ports remain available for direct access.
 
 ## Resource limits
 

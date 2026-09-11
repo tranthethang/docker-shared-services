@@ -2,7 +2,7 @@ services:
   node-red:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.node-red.rule=Host(`node-red.localhost`)"
+      - "traefik.http.routers.node-red.rule=Host(`node-red.dss.localhost`)"
       - "traefik.http.routers.node-red.entrypoints=web,websecure"
       - "traefik.http.routers.node-red.tls=true"
       - "traefik.http.services.node-red.loadbalancer.server.port=1880"

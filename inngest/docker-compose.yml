@@ -13,19 +13,19 @@ services:
           memory: "${INNGEST_MEMORY_RESERVED:-128M}"
     command: >
       inngest start --host 0.0.0.0 --port 8288  --event-key ${INNGEST_EVENT_KEY}  --signing-key ${INNGEST_SIGNING_KEY}  --postgres-uri
-      postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password102}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-inngest}?sslmode=disable  --redis-uri
-      redis://:${REDIS_PASSWORD:-password102}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}  --sdk-url ${INNGEST_SDK_URL:-http://api:8000/api/inngest}
+      postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-inngest}?sslmode=disable  --redis-uri
+      redis://:${REDIS_PASSWORD:-Password102!}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}  --sdk-url ${INNGEST_SDK_URL:-http://api:8000/api/inngest}
     ports:
       - "${INNGEST_PORT:-8288}:8288"
     environment:
       - INNGEST_PORT=8288
       - INNGEST_EVENT_KEY=${INNGEST_EVENT_KEY}
       - INNGEST_SIGNING_KEY=${INNGEST_SIGNING_KEY}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-password102}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-Password102!}
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password102}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Password102!}
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - POSTGRES_DB=${POSTGRES_DB:-inngest}
@@ -41,7 +41,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=infra_shared"
-      - "traefik.http.routers.inngest.rule=Host(`inngest.localhost`)"
+      - "traefik.http.routers.inngest.rule=Host(`inngest.dss.localhost`)"
       - "traefik.http.routers.inngest.entrypoints=web,websecure"
       - "traefik.http.routers.inngest.tls=true"
       - "traefik.http.services.inngest.loadbalancer.server.port=8288"

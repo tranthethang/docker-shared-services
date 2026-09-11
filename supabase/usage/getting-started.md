@@ -40,14 +40,14 @@ Wait until containers are healthy, then open Studio:
 | Resource                | URL                                    |
 | ----------------------- | -------------------------------------- |
 | Studio (Traefik)        | https://studio.dss.localhost           |
-| API gateway (Traefik)   | https://supabase.localhost             |
+| API gateway (Traefik)   | https://supabase.dss.localhost             |
 | Studio / gateway (host) | http://localhost:8002                  |
-| Auth API                | https://supabase.localhost/auth/v1     |
-| Storage API             | https://supabase.localhost/storage/v1  |
-| Realtime                | https://supabase.localhost/realtime/v1 |
+| Auth API                | https://supabase.dss.localhost/auth/v1     |
+| Storage API             | https://supabase.dss.localhost/storage/v1  |
+| Realtime                | https://supabase.dss.localhost/realtime/v1 |
 | Postgres                | `localhost:5434`                       |
 
-Studio UI is open directly for local development at https://studio.dss.localhost. API routes on `supabase.localhost` stay public (key-auth). Kong dashboard basic-auth is disabled.
+Studio UI is open directly for local development at https://studio.dss.localhost. API routes on `supabase.dss.localhost` stay public (key-auth). Kong dashboard basic-auth is disabled.
 
 ## Verify the stack
 
@@ -70,7 +70,7 @@ Realtime’s **container** name is `realtime-dev.supabase-realtime` (required by
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
-  'https://supabase.localhost',
+  'https://supabase.dss.localhost',
   process.env.ANON_KEY! // or SUPABASE_PUBLISHABLE_KEY if using opaque keys
 )
 

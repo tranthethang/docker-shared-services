@@ -2,7 +2,7 @@ services:
   redisinsight:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.redisinsight.rule=Host(`redisinsight.localhost`)"
+      - "traefik.http.routers.redisinsight.rule=Host(`redisinsight.dss.localhost`)"
       - "traefik.http.routers.redisinsight.entrypoints=web,websecure"
       - "traefik.http.routers.redisinsight.tls=true"
       - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"

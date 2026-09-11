@@ -2,7 +2,7 @@ services:
   crawl4ai:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.crawl4ai.rule=Host(`crawl4ai.localhost`)"
+      - "traefik.http.routers.crawl4ai.rule=Host(`crawl4ai.dss.localhost`)"
       - "traefik.http.routers.crawl4ai.entrypoints=web,websecure"
       - "traefik.http.routers.crawl4ai.tls=true"
       - "traefik.http.services.crawl4ai.loadbalancer.server.port=11235"

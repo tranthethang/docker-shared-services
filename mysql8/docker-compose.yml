@@ -15,8 +15,8 @@ services:
     environment:
       MYSQL_DATABASE: "${MYSQL_DATABASE:-cloud}"
       MYSQL_USER: "${MYSQL_USER:-uid}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-password102}"
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-password102}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-Password102!}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-Password102!}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
     ports:
       - "${MYSQL_PORT:-3306}:3306"

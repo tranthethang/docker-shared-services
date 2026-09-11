@@ -2,7 +2,7 @@ services:
   dockge:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dockge.rule=Host(`dockge.localhost`)"
+      - "traefik.http.routers.dockge.rule=Host(`dockge.dss.localhost`)"
       - "traefik.http.routers.dockge.entrypoints=web,websecure"
       - "traefik.http.routers.dockge.tls=true"
       - "traefik.http.services.dockge.loadbalancer.server.port=5001"
