@@ -53,7 +53,7 @@ setup: ## Setup environment files, networks and certificates
 	if [[ ! -f "dozzle/data/users.yml" ]]; then \
 		echo "  dozzle/data/users.yml not found -> generating default admin credentials..."; \
 		docker run --rm -i amir20/dozzle generate admin \
-		  --password password102 \
+		  --password Password102! \
 		  --email admin@example.com \
 		  --name "Admin" > dozzle/data/users.yml; \
 	else \
@@ -84,8 +84,8 @@ cert: ## Generate SSL certificates for Traefik
 		mkcert -cert-file traefik/certs/server.crt \
 		       -key-file traefik/certs/server.key \
 		       "$$CURRENT_IP" \
-		       "*.localhost" \
 		       "*.dss.localhost" \
+		       "*.minio.dss.localhost" \
 		       "dss.localhost" \
 		       localhost \
 		       127.0.0.1 \
@@ -175,46 +175,46 @@ info: ## Show service information and access URLs
 	@echo ""
 	@echo "Services:"
 	@echo "  • Adminer - http://localhost:8081"
-	@echo "  • Appsmith - http://localhost:8091 (Host: appsmith.localhost)"
-	@echo "  • Bugsink - http://localhost:8150 (Host: bugsink.localhost)"
-	@echo "  • ChromaDB - http://localhost:8000 (Host: chromadb.localhost)"
-	@echo "  • ChromaDB Admin - http://localhost:8001 (Host: chromadb-admin.localhost)"
+	@echo "  • Appsmith - http://localhost:8091 (Host: appsmith.dss.localhost)"
+	@echo "  • Bugsink - http://localhost:8150 (Host: bugsink.dss.localhost)"
+	@echo "  • ChromaDB - http://localhost:8000 (Host: chromadb.dss.localhost)"
+	@echo "  • ChromaDB Admin - http://localhost:8001 (Host: chromadb-admin.dss.localhost)"
 	@echo "  • Centrifugo - http://localhost:8010 (container: centrifugo:8000)"
 	@echo "  • Concourse - http://localhost:8070"
-	@echo "  • Crawl4AI - http://localhost:11235 (Host: crawl4ai.localhost)"
+	@echo "  • Crawl4AI - http://localhost:11235 (Host: crawl4ai.dss.localhost)"
 	@echo "  • Dockge - http://localhost:5001"
-	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.localhost)"
+	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.dss.localhost)"
 	@echo "  • Gitea - http://localhost:3000"
 	@echo "  • Gotenberg - http://localhost:3030 (container: gotenberg:3000)"
-	@echo "  • Grafana - http://localhost:3001 (Host: grafana.localhost)"
-	@echo "  • Inngest - http://localhost:8288 (Host: inngest.localhost)"
-	@echo "  • Jaeger - http://localhost:16686 (Host: jaeger.localhost)"
+	@echo "  • Grafana - http://localhost:3001 (Host: grafana.dss.localhost)"
+	@echo "  • Inngest - http://localhost:8288 (Host: inngest.dss.localhost)"
+	@echo "  • Jaeger - http://localhost:16686 (Host: jaeger.dss.localhost)"
 	@echo "  • Jenkins - http://localhost:8090"
 	@echo "  • Kafka - localhost:9092"
-	@echo "  • Kafka UI - http://localhost:8082 (Host: kafka-ui.localhost)"
+	@echo "  • Kafka UI - http://localhost:8082 (Host: kafka-ui.dss.localhost)"
 	@echo "  • Mailpit - localhost:8025 (SMTP: 1025)"
 	@echo "  • MariaDB 11 - localhost:3307"
 	@echo "  • Memcached - localhost:11211"
-	@echo "  • Mermaid Live Editor - http://localhost:8160 (Host: mermaid.localhost)"
+	@echo "  • Mermaid Live Editor - http://localhost:8160 (Host: mermaid.dss.localhost)"
 	@echo "  • MinIO - http://localhost:9002"
 	@echo "  • MongoDB - localhost:27017"
 	@echo "  • MySQL 8 - localhost:3306"
-	@echo "  • n8n - http://localhost:5678 (Host: n8n.localhost)"
-	@echo "  • Node-RED - http://localhost:1880 (Host: node-red.localhost)"
+	@echo "  • n8n - http://localhost:5678 (Host: n8n.dss.localhost)"
+	@echo "  • Node-RED - http://localhost:1880 (Host: node-red.dss.localhost)"
 	@echo "  • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP)"
-	@echo "  • PocketBase - http://localhost:8140 (Host: pocketbase.localhost)"
+	@echo "  • PocketBase - http://localhost:8140 (Host: pocketbase.dss.localhost)"
 	@echo "  • PgVector (PostgreSQL 17) - localhost:5432"
 	@echo "  • Portainer - http://localhost:9007 (HTTPS: 9443)"
 	@echo "  • Postgres (PostgreSQL 16) - localhost:5433"
-	@echo "  • Prometheus - http://localhost:9090 (Host: prometheus.localhost)"
+	@echo "  • Prometheus - http://localhost:9090 (Host: prometheus.dss.localhost)"
 	@echo "  • RabbitMQ - localhost:5672 (management: 15672)"
 	@echo "  • Redis - localhost:6379"
 	@echo "  • Redis Insight - http://localhost:5540"
 	@echo "  • SonarQube - http://localhost:9000"
-	@echo "  • Supabase - http://localhost:8002 (Host: supabase.localhost, DB: 5434)"
-	@echo "  • Temporal - localhost:7233 (UI: http://localhost:8083 or temporal.localhost)"
+	@echo "  • Supabase - http://localhost:8002 (Host: supabase.dss.localhost, DB: 5434)"
+	@echo "  • Temporal - localhost:7233 (UI: http://localhost:8083 or temporal.dss.localhost)"
 	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
-	@echo "  • Woodpecker CI - http://localhost:8012 (Host: woodpecker.localhost)"
+	@echo "  • Woodpecker CI - http://localhost:8012 (Host: woodpecker.dss.localhost)"
 	@echo "  • Zitadel - https://zitadel.dss.localhost (Host port: 8180)"
 	@echo ""
 

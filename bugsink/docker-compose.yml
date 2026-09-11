@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=infra_shared"
-      - "traefik.http.routers.bugsink.rule=Host(`bugsink.localhost`)"
+      - "traefik.http.routers.bugsink.rule=Host(`bugsink.dss.localhost`)"
       - "traefik.http.routers.bugsink.entrypoints=web,websecure"
       - "traefik.http.routers.bugsink.tls=true"
       - "traefik.http.services.bugsink.loadbalancer.server.port=8000"
@@ -24,10 +24,10 @@ services:
       SECRET_KEY: "${BUGSINK_SECRET_KEY:-change-me-generate-with-openssl-rand-base64-50}"
       CREATE_SUPERUSER: "${BUGSINK_CREATE_SUPERUSER:-admin@example.org:admin}"
       PORT: 8000
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password102}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-bugsink}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-bugsink}"
       BEHIND_HTTPS_PROXY: "${BUGSINK_BEHIND_HTTPS_PROXY:-true}"
       USE_X_FORWARDED_HOST: "${BUGSINK_USE_X_FORWARDED_HOST:-true}"
-      BASE_URL: "${BUGSINK_BASE_URL:-https://bugsink.localhost}"
+      BASE_URL: "${BUGSINK_BASE_URL:-https://bugsink.dss.localhost}"
       SITE_TITLE: "${BUGSINK_SITE_TITLE:-Bugsink}"
       TIME_ZONE: "${TZ:-Asia/Ho_Chi_Minh}"
       EMAIL_HOST: "${BUGSINK_EMAIL_HOST:-mailpit}"

@@ -15,7 +15,7 @@ services:
       - DB=${DB:-postgres12}
       - DB_PORT=${DB_PORT:-5432}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PWD=${POSTGRES_PWD:-password102}
+      - POSTGRES_PWD=${POSTGRES_PWD:-Password102!}
       - POSTGRES_SEEDS=${POSTGRES_SEEDS:-postgres}
       # Archival Configuration
       - ARCHIVAL_ENABLED=${TEMPORAL_ARCHIVAL_ENABLED:-true}
@@ -23,7 +23,7 @@ services:
       - DEFAULT_NAMESPACE_HISTORY_ARCHIVAL_STATE=enabled
       - DEFAULT_NAMESPACE_HISTORY_ARCHIVAL_URI=s3://${TEMPORAL_S3_BUCKET:-temporal-archival}/
       - AWS_ACCESS_KEY_ID=${TEMPORAL_S3_ACCESS_KEY:-admin}
-      - AWS_SECRET_ACCESS_KEY=${TEMPORAL_S3_SECRET_KEY:-password102}
+      - AWS_SECRET_ACCESS_KEY=${TEMPORAL_S3_SECRET_KEY:-Password102!}
       - AWS_REGION=${TEMPORAL_S3_REGION:-us-east-1}
       - TEMPORAL_S3_ENDPOINT=${TEMPORAL_S3_ENDPOINT:-http://minio:9000}
       - TEMPORAL_S3_S3_FORCE_PATH_STYLE=true
@@ -36,7 +36,7 @@ services:
   temporal-ui:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.temporal.rule=Host(`temporal.localhost`)"
+      - "traefik.http.routers.temporal.rule=Host(`temporal.dss.localhost`)"
       - "traefik.http.routers.temporal.entrypoints=web,websecure"
       - "traefik.http.routers.temporal.tls=true"
       - "traefik.http.services.temporal.loadbalancer.server.port=8080"
@@ -53,7 +53,7 @@ services:
           memory: "${TEMPORAL_UI_MEMORY_RESERVED:-256M}"
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CORS_ORIGINS=http://localhost:8083,https://temporal.localhost
+      - TEMPORAL_CORS_ORIGINS=http://localhost:8083,https://temporal.dss.localhost
     networks:
       - infra_shared
       - dev_tools

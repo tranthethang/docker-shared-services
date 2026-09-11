@@ -2,7 +2,7 @@ services:
   concourse:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.concourse.rule=Host(`concourse.localhost`)"
+      - "traefik.http.routers.concourse.rule=Host(`concourse.dss.localhost`)"
       - "traefik.http.routers.concourse.entrypoints=web,websecure"
       - "traefik.http.routers.concourse.tls=true"
       - "traefik.http.services.concourse.loadbalancer.server.port=8080"
@@ -31,9 +31,9 @@ services:
     environment:
       CONCOURSE_POSTGRES_HOST: "${POSTGRES_HOST:-pgvector}"
       CONCOURSE_POSTGRES_USER: "${POSTGRES_USER:-postgres}"
-      CONCOURSE_POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-password102}"
+      CONCOURSE_POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-Password102!}"
       CONCOURSE_POSTGRES_DATABASE: "${CONCOURSE_DB_NAME:-concourse}"
-      CONCOURSE_EXTERNAL_URL: "http://${CONCOURSE_HOST:-concourse.localhost}"
+      CONCOURSE_EXTERNAL_URL: "http://${CONCOURSE_HOST:-concourse.dss.localhost}"
       CONCOURSE_ADD_LOCAL_USER: "${CONCOURSE_ADD_LOCAL_USER:-admin:admin}"
       CONCOURSE_MAIN_TEAM_LOCAL_USER: "${CONCOURSE_MAIN_TEAM_LOCAL_USER:-admin}"
       CONCOURSE_WORKER_GARDEN_NETWORK: "${CONCOURSE_WORKER_GARDEN_NETWORK:-infra_shared}"

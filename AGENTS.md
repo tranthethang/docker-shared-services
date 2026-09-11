@@ -61,7 +61,7 @@ make cert           # Generate SSL certificates using mkcert
 ```
 
 **Service Access**:
-Services are accessible via `localhost` on specific ports or through Traefik routing (e.g., `http://appsmith.localhost`). Default credentials (e.g., `admin/password102`) are provided in `README.md` for development.
+Services are accessible via `localhost` on specific ports or through Traefik routing (e.g., `http://appsmith.dss.localhost`). Default credentials (e.g., `admin/Password102!`) are provided in `README.md` for development.
 
 ## Docker Configuration
 

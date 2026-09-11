@@ -2,7 +2,7 @@ services:
   appsmith:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.appsmith.rule=Host(`appsmith.localhost`)"
+      - "traefik.http.routers.appsmith.rule=Host(`appsmith.dss.localhost`)"
       - "traefik.http.routers.appsmith.entrypoints=web,websecure"
       - "traefik.http.routers.appsmith.tls=true"
       - "traefik.http.services.appsmith.loadbalancer.server.port=80"

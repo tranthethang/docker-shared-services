@@ -65,7 +65,7 @@ services:
       - dev_tools
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`)"
+      - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.dss.localhost`)"
       - "traefik.http.routers.kafka-ui.entrypoints=web,websecure"
       - "traefik.http.routers.kafka-ui.tls=true"
       - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"

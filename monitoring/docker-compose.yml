@@ -2,7 +2,7 @@ services:
   grafana:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOSTNAME:-grafana.dss.localhost}`)"
       - "traefik.http.routers.grafana.entrypoints=web,websecure"
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
@@ -11,7 +11,7 @@ services:
     restart: ${RESTART_POLICY:-always}
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-password102}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-Password102!}
       GF_USERS_ALLOW_SIGN_UP: "false"
     ports:
       - "${GRAFANA_PORT:-3001}:3000"

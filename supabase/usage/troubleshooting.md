@@ -22,7 +22,7 @@ Check:
 1. Required volume files exist (`volumes/api/kong.yml`, `volumes/db/*.sql`, `volumes/api/kong-entrypoint.sh`).
 1. Docker has enough disk — Postgres and images are large.
 
-## `supabase.localhost` does not resolve / TLS fails
+## `supabase.dss.localhost` does not resolve / TLS fails
 
 1. Start Traefik: `make up service=traefik`
 1. Confirm `SUPABASE_SUBDOMAIN` / `DOMAIN_NAME` / `SUPABASE_PUBLIC_URL` match your Traefik host rule.
@@ -135,7 +135,7 @@ sh utils/generate-keys.sh --update-env
 Defaults point SMTP at shared **Mailpit** (`SMTP_HOST=mailpit`, `SMTP_PORT=1025`) with `ENABLE_EMAIL_AUTOCONFIRM=false`.
 
 1. Start Mailpit: `make up service=mailpit`
-1. Open https://mailpit.localhost (or host port `8025`) to read messages
+1. Open https://mailpit.dss.localhost (or host port `8025`) to read messages
 1. Or set `ENABLE_EMAIL_AUTOCONFIRM=true` to skip email locally
 1. After changing SMTP env, recreate auth: `sh run.sh recreate supabase-auth`
 

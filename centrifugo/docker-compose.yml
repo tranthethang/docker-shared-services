@@ -17,9 +17,9 @@ services:
     volumes:
       - ./config.json:/centrifugo/config.json:ro
     environment:
-      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=${JWT_SIGNING_KEY:-password102}
+      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=${JWT_SIGNING_KEY:-Password102!}
       - CENTRIFUGO_TOKEN_USER_ID_CLAIM=user_id
-      - CENTRIFUGO_API_KEY=${CENTRIFUGO_API_KEY:-password102}
+      - CENTRIFUGO_API_KEY=${CENTRIFUGO_API_KEY:-Password102!}
       - CENTRIFUGO_ADMIN=false
       - CENTRIFUGO_ALLOWED_ORIGINS=${CENTRIFUGO_ALLOWED_ORIGINS:-*}
     networks:

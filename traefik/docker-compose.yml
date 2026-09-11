@@ -33,8 +33,8 @@ services:
     networks:
       infra_shared:
         aliases:
-          - minio.localhost
-          - s3.minio.localhost
+          - minio.dss.localhost
+          - s3.minio.dss.localhost
 
 networks:
   infra_shared:

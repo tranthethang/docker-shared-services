@@ -58,7 +58,7 @@ ______________________________________________________________________
 
 ### Service Endpoints
 
-- **Host URL**: `http://localhost:11235` (mapped port) or `http://crawl4ai.localhost` (if Traefik reverse proxy is active).
+- **Host URL**: `http://localhost:11235` (mapped port) or `http://crawl4ai.dss.localhost` (if Traefik reverse proxy is active).
 - **Authentication**: Include the token in your HTTP headers using the Bearer scheme:
   ```http
   Authorization: Bearer <CRAWL4AI_API_TOKEN>

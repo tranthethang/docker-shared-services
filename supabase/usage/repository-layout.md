@@ -58,5 +58,5 @@ Root `.gitignore` ignores `**/volumes/` and `*.sql` globally, with explicit keep
 | --------------- | -------------------------------------------------------- |
 | `bin/config.py` | Lists `supabase` in `SERVICES` / `START_ORDER`           |
 | `make info`     | Prints host port `8002`, Traefik host, DB `5434`         |
-| Traefik         | APIs `supabase.localhost`; Studio `studio.dss.localhost` |
+| Traefik         | APIs `supabase.dss.localhost`; Studio `studio.dss.localhost` |
 | Mailpit         | Default SMTP for GoTrue (`mailpit:1025`)                 |

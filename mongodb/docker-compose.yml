@@ -13,7 +13,7 @@ services:
           memory: "${MONGODB_MEMORY_RESERVED:-512M}"
     environment:
       MONGO_INITDB_ROOT_USERNAME: "${MONGO_ROOT_USER:-root}"
-      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD:-password102}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD:-Password102!}"
     ports:
       - "${MONGO_PORT:-27017}:27017"
     networks:

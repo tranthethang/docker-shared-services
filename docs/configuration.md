@@ -62,10 +62,10 @@ Services communicate using container names on the network where both endpoints a
 
 ```bash
 # PgVector
-postgres://postgres:password102@pgvector:5432/mydb
+postgres://postgres:Password102!@pgvector:5432/mydb
 
 # Redis
-redis://:password102@redis:6379
+redis://:Password102!@redis:6379
 
 # RabbitMQ
 amqp://guest:guest@rabbitmq:5672
@@ -92,12 +92,14 @@ ______________________________________________________________________
 
 Traefik requires SSL/TLS certificates for HTTPS support. The easiest way is using `mkcert`.
 
+Public Traefik hostnames use the `*.dss.localhost` pattern (for example `https://mailpit.dss.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `dss.localhost`.
+
 ### Option 1: Using Makefile (Recommended)
 
 ```bash
-# 1. Install mkcert
-# macOS: brew install mkcert
-# Linux: Follow mkcert installation guide
+# 1. Install mkcert (and trust the local CA)
+# macOS: brew install mkcert nss && mkcert -install
+# Linux: Follow mkcert installation guide, then mkcert -install
 
 # 2. Run the make command
 make cert

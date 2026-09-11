@@ -13,7 +13,7 @@ make logs service=supabase
 make ps
 ```
 
-Ensure networks exist first (`make setup`) and start Traefik if you use `https://supabase.localhost`.
+Ensure networks exist first (`make setup`) and start Traefik if you use `https://supabase.dss.localhost`.
 
 ## `run.sh` (from `supabase/`)
 

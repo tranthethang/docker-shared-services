@@ -85,7 +85,7 @@ curl -s -X POST http://localhost:4318/v1/traces \
  ]
 }'
 
-echo -e "\n${GREEN}Trace sent! Check Jaeger UI: http://jaeger.localhost${NC}"
+echo -e "\n${GREEN}Trace sent! Check Jaeger UI: http://jaeger.dss.localhost${NC}"
 
 # 3. Send a test metric
 echo "Sending test metric to OTLP HTTP (4318)..."
@@ -129,4 +129,4 @@ curl -s -X POST http://localhost:4318/v1/metrics \
  ]
 }'
 
-echo -e "\n${GREEN}Metric sent! Check Prometheus: http://prometheus.localhost${NC}"
+echo -e "\n${GREEN}Metric sent! Check Prometheus: http://prometheus.dss.localhost${NC}"

@@ -24,14 +24,14 @@ sh run.sh start
 | Resource                 | URL                                    |
 | ------------------------ | -------------------------------------- |
 | Studio (Traefik)         | https://studio.dss.localhost           |
-| API gateway (Traefik)    | https://supabase.localhost             |
+| API gateway (Traefik)    | https://supabase.dss.localhost             |
 | Studio / API (host port) | http://localhost:8002                  |
-| Auth                     | https://supabase.localhost/auth/v1     |
-| Storage                  | https://supabase.localhost/storage/v1  |
-| Realtime                 | https://supabase.localhost/realtime/v1 |
+| Auth                     | https://supabase.dss.localhost/auth/v1     |
+| Storage                  | https://supabase.dss.localhost/storage/v1  |
+| Realtime                 | https://supabase.dss.localhost/realtime/v1 |
 | Postgres                 | `localhost:5434`                       |
 
-Studio UI is open directly for local development at https://studio.dss.localhost. Visiting https://supabase.localhost redirects Studio UI to https://studio.dss.localhost.
+Studio UI is open directly for local development at https://studio.dss.localhost. Visiting https://supabase.dss.localhost redirects Studio UI to https://studio.dss.localhost.
 
 ## Services
 
@@ -66,7 +66,7 @@ make up service=supabase
 make down service=supabase
 make logs service=supabase
 make ps
-make info    # lists supabase.localhost / :8002 / DB :5434
+make info    # lists supabase.dss.localhost / :8002 / DB :5434
 ```
 
 Day-to-day helpers live under `supabase/` (`run.sh`, `reset.sh`, `utils/`).

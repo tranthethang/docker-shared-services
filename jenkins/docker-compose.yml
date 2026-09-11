@@ -2,7 +2,7 @@ services:
   jenkins:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.jenkins.rule=Host(`jenkins.localhost`)"
+      - "traefik.http.routers.jenkins.rule=Host(`jenkins.dss.localhost`)"
       - "traefik.http.routers.jenkins.entrypoints=web,websecure"
       - "traefik.http.routers.jenkins.tls=true"
       - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
@@ -40,7 +40,7 @@ services:
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - JENKINS_DB_NAME=${JENKINS_DB_NAME:-jenkins}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password102}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Password102!}
 
 networks:
   infra_shared:

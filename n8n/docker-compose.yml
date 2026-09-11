@@ -2,7 +2,7 @@ services:
   n8n:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.n8n.rule=Host(`n8n.localhost`)"
+      - "traefik.http.routers.n8n.rule=Host(`${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-dss.localhost}`)"
       - "traefik.http.routers.n8n.entrypoints=web,websecure"
       - "traefik.http.routers.n8n.tls=true"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
@@ -21,12 +21,12 @@ services:
       - "${N8N_PORT:-5678}:5678"
     environment:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
-      - N8N_HOST=${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-localhost}
+      - N8N_HOST=${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-dss.localhost}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - N8N_RUNNERS_ENABLED=true
       - NODE_ENV=production
-      - WEBHOOK_URL=https://${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-localhost}/
+      - WEBHOOK_URL=https://${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-dss.localhost}/
       - GENERIC_TIMEZONE=${TZ:-Asia/Ho_Chi_Minh}
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:

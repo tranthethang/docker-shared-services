@@ -2,7 +2,7 @@ services:
   rabbitmq:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.localhost`)"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.dss.localhost`)"
       - "traefik.http.routers.rabbitmq.entrypoints=web,websecure"
       - "traefik.http.routers.rabbitmq.tls=true"
       - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"

@@ -38,14 +38,14 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_HOST: ${POSTGRES_HOST:-supabase-db}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password102}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password102!}
       POSTGRES_USER_READ_WRITE: postgres
       PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
       DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION:-Default Organization}
       DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT:-Default Project}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       SUPABASE_URL: http://supabase-kong:8000
-      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.localhost}
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.dss.localhost}
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       AUTH_JWT_SECRET: ${JWT_SECRET}
@@ -76,7 +76,7 @@ services:
       - "traefik.docker.network=infra_shared"
       - "traefik.http.services.supabase.loadbalancer.server.port=8000"
       # Public APIs (clients use anon/service keys)
-      - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-localhost}`) && (PathPrefix(`/auth`)\
+      - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-dss.localhost}`) && (PathPrefix(`/auth`)\
         \ || PathPrefix(`/storage`) || PathPrefix(`/realtime`) || PathPrefix(`/pg`) || PathPrefix(`/.well-known`) || PathPrefix(`/api/mcp`)\
         \ || PathPrefix(`/mcp`))"
       - "traefik.http.routers.supabase-api.entrypoints=web,websecure"
@@ -89,11 +89,11 @@ services:
       - "traefik.http.routers.supabase-studio.tls=true"
       - "traefik.http.routers.supabase-studio.priority=50"
       - "traefik.http.routers.supabase-studio.service=supabase"
-      # Legacy Studio on supabase.localhost → redirect to studio.dss.localhost
+      # Legacy Studio on supabase.dss.localhost → redirect to studio.dss.localhost
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.regex=^https?://[^/]+/(.*)"
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.replacement=https://${SUPABASE_STUDIO_HOSTNAME:-studio.dss.localhost}/$${1}"
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.permanent=false"
-      - "traefik.http.routers.supabase-ui-redirect.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-localhost}`)"
+      - "traefik.http.routers.supabase-ui-redirect.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-dss.localhost}`)"
       - "traefik.http.routers.supabase-ui-redirect.entrypoints=web,websecure"
       - "traefik.http.routers.supabase-ui-redirect.tls=true"
       - "traefik.http.routers.supabase-ui-redirect.priority=1"
@@ -140,7 +140,7 @@ services:
       ANON_KEY_ASYMMETRIC: ${ANON_KEY_ASYMMETRIC:-}
       SERVICE_ROLE_KEY_ASYMMETRIC: ${SERVICE_ROLE_KEY_ASYMMETRIC:-}
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-admin}
-      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-password102}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-Password102!}
     entrypoint: ["/bin/sh", "/home/kong/kong-entrypoint.sh"]
     networks:
       infra_shared:
@@ -171,10 +171,10 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://supabase.localhost/auth/v1}
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://supabase.dss.localhost/auth/v1}
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:-password102}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      GOTRUE_SITE_URL: ${SITE_URL:-https://supabase.localhost}
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      GOTRUE_SITE_URL: ${SITE_URL:-https://supabase.dss.localhost}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS:-}
       GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP:-false}
       GOTRUE_JWT_ADMIN_ROLES: service_role
@@ -182,7 +182,7 @@ services:
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
       GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
       GOTRUE_JWT_SECRET: ${JWT_SECRET}
-      GOTRUE_JWT_ISSUER: ${API_EXTERNAL_URL:-https://supabase.localhost/auth/v1}
+      GOTRUE_JWT_ISSUER: ${API_EXTERNAL_URL:-https://supabase.dss.localhost/auth/v1}
       GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP:-true}
       GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS:-false}
       GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM:-false}
@@ -228,8 +228,8 @@ services:
       ANON_KEY: ${ANON_KEY}
       SERVICE_KEY: ${SERVICE_ROLE_KEY}
       AUTH_JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD:-password102}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.localhost}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.dss.localhost}
       REQUEST_ALLOW_X_FORWARDED_PATH: "true"
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
@@ -274,7 +274,7 @@ services:
       DB_HOST: ${POSTGRES_HOST:-supabase-db}
       DB_PORT: ${POSTGRES_PORT:-5432}
       DB_USER: supabase_admin
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-password102}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-Password102!}
       DB_NAME: ${POSTGRES_DB:-postgres}
       DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
       DB_ENC_KEY: ${REALTIME_DB_ENC_KEY:-supabaserealtime}
@@ -313,7 +313,7 @@ services:
       PG_META_DB_PORT: ${POSTGRES_PORT:-5432}
       PG_META_DB_NAME: ${POSTGRES_DB:-postgres}
       PG_META_DB_USER: postgres
-      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:-password102}
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:-Password102!}
       CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
     networks:
       - infra_shared
@@ -355,8 +355,8 @@ services:
       POSTGRES_HOST: /var/run/postgresql
       PGPORT: 5432
       POSTGRES_PORT: 5432
-      PGPASSWORD: ${POSTGRES_PASSWORD:-password102}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password102}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-Password102!}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password102!}
       PGDATABASE: ${POSTGRES_DB:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       JWT_SECRET: ${JWT_SECRET}

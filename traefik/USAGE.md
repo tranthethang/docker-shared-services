@@ -1,6 +1,6 @@
 # How to Route External Containers via Traefik
 
-To make your containers from other `docker-compose.yml` files accessible via Traefik with a custom domain (e.g., `sitexxx.localhost`), follow these steps:
+To make your containers from other `docker-compose.yml` files accessible via Traefik with a custom domain (e.g., `sitexxx.dss.localhost`), follow these steps:
 
 ## 1. Connect to the shared network
 
@@ -24,7 +24,7 @@ services:
     labels:
       - "traefik.enable=true"
       # Define the domain
-      - "traefik.http.routers.my-api.rule=Host(`sitexxx.localhost`)"
+      - "traefik.http.routers.my-api.rule=Host(`sitexxx.dss.localhost`)"
       # (Optional) Specify the port if your container exposes more than one
       - "traefik.http.services.my-api.loadbalancer.server.port=8080"
       # (Optional) Set the entrypoint (web for HTTP, websecure for HTTPS)

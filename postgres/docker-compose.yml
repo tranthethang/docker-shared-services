@@ -13,7 +13,7 @@ services:
           memory: "${POSTGRES16_MEMORY_RESERVED:-512M}"
     environment:
       POSTGRES_USER: "${POSTGRES16_USER:-postgres}"
-      POSTGRES_PASSWORD: "${POSTGRES16_PASSWORD:-password102}"
+      POSTGRES_PASSWORD: "${POSTGRES16_PASSWORD:-Password102!}"
       POSTGRES_DB: "${POSTGRES16_DB:-postgres_db}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
     ports:

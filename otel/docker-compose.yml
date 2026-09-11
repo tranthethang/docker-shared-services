@@ -23,7 +23,7 @@ services:
   jaeger:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.jaeger.rule=Host(`jaeger.localhost`)"
+      - "traefik.http.routers.jaeger.rule=Host(`jaeger.dss.localhost`)"
       - "traefik.http.routers.jaeger.entrypoints=web,websecure"
       - "traefik.http.routers.jaeger.tls=true"
       - "traefik.http.services.jaeger.loadbalancer.server.port=16686"
@@ -47,7 +47,7 @@ services:
   prometheus:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.dss.localhost`)"
       - "traefik.http.routers.prometheus.entrypoints=web,websecure"
       - "traefik.http.routers.prometheus.tls=true"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
