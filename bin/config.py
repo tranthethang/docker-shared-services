@@ -10,6 +10,7 @@ SERVICES = [
     "dockge",
     "centrifugo",
     "dozzle",
+    "garage",
     "gitea",
     "gotenberg",
     "inngest",
@@ -62,6 +63,7 @@ START_ORDER = [
     "rabbitmq",
     "memcached",
     "minio",
+    "garage",
     "kafka",
     "mailpit",
     "otel",
@@ -69,6 +71,7 @@ START_ORDER = [
 ]
 
 VALIDATION_RULES = {
+    "garage": ["GARAGE_RPC_SECRET", "GARAGE_ADMIN_TOKEN"],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["PASSWORD"],
@@ -87,6 +90,7 @@ SERVICE_INFO_VARS = {
     "centrifugo": ["CENTRIFUGO_PORT"],
     "crawl4ai": ["CRAWL4AI_PORT"],
     "dozzle": ["DOZZLE_PORT"],
+    "garage": ["GARAGE_S3_PORT", "GARAGE_ADMIN_PORT"],
     "gitea": ["GITEA_HTTP_PORT", "GITEA_SSH_PORT"],
     "gotenberg": ["GOTENBERG_API_PORT"],
     "inngest": ["INNGEST_PORT"],

@@ -86,6 +86,7 @@ cert: ## Generate SSL certificates for Traefik
 		       "$$CURRENT_IP" \
 		       "*.dss.localhost" \
 		       "*.minio.dss.localhost" \
+		       "*.garage.dss.localhost" \
 		       "dss.localhost" \
 		       localhost \
 		       127.0.0.1 \
@@ -195,6 +196,7 @@ info: ## Show service information and access URLs
 	@echo "  • Crawl4AI - http://localhost:11235 (Host: crawl4ai.dss.localhost)"
 	@echo "  • Dockge - http://localhost:5001"
 	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.dss.localhost)"
+	@echo "  • Garage (S3) - https://s3.garage.dss.localhost (admin: https://admin.garage.dss.localhost)"
 	@echo "  • Gitea - http://localhost:3000"
 	@echo "  • Gotenberg - http://localhost:3030 (container: gotenberg:3000)"
 	@echo "  • Grafana - http://localhost:3001 (Host: grafana.dss.localhost)"
