@@ -45,9 +45,12 @@ SERVICES = [
 ACTIONS = ["up", "down", "stop", "restart", "logs"]
 
 # Infra-first startup order for batch manage (services not listed start/stop by name).
+# "postgres" (16) is the default shared DB backend other services depend on, so it
+# starts early. "pgvector" is a standalone Postgres 17 + vector extension instance
+# that nothing else in this repo connects to, so it is intentionally left out of
+# this priority list (it still starts fine on demand via `make up service=pgvector`).
 START_ORDER = [
     "traefik",
-    "pgvector",
     "postgres",
     "zitadel",
     "redis",

@@ -1,4 +1,4 @@
-.PHONY: help setup ps remove-all prune remove-config info up down stop restart logs cert validate manage sync format format-check
+.PHONY: help setup ps health remove-all prune remove-config info up down stop restart logs cert validate manage sync format format-check
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -121,6 +121,17 @@ ps: ## Show status of all running services
 	@$(DOCKER_COMPOSE) ps
 	@echo ""
 
+health: ## Check health status of all services (usage: make health [service=pgvector])
+	@echo ""
+	@echo "Service Health:"
+	@echo ""
+	@if [ -n "$(service)" ]; then \
+		docker compose --project-directory $(service) -f docker-compose.shared.yml -f $(service)/docker-compose.yml ps; \
+	else \
+		$(DOCKER_COMPOSE) ps --format "table {{.Name}}\t{{.Status}}"; \
+	fi
+	@echo ""
+
 remove-all: ## Remove all containers and volumes (⚠️ DANGER: Removes all data)
 	@echo "⚠️  WARNING: This will remove all data from all services!"
 	@read -p "Are you sure? (y/n) " -n 1 -r; \
@@ -203,9 +214,9 @@ info: ## Show service information and access URLs
 	@echo "  • Node-RED - http://localhost:1880 (Host: node-red.dss.localhost)"
 	@echo "  • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP)"
 	@echo "  • PocketBase - http://localhost:8140 (Host: pocketbase.dss.localhost)"
-	@echo "  • PgVector (PostgreSQL 17) - localhost:5432"
+	@echo "  • PgVector (PostgreSQL 17, standalone) - localhost:5433"
 	@echo "  • Portainer - http://localhost:9007 (HTTPS: 9443)"
-	@echo "  • Postgres (PostgreSQL 16) - localhost:5433"
+	@echo "  • Postgres (PostgreSQL 16, default shared DB) - localhost:5432"
 	@echo "  • Prometheus - http://localhost:9090 (Host: prometheus.dss.localhost)"
 	@echo "  • RabbitMQ - localhost:5672 (management: 15672)"
 	@echo "  • Redis - localhost:6379"
@@ -219,9 +230,7 @@ info: ## Show service information and access URLs
 	@echo ""
 
 validate: ## Validate all Docker Compose files
-	@echo "Validating Docker Compose configuration..."
-	@$(DOCKER_COMPOSE) config >/dev/null
-	@echo "✅ Compose configuration is valid"
+	@$(PYTHON_SVC_MGR) --validate-compose
 
 sync: ## Install Python tooling deps with uv (ruff, yamlfix, mdformat, …)
 	@$(UV) sync --group dev

@@ -1,4 +1,5 @@
 import argparse
+import os
 import subprocess
 import sys
 
@@ -106,6 +107,44 @@ def get_compose_cmd(service):
         "-f",
         f"{service}/docker-compose.yml",
     ]
+
+
+def validate_all_compose():
+    """Validate each service with --project-directory so service/.env is loaded."""
+    print("Validating Docker Compose configuration...")
+    failed = []
+
+    for service in sorted(SERVICES):
+        compose_file = os.path.join(service, "docker-compose.yml")
+        if not os.path.isfile(compose_file):
+            error(f"{service}: missing {compose_file}")
+            failed.append(service)
+            continue
+
+        result = subprocess.run(
+            get_compose_cmd(service) + ["config"],
+            capture_output=True,
+            text=True,
+        )
+        stderr = (result.stderr or "").strip()
+
+        if result.returncode != 0:
+            error(f"{service}: invalid")
+            if stderr:
+                print(stderr, file=sys.stderr)
+            failed.append(service)
+        elif stderr:
+            # Unset-variable warnings still mean config is usable but incomplete.
+            warning(f"{service}: {stderr.splitlines()[0]}")
+            if stderr.count("\n") > 0:
+                print(stderr, file=sys.stderr)
+            failed.append(service)
+
+    if failed:
+        error(f"Validation failed for: {', '.join(failed)}")
+        sys.exit(1)
+
+    success("Compose configuration is valid")
 
 
 def get_stack_services(service):
@@ -408,11 +447,20 @@ def main():
     parser.add_argument("action", nargs="?", help="Action (up, down, restart, logs)")
     parser.add_argument("--list-services", action="store_true", help="List all available services")
     parser.add_argument("--list-actions", action="store_true", help="List all available actions")
+    parser.add_argument(
+        "--validate-compose",
+        action="store_true",
+        help="Validate each service compose file (loads service/.env)",
+    )
 
     args = parser.parse_args()
 
     if args.service == "manage" and not args.action:
         manage_services()
+        return
+
+    if args.validate_compose:
+        validate_all_compose()
         return
 
     if args.list_services:
