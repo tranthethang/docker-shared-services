@@ -1,0 +1,62 @@
+services:
+  garage:
+    container_name: garage
+    # dxflrs/garage v2.4.1 — latest stable release (Sep 2026).
+    # Pin explicitly; do NOT use ":latest" for a storage backend.
+    image: dxflrs/garage:v2.4.1
+    restart: "${RESTART_POLICY:-always}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${GARAGE_CPUS_LIMIT:-1}"
+          memory: "${GARAGE_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${GARAGE_CPUS_RESERVED:-0.5}"
+          memory: "${GARAGE_MEMORY_RESERVED:-512M}"
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+      - GARAGE_RPC_SECRET=${GARAGE_RPC_SECRET:?Set GARAGE_RPC_SECRET in .env (openssl rand -hex 32)}
+      - GARAGE_ADMIN_TOKEN=${GARAGE_ADMIN_TOKEN:?Set GARAGE_ADMIN_TOKEN in .env (openssl rand -base64 32)}
+      - GARAGE_METRICS_TOKEN=${GARAGE_METRICS_TOKEN:-${GARAGE_ADMIN_TOKEN}}
+    ports:
+      - "${GARAGE_S3_PORT:-3900}:3900"    # S3 API
+      - "${GARAGE_RPC_PORT:-3901}:3901"   # Inter-node RPC
+      - "${GARAGE_WEB_PORT:-3902}:3902"   # S3 static website hosting
+      - "${GARAGE_ADMIN_PORT:-3903}:3903" # Admin API / metrics
+    volumes:
+      - ./config/garage.toml:/etc/garage.toml:ro
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.garage-s3.rule=Host(`s3.garage.dss.localhost`)"
+      - "traefik.http.routers.garage-s3.entrypoints=web,websecure"
+      - "traefik.http.routers.garage-s3.tls=true"
+      - "traefik.http.routers.garage-s3.service=garage-s3"
+      - "traefik.http.services.garage-s3.loadbalancer.server.port=3900"
+      - "traefik.http.routers.garage-admin.rule=Host(`admin.garage.dss.localhost`)"
+      - "traefik.http.routers.garage-admin.entrypoints=web,websecure"
+      - "traefik.http.routers.garage-admin.tls=true"
+      - "traefik.http.routers.garage-admin.service=garage-admin"
+      - "traefik.http.services.garage-admin.loadbalancer.server.port=3903"
+    networks:
+      - infra_shared
+      - dev_tools
+    # garage's image is distroless (no shell/curl/wget), so the healthcheck
+    # calls the garage binary itself rather than an HTTP probe.
+    healthcheck:
+      test: ["CMD", "/garage", "-c", "/etc/garage.toml", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true
+
+volumes:
+  garage_meta:
+  garage_data:

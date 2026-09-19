@@ -8,7 +8,8 @@ ______________________________________________________________________
 
 ### Databases
 
-- **PgVector** (PostgreSQL 17) - Relational database with vector support
+- **Postgres** (PostgreSQL 16) - Default relational database; shared backend for Gitea, Jenkins, Concourse, SonarQube, Zitadel, Inngest, Temporal, Bugsink
+- **PgVector** (PostgreSQL 17) - Standalone relational database with vector support (not used by any other service here)
 - **MySQL 8** - Relational database with UTF-8 support
 - **MongoDB** - NoSQL document database
 - **Adminer** - Universal database administration interface
@@ -57,7 +58,8 @@ ______________________________________________________________________
 
 | Service       | Access Point                                          | Default Credentials                                            |
 | :------------ | :---------------------------------------------------- | :------------------------------------------------------------- |
-| PgVector      | `localhost:5432`                                      | `postgres` / `Password102!`                                     |
+| Postgres 16   | `localhost:5432`                                      | `postgres` / `Password102!`                                     |
+| PgVector      | `localhost:5433` (standalone, no other service uses it) | `postgres` / `Password102!`                                     |
 | MySQL 8       | `localhost:3306`                                      | `uid` / `Password102!`                                          |
 | MongoDB       | `localhost:27017`                                     | `root` / `Password102!`                                         |
 | Redis         | `localhost:6379`                                      | - / `Password102!`                                              |

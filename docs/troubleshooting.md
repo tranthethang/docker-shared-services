@@ -33,7 +33,8 @@ ______________________________________________________________________
 make logs              # Check logs
 make validate          # Validate configuration
 make restart           # Restart services
-make logs-service SERVICE=pgvector  # Specific service
+make logs service=pgvector  # Logs for a specific service
+make health            # Check health status of all (or one) services
 ```
 
 ### Port already in use
@@ -43,6 +44,13 @@ lsof -i :5432          # Find process using port
 # Update .env to use different port
 make restart
 ```
+
+> [!NOTE]
+> Postgres 16 (`POSTGRES16_PORT`, default `5432`) is the default shared DB
+> backend other services connect to. PgVector (`POSTGRES_PORT`, default
+> `5433`) is a separate, standalone Postgres 17 + vector-extension instance
+> that no other service in this repo depends on — the two are intentionally
+> kept on different host ports so they can run at the same time.
 
 ### Out of memory
 

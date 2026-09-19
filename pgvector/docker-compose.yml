@@ -14,9 +14,9 @@ services:
     environment:
       POSTGRES_USER: "${POSTGRES_USER:-postgres}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-Password102!}"
-      POSTGRES_DB: "${POSTGRES_DB:-sonarqube}"
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     networks:
       - infra_shared
       - dev_tools

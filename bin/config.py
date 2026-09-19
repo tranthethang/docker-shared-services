@@ -10,6 +10,7 @@ SERVICES = [
     "dockge",
     "centrifugo",
     "dozzle",
+    "garage",
     "gitea",
     "gotenberg",
     "inngest",
@@ -45,9 +46,12 @@ SERVICES = [
 ACTIONS = ["up", "down", "stop", "restart", "logs"]
 
 # Infra-first startup order for batch manage (services not listed start/stop by name).
+# "postgres" (16) is the default shared DB backend other services depend on, so it
+# starts early. "pgvector" is a standalone Postgres 17 + vector extension instance
+# that nothing else in this repo connects to, so it is intentionally left out of
+# this priority list (it still starts fine on demand via `make up service=pgvector`).
 START_ORDER = [
     "traefik",
-    "pgvector",
     "postgres",
     "zitadel",
     "redis",
@@ -59,6 +63,7 @@ START_ORDER = [
     "rabbitmq",
     "memcached",
     "minio",
+    "garage",
     "kafka",
     "mailpit",
     "otel",
@@ -66,6 +71,7 @@ START_ORDER = [
 ]
 
 VALIDATION_RULES = {
+    "garage": ["GARAGE_RPC_SECRET", "GARAGE_ADMIN_TOKEN"],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["PASSWORD"],
@@ -84,6 +90,7 @@ SERVICE_INFO_VARS = {
     "centrifugo": ["CENTRIFUGO_PORT"],
     "crawl4ai": ["CRAWL4AI_PORT"],
     "dozzle": ["DOZZLE_PORT"],
+    "garage": ["GARAGE_S3_PORT", "GARAGE_ADMIN_PORT"],
     "gitea": ["GITEA_HTTP_PORT", "GITEA_SSH_PORT"],
     "gotenberg": ["GOTENBERG_API_PORT"],
     "inngest": ["INNGEST_PORT"],

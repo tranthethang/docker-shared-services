@@ -1,0 +1,39 @@
+# Garage configuration
+# Docs: https://garagehq.deuxfleurs.fr/documentation/reference-manual/configuration/
+#
+# rpc_secret / admin_token / metrics_token are intentionally NOT set here.
+# They are injected at container start via the GARAGE_RPC_SECRET,
+# GARAGE_ADMIN_TOKEN and GARAGE_METRICS_TOKEN environment variables
+# (see ../.env.example) so secrets never live in this file.
+
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "lmdb"
+
+# Single-node deployment => no cross-node data redundancy.
+# For real redundancy, run 3+ garage nodes and raise this value.
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "garage:3901"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+# No `root_domain` here on purpose: Garage's virtual-hosted-style addressing
+# (bucket.<root_domain>) needs a wildcard DNS entry + wildcard TLS cert per
+# bucket, which our single-host Traefik router (s3.garage.dss.localhost)
+# does not provide. Clients MUST use path-style addressing instead
+# (force_path_style / s3ForcePathStyle / use_path_style_endpoint = true) —
+# see ../README.md for per-client examples.
+
+[s3_web]
+bind_addr = "[::]:3902"
+# Static website hosting also needs wildcard DNS/cert per bucket to work
+# through Traefik; left configured for direct/local use but not routed via
+# Traefik in docker-compose.yml. Add a wildcard router + cert if you need it.
+root_domain = ".web.garage.dss.localhost"
+index = "index.html"
+
+[admin]
+api_bind_addr = "[::]:3903"

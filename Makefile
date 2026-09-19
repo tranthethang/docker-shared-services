@@ -1,4 +1,4 @@
-.PHONY: help setup ps remove-all prune remove-config info up down stop restart logs cert validate manage sync format format-check
+.PHONY: help setup ps health remove-all prune remove-config info up down stop restart logs cert validate manage sync format format-check
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -86,6 +86,7 @@ cert: ## Generate SSL certificates for Traefik
 		       "$$CURRENT_IP" \
 		       "*.dss.localhost" \
 		       "*.minio.dss.localhost" \
+		       "*.garage.dss.localhost" \
 		       "dss.localhost" \
 		       localhost \
 		       127.0.0.1 \
@@ -119,6 +120,17 @@ ps: ## Show status of all running services
 	@echo "Service Status:"
 	@echo ""
 	@$(DOCKER_COMPOSE) ps
+	@echo ""
+
+health: ## Check health status of all services (usage: make health [service=pgvector])
+	@echo ""
+	@echo "Service Health:"
+	@echo ""
+	@if [ -n "$(service)" ]; then \
+		docker compose --project-directory $(service) -f docker-compose.shared.yml -f $(service)/docker-compose.yml ps; \
+	else \
+		$(DOCKER_COMPOSE) ps --format "table {{.Name}}\t{{.Status}}"; \
+	fi
 	@echo ""
 
 remove-all: ## Remove all containers and volumes (⚠️ DANGER: Removes all data)
@@ -184,6 +196,7 @@ info: ## Show service information and access URLs
 	@echo "  • Crawl4AI - http://localhost:11235 (Host: crawl4ai.dss.localhost)"
 	@echo "  • Dockge - http://localhost:5001"
 	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.dss.localhost)"
+	@echo "  • Garage (S3) - https://s3.garage.dss.localhost (admin: https://admin.garage.dss.localhost)"
 	@echo "  • Gitea - http://localhost:3000"
 	@echo "  • Gotenberg - http://localhost:3030 (container: gotenberg:3000)"
 	@echo "  • Grafana - http://localhost:3001 (Host: grafana.dss.localhost)"
@@ -203,9 +216,9 @@ info: ## Show service information and access URLs
 	@echo "  • Node-RED - http://localhost:1880 (Host: node-red.dss.localhost)"
 	@echo "  • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP)"
 	@echo "  • PocketBase - http://localhost:8140 (Host: pocketbase.dss.localhost)"
-	@echo "  • PgVector (PostgreSQL 17) - localhost:5432"
+	@echo "  • PgVector (PostgreSQL 17, standalone) - localhost:5433"
 	@echo "  • Portainer - http://localhost:9007 (HTTPS: 9443)"
-	@echo "  • Postgres (PostgreSQL 16) - localhost:5433"
+	@echo "  • Postgres (PostgreSQL 16, default shared DB) - localhost:5432"
 	@echo "  • Prometheus - http://localhost:9090 (Host: prometheus.dss.localhost)"
 	@echo "  • RabbitMQ - localhost:5672 (management: 15672)"
 	@echo "  • Redis - localhost:6379"
@@ -219,9 +232,7 @@ info: ## Show service information and access URLs
 	@echo ""
 
 validate: ## Validate all Docker Compose files
-	@echo "Validating Docker Compose configuration..."
-	@$(DOCKER_COMPOSE) config >/dev/null
-	@echo "✅ Compose configuration is valid"
+	@$(PYTHON_SVC_MGR) --validate-compose
 
 sync: ## Install Python tooling deps with uv (ruff, yamlfix, mdformat, …)
 	@$(UV) sync --group dev

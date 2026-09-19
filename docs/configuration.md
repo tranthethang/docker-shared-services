@@ -28,8 +28,9 @@ MONGO_ROOT_PASSWORD=your_strong_password
 
 ```bash
 # Edit service .env file
-POSTGRES_PORT=5433          # Instead of 5432
-MYSQL_PORT=3307            # Instead of 3306
+POSTGRES_PORT=5555          # pgvector's own port (default is already 5433,
+                             # chosen so it never clashes with Postgres 16 on 5432)
+MYSQL_PORT=3307              # Instead of 3306
 ```
 
 ### Resource Limits
@@ -61,8 +62,13 @@ Most service containers join **both** networks so they can reach Traefik on `inf
 Services communicate using container names on the network where both endpoints are attached:
 
 ```bash
-# PgVector
-postgres://postgres:Password102!@pgvector:5432/mydb
+# Postgres 16 - the default shared DB backend (gitea, jenkins, concourse,
+# sonarqube, zitadel, inngest, temporal, bugsink all connect here by default)
+postgres://postgres:Password102!@postgres:5432/mydb
+
+# PgVector - standalone Postgres 17 + vector extension; nothing else in this
+# repo connects to it, use it directly for your own workloads
+postgres://postgres:Password102!@pgvector:5432/mydb   # port 5432 *inside* the network, host-mapped to 5433
 
 # Redis
 redis://:Password102!@redis:6379
@@ -70,8 +76,8 @@ redis://:Password102!@redis:6379
 # RabbitMQ
 amqp://guest:guest@rabbitmq:5672
 
-# Service-to-service
-POSTGRES_HOST=pgvector
+# Service-to-service (default shared Postgres backend)
+POSTGRES_HOST=postgres
 REDIS_HOST=redis
 RABBITMQ_HOST=rabbitmq
 ```
