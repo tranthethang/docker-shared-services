@@ -2,6 +2,10 @@ ______________________________________________________________________
 
 ## description: Repository Information Overview alwaysApply: true
 
+## Language Policy
+
+**All content in this repository MUST be written in English** — this includes README files, documentation in `docs/`, code comments, commit messages, `.env.example` files, and any other text files. Do not add or merge content written in other languages (e.g. Vietnamese). If a contribution arrives in another language, translate it to English before committing.
+
 # Docker Shared Services Information
 
 ## Summary
