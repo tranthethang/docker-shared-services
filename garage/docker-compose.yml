@@ -5,6 +5,13 @@ services:
     # Pin explicitly; do NOT use ":latest" for a storage backend.
     image: dxflrs/garage:v2.4.1
     restart: "${RESTART_POLICY:-always}"
+    # Explicit config path — do NOT rely on the image default /etc/garage.toml.
+    # Bind-mounting a *single file* to /etc/garage.toml is invisible inside this
+    # distroless image under OrbStack (ENOENT on docker exec / healthcheck),
+    # which left the container permanently "unhealthy" and broke `docker exec … /garage …`.
+    # Mount the config *directory* instead and point Garage at the file inside it.
+    # Global flags (-c) must precede the subcommand (Garage clap parsing).
+    command: ["/garage", "-c", "/etc/garage/garage.toml", "server"]
     deploy:
       resources:
         limits:
@@ -18,13 +25,15 @@ services:
       - GARAGE_RPC_SECRET=${GARAGE_RPC_SECRET:?Set GARAGE_RPC_SECRET in .env (openssl rand -hex 32)}
       - GARAGE_ADMIN_TOKEN=${GARAGE_ADMIN_TOKEN:?Set GARAGE_ADMIN_TOKEN in .env (openssl rand -base64 32)}
       - GARAGE_METRICS_TOKEN=${GARAGE_METRICS_TOKEN:-${GARAGE_ADMIN_TOKEN}}
+      # So `docker exec garage /garage …` picks up the same config without -c.
+      - GARAGE_CONFIG_FILE=/etc/garage/garage.toml
     ports:
       - "${GARAGE_S3_PORT:-3900}:3900"    # S3 API
       - "${GARAGE_RPC_PORT:-3901}:3901"   # Inter-node RPC
       - "${GARAGE_WEB_PORT:-3902}:3902"   # S3 static website hosting
       - "${GARAGE_ADMIN_PORT:-3903}:3903" # Admin API / metrics
     volumes:
-      - ./config/garage.toml:/etc/garage.toml:ro
+      - ./config:/etc/garage:ro
       - garage_meta:/var/lib/garage/meta
       - garage_data:/var/lib/garage/data
     labels:
@@ -42,10 +51,9 @@ services:
     networks:
       - infra_shared
       - dev_tools
-    # garage's image is distroless (no shell/curl/wget), so the healthcheck
-    # calls the garage binary itself rather than an HTTP probe.
+    # Image is distroless (no shell/curl). CLI + healthcheck share GARAGE_CONFIG_FILE.
     healthcheck:
-      test: ["CMD", "/garage", "-c", "/etc/garage.toml", "status"]
+      test: ["CMD", "/garage", "status"]
       interval: 30s
       timeout: 10s
       retries: 3

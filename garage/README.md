@@ -6,6 +6,7 @@ S3-compatible object store; deployed here in single-node mode (`replication_fact
 - Image: `dxflrs/garage:v2.4.1` (latest stable, pinned — never `:latest`)
 - Ports: `3900` S3 API · `3901` RPC · `3902` static website hosting · `3903` admin API/metrics
 - Traefik: `https://s3.garage.dss.localhost` (S3 API), `https://admin.garage.dss.localhost` (admin API)
+- Config: directory mount `./config` → `/etc/garage` (`GARAGE_CONFIG_FILE=/etc/garage/garage.toml`)
 
 > **No web UI.** Garage has no MinIO-style console. Opening
 > `https://admin.garage.dss.localhost/` in a browser returns
@@ -50,6 +51,12 @@ S3-compatible object store; deployed here in single-node mode (`replication_fact
 ## CLI cheat sheet
 
 All admin work goes through `docker exec garage /garage ...` (Garage v2.4.1).
+Equivalent helper: `./scripts/cli.sh <subcommand> …` (same argv after `/garage`).
+
+> **Do not** bind-mount a single file to `/etc/garage.toml`. Under OrbStack that path is
+> invisible inside the distroless image (`ENOENT` on healthcheck and `docker exec`), which is
+> why older compose files left the container permanently `unhealthy`. This stack mounts
+> `./config` → `/etc/garage` and sets `GARAGE_CONFIG_FILE=/etc/garage/garage.toml`.
 
 ### Bootstrap / layout
 
@@ -67,6 +74,7 @@ docker exec garage /garage layout show
 docker exec garage /garage status
 docker exec garage /garage health
 docker exec garage /garage stats
+docker compose ps   # healthcheck should be "healthy" after recreate
 ```
 
 ### Access keys
