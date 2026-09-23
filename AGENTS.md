@@ -17,7 +17,7 @@ ______________________________________________________________________
 - **Root Level**: Contains global configurations (`.env.example`, `docker-compose.shared.yml`), the orchestrating `Makefile`, and management logic in `bin/`.
 - **Service Directories**: Each service (e.g., `pgvector/`, `redis/`, `gitea/`) contains its own `docker-compose.yml` and `.env.example`.
 - **Infrastructure**: `traefik/` acts as the reverse proxy and load balancer for all services.
-- **Monitoring**: `monitoring/` contains configurations for Grafana, Loki, and Promtail.
+- **Observability**: `otel/` is the logs-first stack (OTel Collector + Grafana + Loki + Promtail). Apps use OTLP on `4317`/`4318`; Docker stdout goes via Promtail. Traces/metrics are accepted then dropped until Tempo/Prometheus are added.
 
 ## Specification & Tools
 

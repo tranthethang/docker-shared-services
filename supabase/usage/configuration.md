@@ -39,13 +39,13 @@ See [Secrets and keys](./secrets-and-keys.md).
 
 ## URLs (Traefik)
 
-| Variable                             | Typical local value                  | Notes                                  |
-| ------------------------------------ | ------------------------------------ | -------------------------------------- |
+| Variable                             | Typical local value                      | Notes                                  |
+| ------------------------------------ | ---------------------------------------- | -------------------------------------- |
 | `SUPABASE_PUBLIC_URL`                | `https://supabase.dss.localhost`         | Public base URL for clients / Storage  |
 | `API_EXTERNAL_URL`                   | `https://supabase.dss.localhost/auth/v1` | External Auth base (issuer, redirects) |
 | `SITE_URL`                           | `https://supabase.dss.localhost`         | App site URL for Auth redirects        |
-| `SUPABASE_SUBDOMAIN` / `DOMAIN_NAME` | `supabase` / `localhost`             | Traefik `Host()` rule                  |
-| `ADDITIONAL_REDIRECT_URLS`           | *(empty)*                            | Comma-separated allow-list             |
+| `SUPABASE_SUBDOMAIN` / `DOMAIN_NAME` | `supabase` / `localhost`                 | Traefik `Host()` rule                  |
+| `ADDITIONAL_REDIRECT_URLS`           | *(empty)*                                | Comma-separated allow-list             |
 
 ## Database
 

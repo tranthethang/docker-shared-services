@@ -38,13 +38,13 @@ make ps
 
 ### Alternative: use Docker Compose directly
 
-If you'd rather skip the Makefile, you can combine compose files manually (for example, to run only pgvector, redis, and monitoring):
+If you'd rather skip the Makefile, you can combine compose files manually (for example, to run only pgvector, redis, and otel):
 
 ```bash
 docker compose -f docker-compose.shared.yml \
   -f pgvector/docker-compose.yml \
   -f redis/docker-compose.yml \
-  -f monitoring/docker-compose.yml \
+  -f otel/docker-compose.yml \
   up -d
 ```
 
@@ -58,41 +58,41 @@ Run `make help` (or just `make` with no arguments) to see the full list right in
 
 ### Setup & configuration
 
-| Command | Description |
-| :--- | :--- |
-| `make setup` | Run once when you first clone the repo: creates the two Docker networks (`infra_shared`, `dev_tools`), checks/creates `.env` files from `.env.example`, generates a default Dozzle users file, and (optionally) generates SSL certificates. Safe to re-run — steps that are already done are skipped automatically. |
-| `make cert` | Generates SSL certificates for Traefik using `mkcert` (you need `mkcert` installed first — see `docs/configuration.md`). Certificates are stored in `traefik/certs/` and are not committed to git. |
-| `make validate` | Validates the syntax/configuration of every `docker-compose.yml` file in the repo. Worth running after editing a service's compose file. |
-| `make remove-config` | Removes `.env` files (only ones that have a matching `.env.example`) — use this to "reset" configuration back to defaults. Asks for confirmation before deleting. |
+| Command              | Description                                                                                                                                                                                                                                                                                                         |
+| :------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `make setup`         | Run once when you first clone the repo: creates the two Docker networks (`infra_shared`, `dev_tools`), checks/creates `.env` files from `.env.example`, generates a default Dozzle users file, and (optionally) generates SSL certificates. Safe to re-run — steps that are already done are skipped automatically. |
+| `make cert`          | Generates SSL certificates for Traefik using `mkcert` (you need `mkcert` installed first — see `docs/configuration.md`). Certificates are stored in `traefik/certs/` and are not committed to git.                                                                                                                  |
+| `make validate`      | Validates the syntax/configuration of every `docker-compose.yml` file in the repo. Worth running after editing a service's compose file.                                                                                                                                                                            |
+| `make remove-config` | Removes `.env` files (only ones that have a matching `.env.example`) — use this to "reset" configuration back to defaults. Asks for confirmation before deleting.                                                                                                                                                   |
 
 ### Running services (all support a `service=<folder_name>` argument)
 
-| Command | Description |
-| :--- | :--- |
-| `make up` | Starts services. Running `make up` with no argument shows a prompt to choose "all" or a specific service; `make up service=pgvector` starts that service directly (the service name is its folder name, e.g. `pgvector`, `redis`, `gitea`...). |
-| `make down` | Stops and **removes containers** (does not remove volumes/data) for the selected service, or all services if `service=` is omitted. |
-| `make stop` | Stops containers but keeps them (does not remove them), so restarting is faster than a full `up`. |
-| `make restart` | Restarts a running service. Use this after changing environment variables in `.env` so the container picks up the new config. |
-| `make logs` | Shows logs. Without `service=` you'll be prompted to pick one; `make logs service=gitea` shows Gitea's logs specifically. |
-| `make manage` | An interactive multi-select menu (arrow keys + space to toggle): checked services are started, unchecked ones are stopped. Handy for quickly switching from "5 services running" to "just these 2 different ones". |
-| `make ps` | Shows the status (running/stopped) of every service wired into `docker-compose.shared.yml`. |
-| `make health` | Shows healthcheck status. `make health service=pgvector` shows it for a single service that has a healthcheck configured. |
-| `make info` | Prints the full list of services with their access URLs/ports — handy for quickly checking "what port is Grafana on" without reopening the README. |
+| Command        | Description                                                                                                                                                                                                                                    |
+| :------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `make up`      | Starts services. Running `make up` with no argument shows a prompt to choose "all" or a specific service; `make up service=pgvector` starts that service directly (the service name is its folder name, e.g. `pgvector`, `redis`, `gitea`...). |
+| `make down`    | Stops and **removes containers** (does not remove volumes/data) for the selected service, or all services if `service=` is omitted.                                                                                                            |
+| `make stop`    | Stops containers but keeps them (does not remove them), so restarting is faster than a full `up`.                                                                                                                                              |
+| `make restart` | Restarts a running service. Use this after changing environment variables in `.env` so the container picks up the new config.                                                                                                                  |
+| `make logs`    | Shows logs. Without `service=` you'll be prompted to pick one; `make logs service=gitea` shows Gitea's logs specifically.                                                                                                                      |
+| `make manage`  | An interactive multi-select menu (arrow keys + space to toggle): checked services are started, unchecked ones are stopped. Handy for quickly switching from "5 services running" to "just these 2 different ones".                             |
+| `make ps`      | Shows the status (running/stopped) of every service wired into `docker-compose.shared.yml`.                                                                                                                                                    |
+| `make health`  | Shows healthcheck status. `make health service=pgvector` shows it for a single service that has a healthcheck configured.                                                                                                                      |
+| `make info`    | Prints the full list of services with their access URLs/ports — handy for quickly checking "what port is Grafana on" without reopening the README.                                                                                             |
 
 ### Cleanup (be careful — these can delete data)
 
-| Command | Description |
-| :--- | :--- |
+| Command           | Description                                                                                                                                                                                                                |
+| :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `make remove-all` | ⚠️ **Removes all containers AND volumes** (i.e. deletes all data for every service: databases, uploaded files, etc.). Asks for confirmation (`y/n`) before running. Only use this when you're sure you want a clean slate. |
-| `make prune` | Runs `docker system prune -f --volumes` to clean up unused images/containers/volumes (affects your entire Docker install, not just this repo) — frees up disk space. |
+| `make prune`      | Runs `docker system prune -f --volumes` to clean up unused images/containers/volumes (affects your entire Docker install, not just this repo) — frees up disk space.                                                       |
 
 ### For contributors / editing code in this repo
 
-| Command | Description |
-| :--- | :--- |
-| `make sync` | Installs the Python dependencies used for code formatting (`ruff`, `yamlfix`, `mdformat`...) via `uv`. Requires `uv` to be installed. |
-| `make format` | Formats all YAML, JSON, Markdown, Python, and `.env.example` files in the repo to a consistent style. |
-| `make format-check` | Same as `make format` but only checks formatting without writing changes — useful in CI or before committing. |
+| Command             | Description                                                                                                                           |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------ |
+| `make sync`         | Installs the Python dependencies used for code formatting (`ruff`, `yamlfix`, `mdformat`...) via `uv`. Requires `uv` to be installed. |
+| `make format`       | Formats all YAML, JSON, Markdown, Python, and `.env.example` files in the repo to a consistent style.                                 |
+| `make format-check` | Same as `make format` but only checks formatting without writing changes — useful in CI or before committing.                         |
 
 > 💡 For commands that accept `service=`, the service name is the **subfolder name** at the repo root (e.g. `pgvector`, `redis`, `mongodb`, `gitea`...), not the container name or a display name.
 
