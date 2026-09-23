@@ -1,3 +1,12 @@
+# Logs-first observability stack.
+# - Apps send OTLP to this collector (4317 gRPC / 4318 HTTP).
+# - Logs are exported to Loki (OTLP HTTP).
+# - Traces and metrics are accepted then dropped (nop) until Tempo/Prometheus are added.
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
 receivers:
   otlp:
     protocols:
@@ -9,28 +18,37 @@ receivers:
 processors:
   memory_limiter:
     check_interval: 1s
-    limit_mib: 200  # ~80% of OTEL_COLLECTOR_MEM_LIMIT (256M)
-    spike_limit_mib: 50
+    limit_mib: 400
+    spike_limit_mib: 100
   batch:
-  deltatocumulative:
+    timeout: 5s
+    send_batch_size: 1024
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: local
+        action: upsert
 
 exporters:
-  debug:
-    verbosity: detailed
-  otlp/jaeger:
-    endpoint: jaeger:4317
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
     tls:
       insecure: true
-  prometheus:
-    endpoint: "0.0.0.0:8889"
+  # Phase 2: replace nop with Tempo (traces) and Prometheus/remote_write (metrics).
+  nop:
 
 service:
+  extensions: [health_check]
   pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [otlphttp/loki]
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlp/jaeger, debug]
+      exporters: [nop]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, deltatocumulative, batch]
-      exporters: [prometheus, debug]
+      processors: [memory_limiter, batch]
+      exporters: [nop]

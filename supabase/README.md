@@ -21,15 +21,15 @@ sh utils/generate-keys.sh --update-env
 sh run.sh start
 ```
 
-| Resource                 | URL                                    |
-| ------------------------ | -------------------------------------- |
-| Studio (Traefik)         | https://studio.dss.localhost           |
+| Resource                 | URL                                        |
+| ------------------------ | ------------------------------------------ |
+| Studio (Traefik)         | https://studio.dss.localhost               |
 | API gateway (Traefik)    | https://supabase.dss.localhost             |
-| Studio / API (host port) | http://localhost:8002                  |
+| Studio / API (host port) | http://localhost:8002                      |
 | Auth                     | https://supabase.dss.localhost/auth/v1     |
 | Storage                  | https://supabase.dss.localhost/storage/v1  |
 | Realtime                 | https://supabase.dss.localhost/realtime/v1 |
-| Postgres                 | `localhost:5434`                       |
+| Postgres                 | `localhost:5434`                           |
 
 Studio UI is open directly for local development at https://studio.dss.localhost. Visiting https://supabase.dss.localhost redirects Studio UI to https://studio.dss.localhost.
 

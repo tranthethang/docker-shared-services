@@ -1,76 +1,120 @@
 services:
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.103.0
+    image: otel/opentelemetry-collector-contrib:0.128.0
     container_name: otel-collector
     command: ["--config=/etc/otel-config.yaml"]
+    restart: ${RESTART_POLICY:-always}
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:
-      - ./otel-config.yaml:/etc/otel-config.yaml
+      - ./otel-config.yaml:/etc/otel-config.yaml:ro
     deploy:
       resources:
         limits:
-          cpus: ${OTEL_COLLECTOR_CPU_LIMIT:-0.1}
-          memory: ${OTEL_COLLECTOR_MEM_LIMIT:-256M}
+          cpus: ${OTEL_COLLECTOR_CPU_LIMIT:-0.25}
+          memory: ${OTEL_COLLECTOR_MEM_LIMIT:-512M}
     ports:
       - "${OTEL_COLLECTOR_PORT_GRPC:-4317}:4317" # OTLP gRPC
       - "${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
-      - "${OTEL_COLLECTOR_PORT_METRICS:-8889}:8889" # Prometheus metric scrape endpoint
     networks:
       - infra_shared
       - dev_tools
+    depends_on:
+      loki:
+        condition: service_healthy
 
-  jaeger:
+  grafana:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.jaeger.rule=Host(`jaeger.dss.localhost`)"
-      - "traefik.http.routers.jaeger.entrypoints=web,websecure"
-      - "traefik.http.routers.jaeger.tls=true"
-      - "traefik.http.services.jaeger.loadbalancer.server.port=16686"
-    image: jaegertracing/all-in-one:1.76.0
-    container_name: jaeger
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOSTNAME:-grafana.dss.localhost}`)"
+      - "traefik.http.routers.grafana.entrypoints=web,websecure"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+    container_name: grafana
+    image: grafana/grafana-oss:${GRAFANA_VERSION:-11.4.0}
+    restart: ${RESTART_POLICY:-always}
     environment:
-      - TZ=${TZ:-Asia/Ho_Chi_Minh}
-    deploy:
-      resources:
-        limits:
-          cpus: ${JAEGER_CPU_LIMIT:-0.2}
-          memory: ${JAEGER_MEM_LIMIT:-512M}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-Password102!}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
     ports:
-      - "${JAEGER_PORT:-16686}:16686" # Web UI
-      # Note: Jaeger OTLP gRPC (4317) is accessible inside Docker network via container name.
-      # No need to expose to host — OTel Collector connects via jaeger:4317 internally.
+      - "${GRAFANA_PORT:-3001}:3000"
     networks:
       - infra_shared
       - dev_tools
-
-  prometheus:
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`prometheus.dss.localhost`)"
-      - "traefik.http.routers.prometheus.entrypoints=web,websecure"
-      - "traefik.http.routers.prometheus.tls=true"
-      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
-    image: prom/prometheus:v2.54.1
-    container_name: prometheus
-    environment:
-      - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-      - /etc/localtime:/etc/localtime:ro
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
     deploy:
       resources:
         limits:
-          cpus: ${PROMETHEUS_CPU_LIMIT:-0.1}
-          memory: ${PROMETHEUS_MEM_LIMIT:-512M}
+          cpus: "${GRAFANA_CPUS_LIMIT:-0.50}"
+          memory: ${GRAFANA_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: "${GRAFANA_CPUS_RESERVED:-0.10}"
+          memory: ${GRAFANA_MEMORY_RESERVED:-128M}
+    depends_on:
+      loki:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  loki:
+    container_name: loki
+    image: grafana/loki:${LOKI_VERSION:-3.3.2}
+    restart: ${RESTART_POLICY:-always}
+    command: -config.file=/etc/loki/local-config.yaml
     ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
+      - "${LOKI_PORT:-3100}:3100"
     networks:
       - infra_shared
       - dev_tools
+    volumes:
+      - ./config/loki.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    deploy:
+      resources:
+        limits:
+          cpus: "${LOKI_CPUS_LIMIT:-0.50}"
+          memory: ${LOKI_MEMORY_LIMIT:-512M}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:${PROMTAIL_VERSION:-3.3.2}
+    restart: ${RESTART_POLICY:-always}
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - infra_shared
+      - dev_tools
+    volumes:
+      - ./config/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROMTAIL_CPUS_LIMIT:-0.20}"
+          memory: ${PROMTAIL_MEMORY_LIMIT:-256M}
+    depends_on:
+      loki:
+        condition: service_healthy
 
 networks:
   infra_shared:
     external: true
   dev_tools:
     external: true
+
+volumes:
+  grafana_data:
+  loki_data:
