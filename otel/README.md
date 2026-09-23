@@ -19,12 +19,23 @@ Docker stdout ─► Promtail ────────────────�
 
 **Related:** [Dozzle](../dozzle/) is for live container log tailing. Use Grafana/Loki for search, history, and app OTLP logs.
 
+### Default Grafana login
+
+| Field    | Value                         | Env override             |
+| -------- | ----------------------------- | ------------------------ |
+| URL      | https://grafana.dss.localhost | `GRAFANA_HOSTNAME`       |
+| Username | `admin`                       | `GRAFANA_ADMIN_USER`     |
+| Password | `Password102!`                | `GRAFANA_ADMIN_PASSWORD` |
+
+Dev-only defaults (same pattern as other services in this repo). Change them in `otel/.env` or the root `.env` before exposing beyond localhost.
+
 ______________________________________________________________________
 
 ## Prerequisites
 
 - Shared networks exist (`make setup` from the repo root creates `infra_shared` and `dev_tools`).
-- Traefik running if you want `https://grafana.dss.localhost` (optional; host port `3001` also works).
+- **Traefik** running (`make up service=traefik`) for browser access via `*.dss.localhost` (same pattern as Zitadel).
+- TLS certs for `*.dss.localhost` (`make cert` / `make setup`).
 
 ______________________________________________________________________
 
@@ -36,8 +47,9 @@ From the **repository root**:
 # Ensure env files exist (also done by make setup)
 cp otel/.env.example otel/.env
 
+make up service=traefik   # if not already running
 make up service=otel
-make ps service=otel
+make health service=otel
 ```
 
 Or with Compose directly (same pattern the Makefile uses):
@@ -55,18 +67,39 @@ Smoke test (health checks + sample OTLP log):
 ./otel/test-otel.sh
 ```
 
+Then open Grafana: [https://grafana.dss.localhost](https://grafana.dss.localhost)
+
+- Username: `admin`
+- Password: `Password102!`
+
 ______________________________________________________________________
 
 ## Access
 
-| What      | URL / address                                              | Credentials                                   |
-| --------- | ---------------------------------------------------------- | --------------------------------------------- |
-| Grafana   | `http://localhost:3001` or `https://grafana.dss.localhost` | `admin` / `Password102!` (override in `.env`) |
-| Loki API  | `http://localhost:3100`                                    | none (dev only)                               |
-| OTLP gRPC | `localhost:4317`                                           | —                                             |
-| OTLP HTTP | `localhost:4318`                                           | —                                             |
+Only **Grafana** is exposed through Traefik (like `https://zitadel.dss.localhost/...`). Loki, Promtail, and the Collector have no Traefik routers.
 
-From **another container** on `infra_shared` / `dev_tools`:
+### Browser (Traefik)
+
+| What    | URL                               | Default login                          |
+| ------- | --------------------------------- | -------------------------------------- |
+| Grafana | **https://grafana.dss.localhost** | user `admin` / password `Password102!` |
+
+Override with `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD`. Hostname is controlled by `GRAFANA_HOSTNAME` (default `grafana.dss.localhost`).
+
+### Host ports (fallback / APIs — no Traefik UI)
+
+| What             | Address                 | Notes                                      |
+| ---------------- | ----------------------- | ------------------------------------------ |
+| Grafana (direct) | `http://localhost:3001` | Use when Traefik is down                   |
+| Loki HTTP API    | `http://localhost:3100` | Ready check, push/query API; **no web UI** |
+| OTLP gRPC        | `localhost:4317`        | For apps on the host                       |
+| OTLP HTTP        | `localhost:4318`        | For apps on the host                       |
+
+Promtail has **no** published UI or Traefik route.
+
+### Docker network (other containers)
+
+Apps on `infra_shared` / `dev_tools` should use the Collector **container name** (not Traefik):
 
 ```bash
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -74,7 +107,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
 # OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 ```
 
-From the **host** (apps not in Docker):
+From the **host** (process not in Docker):
 
 ```bash
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
@@ -140,8 +173,9 @@ ______________________________________________________________________
 
 ## Using Grafana
 
-1. Open Grafana (see [Access](#access)).
-1. Go to **Explore** → datasource **Loki** (provisioned automatically from `grafana/provisioning/`).
+1. Open **https://grafana.dss.localhost** (Traefik + TLS; same `*.dss.localhost` style as Zitadel).
+1. Sign in with default account **`admin` / `Password102!`** (or your `GRAFANA_ADMIN_*` values).
+1. Go to **Explore** → datasource **Loki** (provisioned from `grafana/provisioning/`).
 1. Example LogQL:
 
 ```logql
@@ -203,7 +237,7 @@ make restart service=otel
 # Collector logs only
 docker logs -f otel-collector
 
-# Loki ready
+# Loki ready (host port; not served via Traefik)
 curl -sf http://localhost:3100/ready
 ```
 
@@ -227,13 +261,14 @@ ______________________________________________________________________
 
 ## Troubleshooting
 
-| Symptom                        | What to check                                                                                |
-| ------------------------------ | -------------------------------------------------------------------------------------------- |
-| App cannot reach Collector     | Same Docker network? Hostname `otel-collector`? Host apps use `localhost:4317`.              |
-| No logs in Grafana             | Promtail needs Docker socket; Collector needs Loki healthy. Run `./otel/test-otel.sh`.       |
-| Grafana has no Loki datasource | Confirm mount `./grafana/provisioning` and restart Grafana.                                  |
-| Loki disk growth               | Retention is `168h` in `config/loki.yml`; lower `retention_period` if needed.                |
-| Port already allocated         | Change `OTEL_COLLECTOR_PORT_*`, `GRAFANA_PORT`, or `LOKI_PORT` in `otel/.env` / root `.env`. |
+| Symptom                               | What to check                                                                                 |
+| ------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `https://grafana.dss.localhost` fails | Is Traefik up? Certs for `*.dss.localhost`? Fallback: `http://localhost:3001`.                |
+| App cannot reach Collector            | Same Docker network? Hostname `otel-collector`? Host apps use `localhost:4317` (not Traefik). |
+| No logs in Grafana                    | Promtail needs Docker socket; Collector needs Loki healthy. Run `./otel/test-otel.sh`.        |
+| Grafana has no Loki datasource        | Confirm mount `./grafana/provisioning` and restart Grafana.                                   |
+| Loki disk growth                      | Retention is `168h` in `config/loki.yml`; lower `retention_period` if needed.                 |
+| Port already allocated                | Change `OTEL_COLLECTOR_PORT_*`, `GRAFANA_PORT`, or `LOKI_PORT` in `otel/.env` / root `.env`.  |
 
 Collector health extension (inside the container network): `http://otel-collector:13133/`.
 
