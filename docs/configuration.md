@@ -100,6 +100,8 @@ Traefik requires SSL/TLS certificates for HTTPS support. The easiest way is usin
 
 Public Traefik hostnames use the `*.dss.localhost` pattern (for example `https://mailpit.dss.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `dss.localhost`.
 
+Nested app hosts (one extra label) need an extra wildcard SAN — `make cert` also issues `*.tts.dss.localhost` (for `api.tts.dss.localhost`, `proxy.tts.dss.localhost`), plus `*.minio.dss.localhost` and `*.garage.dss.localhost`. Re-run `make cert` and restart Traefik after changing SANs.
+
 ### Option 1: Using Makefile (Recommended)
 
 ```bash

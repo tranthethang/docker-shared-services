@@ -87,6 +87,7 @@ cert: ## Generate SSL certificates for Traefik
 		       "*.dss.localhost" \
 		       "*.minio.dss.localhost" \
 		       "*.garage.dss.localhost" \
+		       "*.tts.dss.localhost" \
 		       "dss.localhost" \
 		       localhost \
 		       127.0.0.1 \
