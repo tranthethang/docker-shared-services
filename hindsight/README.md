@@ -35,6 +35,21 @@ HINDSIGHT_API_LLM_API_KEY=sk-xxxx
 HINDSIGHT_API_LLM_MODEL=model-name-on-proxy
 ```
 
+Voyage AI for embeddings + rerank (default in this stack; uses the **slim** image via LiteLLM SDK). Set the Voyage API key in `.env`:
+
+```bash
+HINDSIGHT_API_EMBEDDINGS_PROVIDER=litellm-sdk
+HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_KEY=pa-xxxx
+HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL=voyage/voyage-4-lite
+HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT=
+
+HINDSIGHT_API_RERANKER_PROVIDER=litellm-sdk
+HINDSIGHT_API_RERANKER_LITELLM_SDK_API_KEY=pa-xxxx
+HINDSIGHT_API_RERANKER_LITELLM_SDK_MODEL=voyage/rerank-2.5-lite
+```
+
+Use [text embedding](https://docs.voyageai.com/docs/embeddings) models (`voyage-4-lite`, `voyage-4`, …), not multimodal (`voyage-multimodal-*`) — Hindsight calls the text embeddings API only. Rerank models: [Voyage rerankers](https://docs.voyageai.com/docs/reranker). Switching embedding dimensions on a non-empty bank requires re-indexing.
+
 3. Ensure Traefik is up (`make up service=traefik`) so the `*.dss.localhost` hosts resolve over HTTPS.
 
 ## Start

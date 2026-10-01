@@ -14,19 +14,19 @@ services:
       - "traefik.http.routers.hindsight-ui.service=hindsight-ui"
       - "traefik.http.services.hindsight-ui.loadbalancer.server.port=9999"
     container_name: hindsight
-    # Pin to a concrete release; do not float on :latest.
-    # Full image includes local embeddings/reranker (~2 GB RAM recommended).
-    image: ghcr.io/vectorize-io/hindsight:0.10.2
+    # Slim image: no local embedder/reranker (~300–500 MB idle). Pair with remote providers.
+    # Full image alternative: ghcr.io/vectorize-io/hindsight:0.10.2 (~2 GB recommended).
+    image: ghcr.io/vectorize-io/hindsight:0.10.2-slim
     restart: "${RESTART_POLICY:-always}"
-    shm_size: 1g
+    shm_size: "${HINDSIGHT_SHM_SIZE:-256m}"
     deploy:
       resources:
         limits:
-          cpus: "${HINDSIGHT_CPUS_LIMIT:-2}"
-          memory: "${HINDSIGHT_MEMORY_LIMIT:-2G}"
+          cpus: "${HINDSIGHT_CPUS_LIMIT:-1}"
+          memory: "${HINDSIGHT_MEMORY_LIMIT:-1G}"
         reservations:
-          cpus: "${HINDSIGHT_CPUS_RESERVED:-0.5}"
-          memory: "${HINDSIGHT_MEMORY_RESERVED:-1G}"
+          cpus: "${HINDSIGHT_CPUS_RESERVED:-0.25}"
+          memory: "${HINDSIGHT_MEMORY_RESERVED:-256M}"
     # Traefik-only access — no host port publish (see plan: omit ports:).
     environment:
       HINDSIGHT_API_DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-pgvector}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hindsight}"
@@ -40,6 +40,16 @@ services:
       # Must be valid JSON or omitted — empty string crashes config parse.
       # Default literal null → None in Hindsight.
       HINDSIGHT_API_LLM_DEFAULT_HEADERS: "${HINDSIGHT_API_LLM_DEFAULT_HEADERS:-null}"
+      # Embeddings via Voyage (LiteLLM SDK). Text models only — multimodal API is unsupported here.
+      HINDSIGHT_API_EMBEDDINGS_PROVIDER: "${HINDSIGHT_API_EMBEDDINGS_PROVIDER:-litellm-sdk}"
+      HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_KEY: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_KEY:-}"
+      HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL:-voyage/voyage-4-lite}"
+      # Empty omits encoding_format (required for Voyage / Gemini via LiteLLM).
+      HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT:-}"
+      # Reranker via Voyage (LiteLLM SDK).
+      HINDSIGHT_API_RERANKER_PROVIDER: "${HINDSIGHT_API_RERANKER_PROVIDER:-litellm-sdk}"
+      HINDSIGHT_API_RERANKER_LITELLM_SDK_API_KEY: "${HINDSIGHT_API_RERANKER_LITELLM_SDK_API_KEY:-}"
+      HINDSIGHT_API_RERANKER_LITELLM_SDK_MODEL: "${HINDSIGHT_API_RERANKER_LITELLM_SDK_MODEL:-voyage/rerank-2.5-lite}"
       HINDSIGHT_API_WORKER_ID: "${HINDSIGHT_API_WORKER_ID:-hindsight-dss}"
       HINDSIGHT_CP_DATAPLANE_API_URL: "${HINDSIGHT_CP_DATAPLANE_API_URL:-http://127.0.0.1:8888}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
