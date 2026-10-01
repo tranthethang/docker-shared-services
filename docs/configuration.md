@@ -66,9 +66,10 @@ Services communicate using container names on the network where both endpoints a
 # sonarqube, zitadel, inngest, temporal, bugsink all connect here by default)
 postgres://postgres:Password102!@postgres:5432/mydb
 
-# PgVector - standalone Postgres 17 + vector extension; nothing else in this
-# repo connects to it, use it directly for your own workloads
-postgres://postgres:Password102!@pgvector:5432/mydb   # port 5432 *inside* the network, host-mapped to 5433
+# PgVector - Postgres 17 + vector extension; shared backend for Hindsight
+# (and available for your own workloads). Port 5432 inside the network,
+# host-mapped to 5433.
+postgres://postgres:Password102!@pgvector:5432/mydb
 
 # Redis
 redis://:Password102!@redis:6379

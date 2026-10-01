@@ -1,0 +1,62 @@
+services:
+  hindsight:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
+      - "traefik.http.routers.hindsight.rule=Host(`${HINDSIGHT_HOSTNAME:-hindsight.dss.localhost}`)"
+      - "traefik.http.routers.hindsight.entrypoints=web,websecure"
+      - "traefik.http.routers.hindsight.tls=true"
+      - "traefik.http.routers.hindsight.service=hindsight"
+      - "traefik.http.services.hindsight.loadbalancer.server.port=8888"
+      - "traefik.http.routers.hindsight-ui.rule=Host(`${HINDSIGHT_UI_HOSTNAME:-hindsight-ui.dss.localhost}`)"
+      - "traefik.http.routers.hindsight-ui.entrypoints=web,websecure"
+      - "traefik.http.routers.hindsight-ui.tls=true"
+      - "traefik.http.routers.hindsight-ui.service=hindsight-ui"
+      - "traefik.http.services.hindsight-ui.loadbalancer.server.port=9999"
+    container_name: hindsight
+    # Pin to a concrete release; do not float on :latest.
+    # Full image includes local embeddings/reranker (~2 GB RAM recommended).
+    image: ghcr.io/vectorize-io/hindsight:0.10.2
+    restart: "${RESTART_POLICY:-always}"
+    shm_size: 1g
+    deploy:
+      resources:
+        limits:
+          cpus: "${HINDSIGHT_CPUS_LIMIT:-2}"
+          memory: "${HINDSIGHT_MEMORY_LIMIT:-2G}"
+        reservations:
+          cpus: "${HINDSIGHT_CPUS_RESERVED:-0.5}"
+          memory: "${HINDSIGHT_MEMORY_RESERVED:-1G}"
+    # Traefik-only access — no host port publish (see plan: omit ports:).
+    environment:
+      HINDSIGHT_API_DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-pgvector}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hindsight}"
+      HINDSIGHT_API_LLM_PROVIDER: "${HINDSIGHT_API_LLM_PROVIDER:-openai}"
+      HINDSIGHT_API_LLM_API_KEY: "${HINDSIGHT_API_LLM_API_KEY:-}"
+      HINDSIGHT_API_LLM_MODEL: "${HINDSIGHT_API_LLM_MODEL:-gpt-4o-mini}"
+      # OpenAI-compatible proxies (9router, LiteLLM, vLLM, …): set BASE_URL to the
+      # endpoint that serves /chat/completions (usually …/v1). Leave empty for
+      # the provider default (api.openai.com).
+      HINDSIGHT_API_LLM_BASE_URL: "${HINDSIGHT_API_LLM_BASE_URL:-}"
+      # Must be valid JSON or omitted — empty string crashes config parse.
+      # Default literal null → None in Hindsight.
+      HINDSIGHT_API_LLM_DEFAULT_HEADERS: "${HINDSIGHT_API_LLM_DEFAULT_HEADERS:-null}"
+      HINDSIGHT_API_WORKER_ID: "${HINDSIGHT_API_WORKER_ID:-hindsight-dss}"
+      HINDSIGHT_CP_DATAPLANE_API_URL: "${HINDSIGHT_CP_DATAPLANE_API_URL:-http://127.0.0.1:8888}"
+      TZ: "${TZ:-Asia/Ho_Chi_Minh}"
+    networks:
+      - infra_shared
+      - dev_tools
+    healthcheck:
+      # /health/ready verifies PostgreSQL connectivity (alias: /health).
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/health/ready',\
+            \ timeout=5)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true

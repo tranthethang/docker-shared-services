@@ -13,6 +13,7 @@ SERVICES = [
     "garage",
     "gitea",
     "gotenberg",
+    "hindsight",
     "inngest",
     "jenkins",
     "kafka",
@@ -46,12 +47,12 @@ ACTIONS = ["up", "down", "stop", "restart", "logs"]
 
 # Infra-first startup order for batch manage (services not listed start/stop by name).
 # "postgres" (16) is the default shared DB backend other services depend on, so it
-# starts early. "pgvector" is a standalone Postgres 17 + vector extension instance
-# that nothing else in this repo connects to, so it is intentionally left out of
-# this priority list (it still starts fine on demand via `make up service=pgvector`).
+# starts early. "pgvector" (Postgres 17 + vector) is the backend for Hindsight and
+# starts before consumers that need it.
 START_ORDER = [
     "traefik",
     "postgres",
+    "pgvector",
     "zitadel",
     "redis",
     "mysql8",
@@ -67,10 +68,12 @@ START_ORDER = [
     "mailpit",
     "otel",
     "supabase",
+    "hindsight",
 ]
 
 VALIDATION_RULES = {
     "garage": ["GARAGE_RPC_SECRET", "GARAGE_ADMIN_TOKEN"],
+    "hindsight": ["HINDSIGHT_API_LLM_API_KEY"],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["PASSWORD"],
@@ -92,6 +95,12 @@ SERVICE_INFO_VARS = {
     "garage": ["GARAGE_S3_PORT", "GARAGE_ADMIN_PORT"],
     "gitea": ["GITEA_HTTP_PORT", "GITEA_SSH_PORT"],
     "gotenberg": ["GOTENBERG_API_PORT"],
+    "hindsight": [
+        "HINDSIGHT_HOSTNAME",
+        "HINDSIGHT_UI_HOSTNAME",
+        "HINDSIGHT_PUBLIC_URL",
+        "HINDSIGHT_UI_PUBLIC_URL",
+    ],
     "inngest": ["INNGEST_PORT"],
     "mermaid-live-editor": ["MERMAID_LIVE_EDITOR_PORT"],
     "mongodb": ["MONGO_PORT"],

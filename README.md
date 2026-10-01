@@ -11,7 +11,7 @@ A collection of Docker Compose configurations for 30+ commonly used local develo
 
 To be upfront: this is not a complete "platform" or a production-ready product — it's a personal/small-team collection of Docker Compose files for quickly spinning up a local dev environment, gathered in one place so you don't have to remember every `docker compose` command for every service. A few reasons to consider it:
 
-- **You don't have to assemble everything from scratch**: 30+ services (Postgres, MySQL, MongoDB, Redis, RabbitMQ, Gitea, Jenkins, Zitadel, Grafana...) already come with a `docker-compose.yml` + `.env.example`, so you don't need to hunt down images or set up networking and healthchecks for each one yourself.
+- **You don't have to assemble everything from scratch**: 30+ services (Postgres, MySQL, MongoDB, Redis, RabbitMQ, Gitea, Jenkins, Zitadel, Grafana, Hindsight...) already come with a `docker-compose.yml` + `.env.example`, so you don't need to hunt down images or set up networking and healthchecks for each one yourself.
 - **A single Makefile** to start/stop, view logs, and check status instead of typing out long `docker compose -f ... -f ... -f ...` commands for each combination of services.
 - **Networking is already worked out**: two networks, `infra_shared` and `dev_tools`, with non-overlapping subnets, plus Traefik + `*.dss.localhost` so you can access services by domain name instead of memorizing ports.
 - **Pick only the services you need**: `make up` or `make manage` let you start individual services instead of running everything at once (which eats up your dev machine's RAM/CPU).

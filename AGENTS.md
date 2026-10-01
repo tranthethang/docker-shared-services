@@ -35,12 +35,12 @@ ______________________________________________________________________
 
 **Main Components**:
 
-- **Databases**: PgVector (PostgreSQL 17), MySQL 8, MariaDB, MongoDB, ChromaDB, Qdrant, Supabase (Auth/DB/Storage/Realtime/Studio)
+- **Databases**: PgVector (PostgreSQL 17; used by Hindsight), MySQL 8, MariaDB, MongoDB, ChromaDB, Qdrant, Supabase (Auth/DB/Storage/Realtime/Studio)
 - **Caching & Messaging**: Redis, RabbitMQ, Memcached
 - **DevOps & CI/CD**: Gitea, Jenkins, Concourse, SonarQube, Act Runner
 - **Management UIs**: Adminer, Dockge, Portainer, Redis Insight, Dozzle
 - **Auth / SSO**: Zitadel (Central IdP at `https://zitadel.dss.localhost`; protected apps use `*.dss.localhost`)
-- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit, PocketBase
+- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit, PocketBase, Hindsight (MCP memory at `https://hindsight.dss.localhost`)
 
 **Configuration Structure**:
 
