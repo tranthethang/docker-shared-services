@@ -30,26 +30,25 @@ services:
     # Traefik-only access — no host port publish (see plan: omit ports:).
     environment:
       HINDSIGHT_API_DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-pgvector}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hindsight}"
+      # Chat via openai-quota-gateway (OpenAI-compatible /v1/chat/completions).
       HINDSIGHT_API_LLM_PROVIDER: "${HINDSIGHT_API_LLM_PROVIDER:-openai}"
       HINDSIGHT_API_LLM_API_KEY: "${HINDSIGHT_API_LLM_API_KEY:-}"
-      HINDSIGHT_API_LLM_MODEL: "${HINDSIGHT_API_LLM_MODEL:-gpt-4o-mini}"
-      # OpenAI-compatible proxies (9router, LiteLLM, vLLM, …): set BASE_URL to the
-      # endpoint that serves /chat/completions (usually …/v1). Leave empty for
-      # the provider default (api.openai.com).
-      HINDSIGHT_API_LLM_BASE_URL: "${HINDSIGHT_API_LLM_BASE_URL:-}"
+      HINDSIGHT_API_LLM_MODEL: "${HINDSIGHT_API_LLM_MODEL:-gemma-4-26b-a4b-it}"
+      HINDSIGHT_API_LLM_BASE_URL: "${HINDSIGHT_API_LLM_BASE_URL:-http://openai-quota-gateway:8000/v1}"
       # Must be valid JSON or omitted — empty string crashes config parse.
-      # Default literal null → None in Hindsight.
       HINDSIGHT_API_LLM_DEFAULT_HEADERS: "${HINDSIGHT_API_LLM_DEFAULT_HEADERS:-null}"
-      # Embeddings via Voyage (LiteLLM SDK). Text models only — multimodal API is unsupported here.
+      # Embeddings via gateway (LiteLLM SDK). Gemini requires encoding_format=float.
       HINDSIGHT_API_EMBEDDINGS_PROVIDER: "${HINDSIGHT_API_EMBEDDINGS_PROVIDER:-litellm-sdk}"
       HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_KEY: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_KEY:-}"
-      HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL:-voyage/voyage-4-lite}"
-      # Empty omits encoding_format (required for Voyage / Gemini via LiteLLM).
-      HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT:-}"
-      # Reranker via Voyage (LiteLLM SDK).
-      HINDSIGHT_API_RERANKER_PROVIDER: "${HINDSIGHT_API_RERANKER_PROVIDER:-litellm-sdk}"
-      HINDSIGHT_API_RERANKER_LITELLM_SDK_API_KEY: "${HINDSIGHT_API_RERANKER_LITELLM_SDK_API_KEY:-}"
-      HINDSIGHT_API_RERANKER_LITELLM_SDK_MODEL: "${HINDSIGHT_API_RERANKER_LITELLM_SDK_MODEL:-voyage/rerank-2.5-lite}"
+      HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL:-openai/gemini-embedding-2}"
+      HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_BASE: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_BASE:-http://openai-quota-gateway:8000/v1}"
+      HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT:-float}"
+      HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_OUTPUT_DIMENSIONS: "${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_OUTPUT_DIMENSIONS:-1536}"
+      # Rerank via gateway Cohere-compatible /v1/rerank (LiteLLM client).
+      HINDSIGHT_API_RERANKER_PROVIDER: "${HINDSIGHT_API_RERANKER_PROVIDER:-litellm}"
+      HINDSIGHT_API_RERANKER_LITELLM_API_BASE: "${HINDSIGHT_API_RERANKER_LITELLM_API_BASE:-http://openai-quota-gateway:8000/v1}"
+      HINDSIGHT_API_RERANKER_LITELLM_API_KEY: "${HINDSIGHT_API_RERANKER_LITELLM_API_KEY:-}"
+      HINDSIGHT_API_RERANKER_LITELLM_MODEL: "${HINDSIGHT_API_RERANKER_LITELLM_MODEL:-semantic-ranker-fast-004}"
       HINDSIGHT_API_WORKER_ID: "${HINDSIGHT_API_WORKER_ID:-hindsight-dss}"
       HINDSIGHT_CP_DATAPLANE_API_URL: "${HINDSIGHT_CP_DATAPLANE_API_URL:-http://127.0.0.1:8888}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"

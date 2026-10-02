@@ -19,36 +19,41 @@ docker exec pgvector psql -U postgres -c "CREATE DATABASE hindsight;"
 docker exec pgvector psql -U postgres -d hindsight -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ```
 
-2. Copy env and set LLM credentials:
+2. Ensure **openai-quota-gateway** is running on `infra_shared` (sibling repo). Copy env and set the gateway API key:
 
 ```bash
 cp hindsight/.env.example hindsight/.env
-# Edit hindsight/.env — set HINDSIGHT_API_LLM_API_KEY
+# Edit hindsight/.env — set HINDSIGHT_API_*_API_KEY to a GATEWAY_API_KEYS value
 ```
 
-OpenAI-compatible proxies (e.g. 9router) — keep `provider=openai` and point `BASE_URL` at the `/v1` root that serves `/chat/completions`:
+Default models (pool IDs from `openai-quota-gateway/config/pool.json`):
+
+| Role       | Model                     | Gateway path              |
+| ---------- | ------------------------- | ------------------------- |
+| Text / LLM | `gemma-4-26b-a4b-it`      | `POST /v1/chat/completions` |
+| Embedding  | `gemini-embedding-2`      | `POST /v1/embeddings`     |
+| Rerank     | `semantic-ranker-fast-004`| `POST /v1/rerank`         |
 
 ```bash
 HINDSIGHT_API_LLM_PROVIDER=openai
-HINDSIGHT_API_LLM_BASE_URL=https://your-proxy.example.com/v1
-HINDSIGHT_API_LLM_API_KEY=sk-xxxx
-HINDSIGHT_API_LLM_MODEL=model-name-on-proxy
-```
+HINDSIGHT_API_LLM_BASE_URL=http://openai-quota-gateway:8000/v1
+HINDSIGHT_API_LLM_API_KEY=sk-oqg-xxxx
+HINDSIGHT_API_LLM_MODEL=gemma-4-26b-a4b-it
 
-Voyage AI for embeddings + rerank (default in this stack; uses the **slim** image via LiteLLM SDK). Set the Voyage API key in `.env`:
-
-```bash
 HINDSIGHT_API_EMBEDDINGS_PROVIDER=litellm-sdk
-HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_KEY=pa-xxxx
-HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL=voyage/voyage-4-lite
-HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT=
+HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_BASE=http://openai-quota-gateway:8000/v1
+HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_KEY=sk-oqg-xxxx
+HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL=openai/gemini-embedding-2
+HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT=float
+HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_OUTPUT_DIMENSIONS=1536
 
-HINDSIGHT_API_RERANKER_PROVIDER=litellm-sdk
-HINDSIGHT_API_RERANKER_LITELLM_SDK_API_KEY=pa-xxxx
-HINDSIGHT_API_RERANKER_LITELLM_SDK_MODEL=voyage/rerank-2.5-lite
+HINDSIGHT_API_RERANKER_PROVIDER=litellm
+HINDSIGHT_API_RERANKER_LITELLM_API_BASE=http://openai-quota-gateway:8000/v1
+HINDSIGHT_API_RERANKER_LITELLM_API_KEY=sk-oqg-xxxx
+HINDSIGHT_API_RERANKER_LITELLM_MODEL=semantic-ranker-fast-004
 ```
 
-Use [text embedding](https://docs.voyageai.com/docs/embeddings) models (`voyage-4-lite`, `voyage-4`, …), not multimodal (`voyage-multimodal-*`) — Hindsight calls the text embeddings API only. Rerank models: [Voyage rerankers](https://docs.voyageai.com/docs/reranker). Switching embedding dimensions on a non-empty bank requires re-indexing.
+Switching embedding dimensions on a non-empty bank requires re-indexing.
 
 3. Ensure Traefik is up (`make up service=traefik`) so the `*.dss.localhost` hosts resolve over HTTPS.
 
@@ -56,6 +61,12 @@ Use [text embedding](https://docs.voyageai.com/docs/embeddings) models (`voyage-
 
 ```bash
 make up service=hindsight
+```
+
+## Smoke test
+
+```bash
+./hindsight/smoke-test.sh
 ```
 
 ## Cursor / Antigravity MCP
