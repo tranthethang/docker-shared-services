@@ -65,6 +65,9 @@ setup: ## Setup environment files, networks and certificates
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
 		$(PYTHON_ENV_MGR) create all; \
 	fi
+	@# Auto-fill empty local secrets (e.g. garage GARAGE_RPC_SECRET / GARAGE_ADMIN_TOKEN).
+	@# Safe to re-run: existing non-empty values are left unchanged.
+	@$(PYTHON_ENV_MGR) fill-secrets all
 	@$(PYTHON_ENV_MGR) validate all || true
 	@$(PYTHON_ENV_MGR) summary all
 	@echo ""

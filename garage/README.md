@@ -15,7 +15,15 @@ S3-compatible object store; deployed here in single-node mode (`replication_fact
 
 ## Setup
 
-1. Copy the env file and fill in the secrets:
+1. Create `.env` and generate secrets (preferred: from repo root):
+
+   ```bash
+   # From docker-shared-services root — creates missing .env files and
+   # auto-fills empty GARAGE_RPC_SECRET / GARAGE_ADMIN_TOKEN.
+   make setup
+   ```
+
+   Or manually in this directory:
 
    ```bash
    cp .env.example .env

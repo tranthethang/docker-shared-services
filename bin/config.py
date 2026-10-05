@@ -84,6 +84,16 @@ VALIDATION_RULES = {
     "zitadel": ["ZITADEL_MASTERKEY"],
 }
 
+# Local random secrets that `make setup` can auto-fill when empty.
+# Format: service -> { VAR: (method, nbytes) } where method is "hex" or "base64".
+# External API keys (e.g. HINDSIGHT_API_LLM_API_KEY) stay manual.
+AUTO_GENERATED_SECRETS = {
+    "garage": {
+        "GARAGE_RPC_SECRET": ("hex", 32),
+        "GARAGE_ADMIN_TOKEN": ("base64", 32),
+    },
+}
+
 SERVICE_INFO_VARS = {
     "appsmith": ["APPSMITH_PORT"],
     "bugsink": ["BUGSINK_PORT", "BUGSINK_BASE_URL"],
