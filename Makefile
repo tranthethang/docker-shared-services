@@ -1,4 +1,4 @@
-.PHONY: help setup ps health remove-all prune remove-config info up down stop restart logs cert validate manage sync format format-check
+.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage sync format format-check
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -7,6 +7,13 @@ SHELL := /bin/bash
 PYTHON_ENV_MGR := python3 bin/env_manager.py
 PYTHON_SVC_MGR := python3 bin/service_manager.py
 UV ?= uv
+
+# Optional shared password for setup/passwords targets:
+#   make setup password='Password102!'
+#   DSS_SHARED_PASSWORD='Password102!' make setup
+#   make passwords password='Password102!'
+# When omitted, setup generates ONE random password and applies it to all services.
+password ?=
 
 # Dynamic DOCKER_COMPOSE command that includes all services
 DOCKER_COMPOSE = docker compose -f docker-compose.shared.yml \
@@ -27,7 +34,7 @@ help: ## Show this help message
 		awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
-setup: ## Setup environment files, networks and certificates
+setup: ## Setup env files, networks, certs (optional: password='Password102!')
 	@echo "Checking shared Docker networks (infra_shared, dev_tools)..."
 	@# Two bridges cannot share one CIDR; prefer adjacent /16s in 10/8. Fall back if pool overlaps (OrbStack/Docker Desktop).
 	@for pair in "infra_shared:10.0.0.0/16" "dev_tools:10.1.0.0/16"; do \
@@ -44,6 +51,17 @@ setup: ## Setup environment files, networks and certificates
 	done
 	@echo "Checking environment files..."
 	@$(PYTHON_ENV_MGR) check all
+	@echo ""
+	@read -p "Do you want to create missing .env files from .env.example? (y/n) " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		$(PYTHON_ENV_MGR) create all; \
+	fi
+	@# ONE shared password for all Password102! placeholders (DB/Redis/MinIO/…).
+	@# Override: make setup password='Password102!'  OR  DSS_SHARED_PASSWORD='…' make setup
+	@# Unique secrets (Garage, Woodpecker agent) are filled next and stay distinct.
+	@$(PYTHON_ENV_MGR) fill-shared-password $(if $(password),--password "$(password)",)
+	@$(PYTHON_ENV_MGR) fill-secrets all
 	@echo "Checking Dozzle users file (dozzle/data/users.yml)..."
 	@mkdir -p dozzle/data
 	@if [[ -d "dozzle/data/users.yml" ]]; then \
@@ -51,23 +69,19 @@ setup: ## Setup environment files, networks and certificates
 		rm -rf dozzle/data/users.yml; \
 	fi; \
 	if [[ ! -f "dozzle/data/users.yml" ]]; then \
-		echo "  dozzle/data/users.yml not found -> generating default admin credentials..."; \
+		DOZZLE_PW="$${DSS_SHARED_PASSWORD:-}"; \
+		if [[ -z "$$DOZZLE_PW" && -f .env ]]; then \
+			DOZZLE_PW=$$(grep -E '^DSS_SHARED_PASSWORD=' .env | head -1 | cut -d= -f2-); \
+		fi; \
+		DOZZLE_PW="$${DOZZLE_PW:-Password102!}"; \
+		echo "  dozzle/data/users.yml not found -> generating admin (shared password)..."; \
 		docker run --rm -i amir20/dozzle generate admin \
-		  --password Password102! \
+		  --password "$$DOZZLE_PW" \
 		  --email admin@example.com \
 		  --name "Admin" > dozzle/data/users.yml; \
 	else \
 		echo "  dozzle/data/users.yml already exists"; \
 	fi
-	@echo ""
-	@read -p "Do you want to create missing .env files from .env.example? (y/n) " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		$(PYTHON_ENV_MGR) create all; \
-	fi
-	@# Auto-fill empty local secrets (e.g. garage GARAGE_RPC_SECRET / GARAGE_ADMIN_TOKEN).
-	@# Safe to re-run: existing non-empty values are left unchanged.
-	@$(PYTHON_ENV_MGR) fill-secrets all
 	@$(PYTHON_ENV_MGR) validate all || true
 	@$(PYTHON_ENV_MGR) summary all
 	@echo ""
@@ -77,6 +91,11 @@ setup: ## Setup environment files, networks and certificates
 		$(MAKE) cert; \
 	fi
 	@echo ""
+
+passwords: ## Apply ONE shared password to all services (optional: password='…' force=1)
+	@$(PYTHON_ENV_MGR) fill-shared-password \
+		$(if $(password),--password "$(password)",) \
+		$(if $(filter 1 true yes,$(force)),--force,)
 
 cert: ## Generate SSL certificates for Traefik
 	@echo "Detecting local IP..."

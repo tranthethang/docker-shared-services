@@ -8,7 +8,7 @@ services:
       - "traefik.http.services.gitea.loadbalancer.server.port=3000"
     image: gitea/gitea:1.25.2
     container_name: gitea
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -18,8 +18,8 @@ services:
           cpus: "${GITEA_CPUS_RESERVED:-0.5}"
           memory: "${GITEA_MEMORY_RESERVED:-512M}"
     ports:
-      - "${GITEA_SSH_PORT:-2222}:22"
-      - "${GITEA_HTTP_PORT:-3000}:3000"
+      - "127.0.0.1:${GITEA_SSH_PORT:-2222}:22"
+      - "127.0.0.1:${GITEA_HTTP_PORT:-3000}:3000"
     environment:
       - USER_UID=1000
       - USER_GID=1000

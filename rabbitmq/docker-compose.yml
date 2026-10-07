@@ -8,23 +8,39 @@ services:
       - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
     container_name: rabbitmq
     image: "rabbitmq:4.2.1-management-alpine"
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    stop_grace_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "${RABBITMQ_CPUS_LIMIT:-0.5}"
+          memory: "${RABBITMQ_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${RABBITMQ_CPUS_RESERVED:-0.1}"
+          memory: "${RABBITMQ_MEMORY_RESERVED:-128M}"
     environment:
-      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER:-guest}"
-      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:-guest}"
+      # Align defaults with .env.example (avoid classic guest/guest).
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER:-admin}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:-Password102!}"
     ports:
-      - "${RABBITMQ_PORT:-5672}:5672"
-      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     networks:
       - infra_shared
       - dev_tools
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
 networks:
   infra_shared:

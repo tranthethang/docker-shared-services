@@ -8,7 +8,7 @@ services:
       - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"
     container_name: redisinsight
     image: "redis/redisinsight:2.70.1"
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -18,12 +18,18 @@ services:
           cpus: "${REDISINSIGHT_CPUS_RESERVED:-0.25}"
           memory: "${REDISINSIGHT_MEMORY_RESERVED:-256M}"
     ports:
-      - "${REDISINSIGHT_PORT:-5540}:5540"
+      - "127.0.0.1:${REDISINSIGHT_PORT:-5540}:5540"
     networks:
       - infra_shared
       - dev_tools
     volumes:
       - redisinsight_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5540/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
 networks:
   infra_shared:

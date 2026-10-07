@@ -28,11 +28,11 @@ cp hindsight/.env.example hindsight/.env
 
 Default models (pool IDs from `openai-quota-gateway/config/pool.json`):
 
-| Role       | Model                     | Gateway path              |
-| ---------- | ------------------------- | ------------------------- |
-| Text / LLM | `gemma-4-26b-a4b-it`      | `POST /v1/chat/completions` |
-| Embedding  | `gemini-embedding-2`      | `POST /v1/embeddings`     |
-| Rerank     | `semantic-ranker-fast-004`| `POST /v1/rerank`         |
+| Role       | Model                      | Gateway path                |
+| ---------- | -------------------------- | --------------------------- |
+| Text / LLM | `gemma-4-26b-a4b-it`       | `POST /v1/chat/completions` |
+| Embedding  | `gemini-embedding-2`       | `POST /v1/embeddings`       |
+| Rerank     | `semantic-ranker-fast-004` | `POST /v1/rerank`           |
 
 ```bash
 HINDSIGHT_API_LLM_PROVIDER=openai

@@ -17,7 +17,7 @@ services:
     # Slim image: no local embedder/reranker (~300–500 MB idle). Pair with remote providers.
     # Full image alternative: ghcr.io/vectorize-io/hindsight:0.10.2 (~2 GB recommended).
     image: ghcr.io/vectorize-io/hindsight:0.10.2-slim
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     shm_size: "${HINDSIGHT_SHM_SIZE:-256m}"
     deploy:
       resources:

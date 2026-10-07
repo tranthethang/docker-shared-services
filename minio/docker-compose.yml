@@ -2,7 +2,7 @@ services:
   minio:
     container_name: minio
     image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     command: server /data --console-address ":9001"
     deploy:
       resources:
@@ -20,8 +20,8 @@ services:
       - MINIO_SERVER_URL=${MINIO_SERVER_URL:-http://minio:9000}
       - MINIO_BROWSER_TLS_SKIP_VERIFY=on
     ports:
-      - "${MINIO_PORT:-9002}:9000"
-      - "${MINIO_CONSOLE_PORT:-9003}:9001"
+      - "127.0.0.1:${MINIO_PORT:-9002}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9003}:9001"
     volumes:
       - minio_data:/data
     labels:

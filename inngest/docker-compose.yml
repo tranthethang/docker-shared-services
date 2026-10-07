@@ -1,8 +1,9 @@
 services:
   inngest:
     container_name: inngest
-    image: inngest/inngest:latest
-    restart: "${RESTART_POLICY:-always}"
+    # Pin version for reproducibility (was :latest). Matches previously running OCI label 1.45.1.
+    image: inngest/inngest:v1.45.1
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -16,7 +17,7 @@ services:
       postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-inngest}?sslmode=disable  --redis-uri
       redis://:${REDIS_PASSWORD:-Password102!}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}  --sdk-url ${INNGEST_SDK_URL:-http://api:8000/api/inngest}
     ports:
-      - "${INNGEST_PORT:-8288}:8288"
+      - "127.0.0.1:${INNGEST_PORT:-8288}:8288"
     environment:
       - INNGEST_PORT=8288
       - INNGEST_EVENT_KEY=${INNGEST_EVENT_KEY}
