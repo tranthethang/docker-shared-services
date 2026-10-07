@@ -14,11 +14,11 @@ make up service=traefik       # Optional: reverse proxy / TLS
 make up service=hasura
 ```
 
-| Resource         | URL                                      | Default Credentials              |
-| ---------------- | ---------------------------------------- | -------------------------------- |
-| Console (TLS)    | `https://hasura.dss.localhost/console`   | Admin secret: `Password102!`     |
-| GraphQL endpoint | `https://hasura.dss.localhost/v1/graphql` | Header `x-hasura-admin-secret`  |
-| Direct host port | `http://localhost:8085`                  | Same instance (no Traefik TLS)   |
+| Resource         | URL                                       | Default Credentials            |
+| ---------------- | ----------------------------------------- | ------------------------------ |
+| Console (TLS)    | `https://hasura.dss.localhost/console`    | Admin secret: `Password102!`   |
+| GraphQL endpoint | `https://hasura.dss.localhost/v1/graphql` | Header `x-hasura-admin-secret` |
+| Direct host port | `http://localhost:8085`                   | Same instance (no Traefik TLS) |
 
 ## Database Dependency
 

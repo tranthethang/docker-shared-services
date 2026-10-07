@@ -20,7 +20,8 @@ services:
       PG_DATABASE_URL: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hasura}"
       HASURA_GRAPHQL_ENABLE_CONSOLE: "${HASURA_GRAPHQL_ENABLE_CONSOLE:-true}"
       HASURA_GRAPHQL_DEV_MODE: "${HASURA_GRAPHQL_DEV_MODE:-true}"
-      HASURA_GRAPHQL_ENABLED_LOG_TYPES: "${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup, http-log, webhook-log, websocket-log, query-log}"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: "${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup, http-log, webhook-log, websocket-log,\
+        \ query-log}"
       HASURA_GRAPHQL_ADMIN_SECRET: "${HASURA_GRAPHQL_ADMIN_SECRET:-Password102!}"
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "${HASURA_GRAPHQL_UNAUTHORIZED_ROLE:-anonymous}"
     labels:
