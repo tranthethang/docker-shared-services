@@ -2,7 +2,15 @@ import argparse
 import os
 import shutil
 
-from config import AUTO_GENERATED_SECRETS, SERVICE_INFO_VARS, SERVICES, VALIDATION_RULES
+from config import (
+    AUTO_GENERATED_SECRETS,
+    SERVICE_INFO_VARS,
+    SERVICES,
+    SHARED_PASSWORD_KEYS,
+    SHARED_PASSWORD_PLACEHOLDERS,
+    SHARED_PASSWORD_TEMPLATES,
+    VALIDATION_RULES,
+)
 from utils import (
     error,
     generate_password,
@@ -59,7 +67,7 @@ def create_env(service_arg):
         print("\n✅ .env files created successfully!")
     else:
         print("\n✅ No missing .env files to create.")
-    warning("Remember to update password and sensitive values in .env files!")
+    warning("Next: shared password sync (fill-shared-password) + unique secrets (fill-secrets).")
 
 
 def fill_secrets(service_arg):
@@ -88,6 +96,128 @@ def fill_secrets(service_arg):
         print("✅ No empty auto-generated secrets to fill.")
     else:
         print(f"\n✅ Generated {filled} secret value(s).")
+
+
+def _resolve_shared_password(explicit: str | None) -> str:
+    """
+    Resolve the single shared password.
+
+    Priority:
+      1. explicit --password
+      2. DSS_SHARED_PASSWORD environment variable (non-empty)
+      3. Existing non-empty DSS_SHARED_PASSWORD in root .env (including Password102!
+         if the user chose it previously)
+      4. Fresh random password
+    """
+    if explicit:
+        return explicit
+    from_env = os.environ.get("DSS_SHARED_PASSWORD", "").strip()
+    if from_env:
+        return from_env
+    if os.path.exists(".env"):
+        root_existing = read_env_value(".env", "DSS_SHARED_PASSWORD")
+        if root_existing:
+            return root_existing
+    return generate_password()
+
+
+def _should_overwrite(current: str | None, force: bool) -> bool:
+    if force:
+        return True
+    if current is None:
+        return True
+    if current in SHARED_PASSWORD_PLACEHOLDERS:
+        return True
+    # Compound defaults that still embed the repo placeholder.
+    if "Password102!" in current:
+        return True
+    return False
+
+
+def fill_shared_password(
+    password: str | None = None,
+    force: bool = False,
+    dry_run: bool = False,
+) -> str:
+    """
+    Apply ONE shared password to every SHARED_PASSWORD_KEYS entry.
+
+    Resolution order for the password value:
+      1. --password / explicit argument
+      2. DSS_SHARED_PASSWORD environment variable
+      3. Existing non-placeholder DSS_SHARED_PASSWORD in root .env
+      4. Fresh random password (generate_password)
+
+    By default only placeholders (Password102!, empty, known change-me values)
+    are overwritten. Use force=True to rewrite all listed keys.
+    """
+    resolved = _resolve_shared_password(password)
+    print("\nApplying shared password across services...\n")
+    if password:
+        success("Using password from --password")
+    elif os.environ.get("DSS_SHARED_PASSWORD", "").strip():
+        success("Using password from DSS_SHARED_PASSWORD env")
+    elif os.path.exists(".env") and read_env_value(".env", "DSS_SHARED_PASSWORD"):
+        success("Reusing DSS_SHARED_PASSWORD from root .env")
+    else:
+        success("Generated a new random shared password")
+
+    if dry_run:
+        warning(f"Dry-run: would set shared password ({len(resolved)} chars)")
+    else:
+        # Ensure root .env exists so we can record DSS_SHARED_PASSWORD.
+        if not os.path.exists(".env") and os.path.exists(".env.example"):
+            shutil.copy(".env.example", ".env")
+            success("Created ./.env from .env.example")
+
+    updated = 0
+    skipped = 0
+
+    for service, keys in SHARED_PASSWORD_KEYS.items():
+        env_path = os.path.join(service, ".env") if service != "." else ".env"
+        if not os.path.exists(env_path):
+            continue
+        for key in keys:
+            current = read_env_value(env_path, key)
+            if not _should_overwrite(current, force):
+                skipped += 1
+                continue
+            if dry_run:
+                print(f"  would set {env_path}: {key}")
+            else:
+                set_env_value(env_path, key, resolved)
+                success(f"{env_path}: {key}")
+            updated += 1
+
+    for (service, key), template in SHARED_PASSWORD_TEMPLATES.items():
+        env_path = os.path.join(service, ".env") if service != "." else ".env"
+        if not os.path.exists(env_path):
+            continue
+        current = read_env_value(env_path, key)
+        if not _should_overwrite(current, force):
+            skipped += 1
+            continue
+        value = template.format(password=resolved)
+        if dry_run:
+            print(f"  would set {env_path}: {key}")
+        else:
+            set_env_value(env_path, key, value)
+            success(f"{env_path}: {key}")
+        updated += 1
+
+    print(f"\n✅ Shared password sync complete (updated={updated}, skipped_custom={skipped}).")
+    if not dry_run:
+        warning(
+            "Same password is used for all listed services. "
+            "Unique secrets (Garage, Woodpecker agent, Zitadel masterkey) "
+            "are handled separately by fill-secrets."
+        )
+        print(
+            "\nTo keep using Password102! next time:\n"
+            "  make setup password='Password102!'\n"
+            "  # or: DSS_SHARED_PASSWORD='Password102!' make setup\n"
+        )
+    return resolved
 
 
 def validate_env(service_arg):
@@ -149,9 +279,33 @@ def main():
     parser = argparse.ArgumentParser(description="Docker Services Environment Manager")
     parser.add_argument(
         "command",
-        choices=["check", "create", "fill-secrets", "validate", "summary", "passwords"],
+        choices=[
+            "check",
+            "create",
+            "fill-secrets",
+            "fill-shared-password",
+            "validate",
+            "summary",
+            "passwords",
+        ],
     )
     parser.add_argument("service", nargs="?", default="all")
+    parser.add_argument(
+        "--password",
+        default=None,
+        help="Shared password to apply (default: DSS_SHARED_PASSWORD env, "
+        "else existing root .env value, else generate).",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite even non-placeholder password values.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would change without writing files.",
+    )
 
     args = parser.parse_args()
 
@@ -161,16 +315,17 @@ def main():
         create_env(args.service)
     elif args.command == "fill-secrets":
         fill_secrets(args.service)
+    elif args.command in ("fill-shared-password", "passwords"):
+        fill_shared_password(
+            password=args.password,
+            force=args.force,
+            dry_run=args.dry_run,
+        )
     elif args.command == "validate":
         if not validate_env(args.service):
             exit(1)
     elif args.command == "summary":
         show_summary(args.service)
-    elif args.command == "passwords":
-        print("\nGenerating strong passwords...\n")
-        print("Generated strong passwords (save these):\n")
-        print(f"PASSWORD_102: {generate_password()}")
-        print("\nYou can update .env files with these passwords")
 
 
 if __name__ == "__main__":

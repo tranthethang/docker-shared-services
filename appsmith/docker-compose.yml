@@ -8,7 +8,7 @@ services:
       - "traefik.http.services.appsmith.loadbalancer.server.port=80"
     container_name: appsmith
     image: appsmith/appsmith-ce:v2.1
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -17,11 +17,17 @@ services:
     volumes:
       - appsmith_data:/appsmith-stacks
     ports:
-      - "${APPSMITH_PORT:-8091}:80"
-      - "${APPSMITH_HTTPS_PORT:-8444}:443"
+      - "127.0.0.1:${APPSMITH_PORT:-8091}:80"
+      - "127.0.0.1:${APPSMITH_HTTPS_PORT:-8444}:443"
     networks:
       - infra_shared
       - dev_tools
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/api/v1/health || curl -fsS http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
 
 volumes:
   appsmith_data:

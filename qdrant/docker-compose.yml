@@ -9,7 +9,7 @@ services:
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     container_name: qdrant
     image: qdrant/qdrant:v1.18.3
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -19,8 +19,8 @@ services:
           cpus: "${QDRANT_CPUS_RESERVED:-0.1}"
           memory: "${QDRANT_MEMORY_RESERVED:-256M}"
     ports:
-      - "${QDRANT_HTTP_PORT:-6333}:6333" # REST API
-      - "${QDRANT_GRPC_PORT:-6334}:6334" # gRPC
+      - "127.0.0.1:${QDRANT_HTTP_PORT:-6333}:6333" # REST API
+      - "127.0.0.1:${QDRANT_GRPC_PORT:-6334}:6334" # gRPC
     environment:
       - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-Password102!}
       - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-INFO}

@@ -8,14 +8,33 @@ services:
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"
     container_name: adminer
     image: adminer:5.4.1
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${ADMINER_CPUS_LIMIT:-0.25}"
+          memory: "${ADMINER_MEMORY_LIMIT:-128M}"
+        reservations:
+          cpus: "${ADMINER_CPUS_RESERVED:-0.05}"
+          memory: "${ADMINER_MEMORY_RESERVED:-32M}"
     ports:
-      - "${ADMINER_PORT:-8081}:8080"
+      - "127.0.0.1:${ADMINER_PORT:-8081}:8080"
     networks:
       - infra_shared
       - dev_tools
     volumes:
       - ./adminer.css:/var/www/html/adminer.css:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 networks:
   infra_shared:

@@ -8,12 +8,12 @@ services:
       - "traefik.http.services.concourse.loadbalancer.server.port=8080"
     image: concourse/concourse:7.14.3
     container_name: concourse
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     command: quickstart
     volumes:
       - concourse_data:/concourse
     ports:
-      - "${CONCOURSE_PORT:-8070}:8080"
+      - "127.0.0.1:${CONCOURSE_PORT:-8070}:8080"
     deploy:
       resources:
         limits:

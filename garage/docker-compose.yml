@@ -4,7 +4,7 @@ services:
     # dxflrs/garage v2.4.1 — latest stable release (Sep 2026).
     # Pin explicitly; do NOT use ":latest" for a storage backend.
     image: dxflrs/garage:v2.4.1
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     # Explicit config path — do NOT rely on the image default /etc/garage.toml.
     # Bind-mounting a *single file* to /etc/garage.toml is invisible inside this
     # distroless image under OrbStack (ENOENT on docker exec / healthcheck),
@@ -28,10 +28,10 @@ services:
       # So `docker exec garage /garage …` picks up the same config without -c.
       - GARAGE_CONFIG_FILE=/etc/garage/garage.toml
     ports:
-      - "${GARAGE_S3_PORT:-3900}:3900"    # S3 API
-      - "${GARAGE_RPC_PORT:-3901}:3901"   # Inter-node RPC
-      - "${GARAGE_WEB_PORT:-3902}:3902"   # S3 static website hosting
-      - "${GARAGE_ADMIN_PORT:-3903}:3903" # Admin API / metrics
+      - "127.0.0.1:${GARAGE_S3_PORT:-3900}:3900"    # S3 API
+      - "127.0.0.1:${GARAGE_RPC_PORT:-3901}:3901"   # Inter-node RPC
+      - "127.0.0.1:${GARAGE_WEB_PORT:-3902}:3902"   # S3 static website hosting
+      - "127.0.0.1:${GARAGE_ADMIN_PORT:-3903}:3903" # Admin API / metrics
     volumes:
       - ./config:/etc/garage:ro
       - garage_meta:/var/lib/garage/meta

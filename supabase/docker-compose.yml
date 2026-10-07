@@ -13,7 +13,7 @@ services:
   supabase-studio:
     container_name: supabase-studio
     image: supabase/studio:2026.08.03-sha-022b374
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -62,7 +62,7 @@ services:
   supabase-kong:
     container_name: supabase-kong
     image: kong/kong:3.9.3
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -117,8 +117,8 @@ services:
         condition: service_started
     ports:
       # 8002 avoids ChromaDB (8000); 8445 avoids Appsmith HTTPS (8444)
-      - "${SUPABASE_KONG_HTTP_PORT:-8002}:8000/tcp"
-      - "${SUPABASE_KONG_HTTPS_PORT:-8445}:8443/tcp"
+      - "127.0.0.1:${SUPABASE_KONG_HTTP_PORT:-8002}:8000/tcp"
+      - "127.0.0.1:${SUPABASE_KONG_HTTPS_PORT:-8445}:8443/tcp"
     volumes:
       - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
       - ./volumes/api/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro,z
@@ -151,7 +151,7 @@ services:
   supabase-auth:
     container_name: supabase-auth
     image: supabase/gotrue:v2.189.0
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -206,7 +206,7 @@ services:
   supabase-storage:
     container_name: supabase-storage
     image: supabase/storage-api:v1.60.4
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -251,7 +251,7 @@ services:
   realtime:
     container_name: realtime-dev.supabase-realtime
     image: supabase/realtime:v2.102.3
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -295,7 +295,7 @@ services:
   supabase-meta:
     container_name: supabase-meta
     image: supabase/postgres-meta:v0.96.6
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -323,7 +323,7 @@ services:
   supabase-db:
     container_name: supabase-db
     image: supabase/postgres:17.6.1.136
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -334,7 +334,7 @@ services:
           memory: "${SUPABASE_DB_MEMORY_RESERVED:-256M}"
     ports:
       # Host 5434 avoids pgvector (5432) and postgres16 (5433)
-      - "${SUPABASE_DB_PORT:-5434}:5432"
+      - "127.0.0.1:${SUPABASE_DB_PORT:-5434}:5432"
     volumes:
       - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z

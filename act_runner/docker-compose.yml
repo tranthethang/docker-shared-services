@@ -2,7 +2,7 @@ services:
   act_runner:
     image: gitea/act_runner:0.2.13
     container_name: act_runner
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -23,7 +23,8 @@ services:
       - dev_tools
 
     healthcheck:
-      test: ["CMD", "ls", "/data"]
+      # Verify the runner daemon process is alive (ls /data only proved the volume mount).
+      test: ["CMD-SHELL", "pgrep -x act_runner >/dev/null || pgrep -f act_runner >/dev/null"]
       interval: 30s
       timeout: 10s
       retries: 3

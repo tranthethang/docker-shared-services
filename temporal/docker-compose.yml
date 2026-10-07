@@ -2,7 +2,7 @@ services:
   temporal:
     container_name: temporal
     image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.25.0}
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -31,7 +31,15 @@ services:
       - infra_shared
       - dev_tools
     ports:
-      - "${TEMPORAL_GRPC_PORT:-7233}:7233"
+      - "127.0.0.1:${TEMPORAL_GRPC_PORT:-7233}:7233"
+    stop_grace_period: 30s
+    healthcheck:
+      # auto-setup image exposes gRPC on 7233; TCP open ≈ frontend up.
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/7233'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
 
   temporal-ui:
     labels:
@@ -42,7 +50,7 @@ services:
       - "traefik.http.services.temporal.loadbalancer.server.port=8080"
     container_name: temporal-ui
     image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.30.0}
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -58,9 +66,16 @@ services:
       - infra_shared
       - dev_tools
     ports:
-      - "${TEMPORAL_UI_PORT:-8083}:8080"
+      - "127.0.0.1:${TEMPORAL_UI_PORT:-8083}:8080"
     depends_on:
-      - temporal
+      temporal:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
 networks:
   infra_shared:

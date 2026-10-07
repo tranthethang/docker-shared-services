@@ -7,8 +7,9 @@ services:
       - "traefik.http.routers.crawl4ai.tls=true"
       - "traefik.http.services.crawl4ai.loadbalancer.server.port=11235"
     container_name: crawl4ai
-    image: "unclecode/crawl4ai:latest"
-    restart: "${RESTART_POLICY:-always}"
+    # Pin patch version for reproducibility (was :latest).
+    image: "unclecode/crawl4ai:0.7.8"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -26,7 +27,7 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     ports:
-      - "${CRAWL4AI_PORT:-11235}:11235"
+      - "127.0.0.1:${CRAWL4AI_PORT:-11235}:11235"
     shm_size: "1gb"
     volumes:
       - crawl4ai_data:/var/lib/crawl4ai

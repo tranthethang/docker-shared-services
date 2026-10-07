@@ -2,9 +2,9 @@ services:
   chromadb-admin:
     container_name: chromadb-admin
     image: fengzhichao/chromadb-admin:0.0.2
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     ports:
-      - "${CHROMADB_ADMIN_PORT:-8001}:3001"
+      - "127.0.0.1:${CHROMADB_ADMIN_PORT:-8001}:3001"
     environment:
       - CHROMA_URL=${CHROMADB_ADMIN_URL:-http://chromadb:8000}
     deploy:
@@ -15,6 +15,12 @@ services:
     networks:
       - infra_shared
       - dev_tools
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3001/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
 networks:
   infra_shared:
