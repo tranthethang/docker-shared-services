@@ -85,7 +85,7 @@ Services communicate using container names on the network where both endpoints a
 
 ```bash
 # Postgres 16 - the default shared DB backend (gitea, jenkins, concourse,
-# sonarqube, zitadel, inngest, temporal, bugsink all connect here by default)
+# sonarqube, zitadel, inngest, temporal, bugsink, hasura all connect here by default)
 postgres://postgres:Password102!@postgres:5432/mydb
 
 # PgVector - Postgres 17 + vector extension; shared backend for Hindsight

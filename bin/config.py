@@ -13,6 +13,7 @@ SERVICES = [
     "garage",
     "gitea",
     "gotenberg",
+    "hasura",
     "hindsight",
     "inngest",
     "jenkins",
@@ -69,10 +70,12 @@ START_ORDER = [
     "otel",
     "supabase",
     "hindsight",
+    "hasura",
 ]
 
 VALIDATION_RULES = {
     "garage": ["GARAGE_RPC_SECRET", "GARAGE_ADMIN_TOKEN"],
+    "hasura": ["HASURA_GRAPHQL_ADMIN_SECRET"],
     "hindsight": ["HINDSIGHT_API_LLM_API_KEY"],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
     "minio": ["MINIO_ROOT_PASSWORD"],
@@ -135,6 +138,7 @@ SHARED_PASSWORD_KEYS: dict[str, list[str]] = {
     "centrifugo": ["CENTRIFUGO_API_KEY"],
     "concourse": ["POSTGRES_PASSWORD"],
     "gitea": ["POSTGRES_PASSWORD"],
+    "hasura": ["POSTGRES_PASSWORD", "HASURA_GRAPHQL_ADMIN_SECRET"],
     "hindsight": ["POSTGRES_PASSWORD"],
     "inngest": ["POSTGRES_PASSWORD", "REDIS_PASSWORD"],
     "jenkins": ["POSTGRES_PASSWORD"],
@@ -173,6 +177,7 @@ SERVICE_INFO_VARS = {
     "garage": ["GARAGE_S3_PORT", "GARAGE_ADMIN_PORT"],
     "gitea": ["GITEA_HTTP_PORT", "GITEA_SSH_PORT"],
     "gotenberg": ["GOTENBERG_API_PORT"],
+    "hasura": ["HASURA_PORT", "HASURA_HOSTNAME"],
     "hindsight": [
         "HINDSIGHT_HOSTNAME",
         "HINDSIGHT_UI_HOSTNAME",

@@ -223,6 +223,7 @@ info: ## Show service information and access URLs
 	@echo "  • Gitea - http://localhost:3000"
 	@echo "  • Gotenberg - http://localhost:3030 (container: gotenberg:3000)"
 	@echo "  • Grafana - http://localhost:3001 (Host: grafana.dss.localhost) [otel stack]"
+	@echo "  • Hasura - http://localhost:8085 (Host: hasura.dss.localhost)"
 	@echo "  • Inngest - http://localhost:8288 (Host: inngest.dss.localhost)"
 	@echo "  • Jenkins - http://localhost:8090"
 	@echo "  • Kafka - localhost:9092"

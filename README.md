@@ -66,7 +66,7 @@ make restart service=postgres
 | ----------- | ------------------------------------------------------------------------------------- |
 | Data        | Postgres 16, PgVector 17, MySQL, MariaDB, MongoDB, Redis, Memcached, ChromaDB, Qdrant |
 | Messaging   | RabbitMQ, Kafka, Centrifugo                                                           |
-| Auth / apps | Zitadel, Supabase, Gitea, n8n, Appsmith, Hindsight                                    |
+| Auth / apps | Zitadel, Supabase, Gitea, n8n, Appsmith, Hindsight, Hasura                            |
 | CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                  |
 | Storage     | MinIO, Garage                                                                         |
 | Edge / obs  | Traefik, OTel (Collector + Loki + Promtail + Grafana)                                 |

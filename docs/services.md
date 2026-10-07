@@ -8,7 +8,7 @@ ______________________________________________________________________
 
 ### Databases
 
-- **Postgres** (PostgreSQL 16) - Default relational database; shared backend for Gitea, Jenkins, Concourse, SonarQube, Zitadel, Inngest, Temporal, Bugsink
+- **Postgres** (PostgreSQL 16) - Default relational database; shared backend for Gitea, Jenkins, Concourse, SonarQube, Zitadel, Inngest, Temporal, Bugsink, Hasura
 - **PgVector** (PostgreSQL 17) - Standalone relational database with vector support; shared backend for Hindsight
 - **MySQL 8** - Relational database with UTF-8 support
 - **MongoDB** - NoSQL document database
@@ -38,6 +38,10 @@ ______________________________________________________________________
 - **Inngest** - Event-driven background jobs and workflow engine
 - **Node-RED** - Flow-based programming tool for event-driven applications
 - **Temporal** - Developer-first open-source orchestrator
+
+### GraphQL APIs
+
+- **Hasura** - Instant GraphQL API on shared Postgres 16 (`hasura` database)
 
 ### Agent Memory
 
@@ -76,6 +80,7 @@ ______________________________________________________________________
 | Crawl4AI       | `http://localhost:11235` (Host: `crawl4ai.dss.localhost`)            | -                                                              |
 | Hindsight API  | `https://hindsight.dss.localhost` (Traefik only; MCP `/mcp/<bank>/`) | Set `HINDSIGHT_API_LLM_API_KEY` in `hindsight/.env`            |
 | Hindsight UI   | `https://hindsight-ui.dss.localhost` (Traefik only)                  | -                                                              |
+| Hasura         | `http://localhost:8085` (Host: `hasura.dss.localhost`)               | Admin secret: `Password102!`                                   |
 | Inngest        | `http://localhost:8288` (Host: `inngest.dss.localhost`)              | -                                                              |
 | Node-RED       | `http://localhost:1880` (Host: `node-red.dss.localhost`)             | -                                                              |
 | SonarQube      | `http://localhost:9000`                                              | `admin` / `admin`                                              |

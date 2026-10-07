@@ -40,7 +40,7 @@ ______________________________________________________________________
 - **DevOps & CI/CD**: Gitea, Jenkins, Concourse, SonarQube, Act Runner
 - **Management UIs**: Adminer, Dockge, Portainer, Redis Insight, Dozzle
 - **Auth / SSO**: Zitadel (Central IdP at `https://zitadel.dss.localhost`; protected apps use `*.dss.localhost`)
-- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit, PocketBase, Hindsight (MCP memory at `https://hindsight.dss.localhost`)
+- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit, PocketBase, Hasura (GraphQL at `https://hasura.dss.localhost`), Hindsight (MCP memory at `https://hindsight.dss.localhost`)
 
 **Configuration Structure**:
 
