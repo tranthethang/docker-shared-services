@@ -31,28 +31,28 @@ Access via Traefik: `https://<service>.dss.localhost` (needs `make cert` / mkcer
 
 `make setup` writes **one** password into all service password fields (Postgres, Redis, MinIO, Grafana, …). Unique secrets (Garage, Woodpecker agent, Zitadel masterkey) stay separate.
 
-| Goal | Command |
-| ---- | ------- |
-| Random shared password | `make setup` |
-| Use `Password102!` | `make setup password='Password102!'` |
-| Same via env | `DSS_SHARED_PASSWORD='Password102!' make setup` |
-| Rotate later | `make passwords password='NewPass' force=1` |
+| Goal                   | Command                                         |
+| ---------------------- | ----------------------------------------------- |
+| Random shared password | `make setup`                                    |
+| Use `Password102!`     | `make setup password='Password102!'`            |
+| Same via env           | `DSS_SHARED_PASSWORD='Password102!' make setup` |
+| Rotate later           | `make passwords password='NewPass' force=1`     |
 
 Value is stored as `DSS_SHARED_PASSWORD` in the root `.env`.
 
 ## Common commands
 
-| Command | What it does |
-| ------- | ------------ |
-| `make setup` | Networks, `.env`, shared password, Dozzle user, optional certs |
-| `make passwords` | Apply / rotate the shared password |
-| `make up` / `down` / `stop` / `restart` | Lifecycle (`service=<folder>` optional) |
-| `make manage` | Interactive multi-select start/stop |
-| `make logs` / `ps` / `health` / `info` | Observe |
-| `make cert` | TLS for `*.dss.localhost` (requires mkcert) |
-| `make validate` | Validate all compose files |
-| `make remove-config` | Delete generated `.env` files (confirm) |
-| `make remove-all` | **Wipe containers + volumes** (confirm) |
+| Command                                 | What it does                                                   |
+| --------------------------------------- | -------------------------------------------------------------- |
+| `make setup`                            | Networks, `.env`, shared password, Dozzle user, optional certs |
+| `make passwords`                        | Apply / rotate the shared password                             |
+| `make up` / `down` / `stop` / `restart` | Lifecycle (`service=<folder>` optional)                        |
+| `make manage`                           | Interactive multi-select start/stop                            |
+| `make logs` / `ps` / `health` / `info`  | Observe                                                        |
+| `make cert`                             | TLS for `*.dss.localhost` (requires mkcert)                    |
+| `make validate`                         | Validate all compose files                                     |
+| `make remove-config`                    | Delete generated `.env` files (confirm)                        |
+| `make remove-all`                       | **Wipe containers + volumes** (confirm)                        |
 
 ```bash
 make up service=redis
@@ -62,14 +62,14 @@ make restart service=postgres
 
 ## What’s included
 
-| Area | Examples |
-| ---- | -------- |
-| Data | Postgres 16, PgVector 17, MySQL, MariaDB, MongoDB, Redis, Memcached, ChromaDB, Qdrant |
-| Messaging | RabbitMQ, Kafka, Centrifugo |
-| Auth / apps | Zitadel, Supabase, Gitea, n8n, Appsmith, Hindsight |
-| CI / ops | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle |
-| Storage | MinIO, Garage |
-| Edge / obs | Traefik, OTel (Collector + Loki + Promtail + Grafana) |
+| Area        | Examples                                                                              |
+| ----------- | ------------------------------------------------------------------------------------- |
+| Data        | Postgres 16, PgVector 17, MySQL, MariaDB, MongoDB, Redis, Memcached, ChromaDB, Qdrant |
+| Messaging   | RabbitMQ, Kafka, Centrifugo                                                           |
+| Auth / apps | Zitadel, Supabase, Gitea, n8n, Appsmith, Hindsight                                    |
+| CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                  |
+| Storage     | MinIO, Garage                                                                         |
+| Edge / obs  | Traefik, OTel (Collector + Loki + Promtail + Grafana)                                 |
 
 Full catalog: [docs/services.md](docs/services.md).
 
