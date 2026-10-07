@@ -11,8 +11,10 @@ services:
           cpus: "${TRAEFIK_CPUS_RESERVED:-0.5}"
           memory: "${TRAEFIK_MEMORY_RESERVED:-256M}"
     command:
+      # Dashboard/API stay available for local DX but are only published on loopback (see ports).
       - "--api.insecure=true"
       - "--api.dashboard=true"
+      - "--ping=true"
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
       - "--providers.file=true"
@@ -22,14 +24,26 @@ services:
       - "--providers.docker.network=infra_shared"
       - "--log.level=${LOG_LEVEL:-INFO}"
     ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+      # Loopback-only: *.dss.localhost and local tools still work; LAN exposure is blocked (SEC-02/SEC-05).
+      - "127.0.0.1:80:80"
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config.yml:/traefik/config.yml:ro
       - ./certs:/certs:ro
-    restart: "${RESTART_POLICY:-always}"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: "${RESTART_POLICY:-unless-stopped}"
     networks:
       infra_shared:
         aliases:

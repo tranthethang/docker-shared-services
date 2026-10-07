@@ -8,7 +8,7 @@ services:
       - "traefik.http.services.pocketbase.loadbalancer.server.port=8090"
     container_name: pocketbase
     image: "ghcr.io/muchobien/pocketbase:0.39.4"
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -18,7 +18,7 @@ services:
           cpus: "${POCKETBASE_CPUS_RESERVED:-0.05}"
           memory: "${POCKETBASE_MEMORY_RESERVED:-64M}"
     ports:
-      - "${POCKETBASE_PORT:-8140}:8090"
+      - "127.0.0.1:${POCKETBASE_PORT:-8140}:8090"
     networks:
       - infra_shared
       - dev_tools

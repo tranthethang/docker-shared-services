@@ -8,7 +8,7 @@ services:
       - "traefik.http.services.chromadb.loadbalancer.server.port=8000"
     container_name: chromadb
     image: chromadb/chroma:0.5.23
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -17,13 +17,20 @@ services:
     volumes:
       - chromadb_data:/chroma/data
     ports:
-      - "${CHROMADB_PORT:-8000}:8000"
+      - "127.0.0.1:${CHROMADB_PORT:-8000}:8000"
     environment:
       - IS_PERSISTENT=TRUE
       - PERSIST_DIRECTORY=/chroma/data
     networks:
       - infra_shared
       - dev_tools
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/heartbeat',\
+            \ timeout=5)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
 volumes:
   chromadb_data:

@@ -11,7 +11,7 @@ services:
           cpus: "${KAFKA_CPUS_RESERVED:-0.5}"
           memory: "${KAFKA_MEMORY_RESERVED:-512M}"
     ports:
-      - "9092:9092"
+      - "127.0.0.1:9092:9092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: "broker,controller"
@@ -35,12 +35,19 @@ services:
     networks:
       - infra_shared
       - dev_tools
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    stop_grace_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
   kafka-ui:
     image: provectuslabs/kafka-ui:v0.7.2
     container_name: kafka-ui
@@ -53,13 +60,14 @@ services:
           cpus: "${KAFKA_UI_CPUS_RESERVED:-0.25}"
           memory: "${KAFKA_UI_MEMORY_RESERVED:-256M}"
     ports:
-      - "8082:8080"
+      - "127.0.0.1:8082:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: "local-kraft"
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:29092"
       JVM_OPTS: "-Xmx256M -Xms256M"
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     networks:
       - infra_shared
       - dev_tools
@@ -69,7 +77,13 @@ services:
       - "traefik.http.routers.kafka-ui.entrypoints=web,websecure"
       - "traefik.http.routers.kafka-ui.tls=true"
       - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   kafka_data:

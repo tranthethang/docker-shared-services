@@ -15,10 +15,32 @@ cp pgvector/.env.example pgvector/.env
 # Edit pgvector/.env with your values
 ```
 
-### Change Passwords
+### Shared password (recommended)
+
+`make setup` applies **one** shared password to every service password field that
+still has the repo placeholder (`Password102!` or empty). Unique secrets (Garage,
+Woodpecker agent, Zitadel masterkey) are generated separately.
 
 ```bash
-# Edit service .env file
+# Generate a random shared password and write it into all service .env files
+make setup
+
+# Keep using the classic local default
+make setup password='Password102!'
+# equivalent:
+DSS_SHARED_PASSWORD='Password102!' make setup
+
+# Rotate later (overwrites even non-placeholder values)
+make passwords password='MyNewSharedPass' force=1
+```
+
+The chosen value is stored as `DSS_SHARED_PASSWORD` in the root `.env` and copied
+into each service’s password variables (Postgres, Redis, MinIO, Grafana, …).
+
+### Change a single service password
+
+```bash
+# Edit that service's .env only (won't be overwritten unless you pass force=1)
 POSTGRES_PASSWORD=your_strong_password
 MYSQL_ROOT_PASSWORD=your_strong_password
 MONGO_ROOT_PASSWORD=your_strong_password
@@ -66,15 +88,16 @@ Services communicate using container names on the network where both endpoints a
 # sonarqube, zitadel, inngest, temporal, bugsink all connect here by default)
 postgres://postgres:Password102!@postgres:5432/mydb
 
-# PgVector - standalone Postgres 17 + vector extension; nothing else in this
-# repo connects to it, use it directly for your own workloads
-postgres://postgres:Password102!@pgvector:5432/mydb   # port 5432 *inside* the network, host-mapped to 5433
+# PgVector - Postgres 17 + vector extension; shared backend for Hindsight
+# (and available for your own workloads). Port 5432 inside the network,
+# host-mapped to 5433.
+postgres://postgres:Password102!@pgvector:5432/mydb
 
 # Redis
 redis://:Password102!@redis:6379
 
-# RabbitMQ
-amqp://guest:guest@rabbitmq:5672
+# RabbitMQ (default user is admin; password = shared password)
+amqp://admin:<DSS_SHARED_PASSWORD>@rabbitmq:5672
 
 # Service-to-service (default shared Postgres backend)
 POSTGRES_HOST=postgres
@@ -99,6 +122,8 @@ ______________________________________________________________________
 Traefik requires SSL/TLS certificates for HTTPS support. The easiest way is using `mkcert`.
 
 Public Traefik hostnames use the `*.dss.localhost` pattern (for example `https://mailpit.dss.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `dss.localhost`.
+
+Nested app hosts (one extra label) need an extra wildcard SAN — `make cert` also issues `*.tts.dss.localhost` (for `api.tts.dss.localhost`, `proxy.tts.dss.localhost`), plus `*.minio.dss.localhost` and `*.garage.dss.localhost`. Re-run `make cert` and restart Traefik after changing SANs.
 
 ### Option 1: Using Makefile (Recommended)
 

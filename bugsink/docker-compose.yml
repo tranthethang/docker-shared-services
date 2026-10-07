@@ -9,7 +9,7 @@ services:
       - "traefik.http.services.bugsink.loadbalancer.server.port=8000"
     container_name: bugsink
     image: bugsink/bugsink:2
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -19,7 +19,7 @@ services:
           cpus: "${BUGSINK_CPUS_RESERVED:-0.1}"
           memory: "${BUGSINK_MEMORY_RESERVED:-128M}"
     ports:
-      - "${BUGSINK_PORT:-8150}:8000"
+      - "127.0.0.1:${BUGSINK_PORT:-8150}:8000"
     environment:
       SECRET_KEY: "${BUGSINK_SECRET_KEY:-change-me-generate-with-openssl-rand-base64-50}"
       CREATE_SUPERUSER: "${BUGSINK_CREATE_SUPERUSER:-admin@example.org:admin}"

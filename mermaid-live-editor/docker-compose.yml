@@ -11,7 +11,7 @@ services:
     # GHCR only publishes latest (master/stable) and nightly (develop).
     # Pinned digest = app package 2.0.67 (master @ 2026-07-14).
     image: ghcr.io/mermaid-js/mermaid-live-editor:latest@sha256:836616adc144fdc0f711a8fb149cc572eed63fe4de347c2ab6448831c8992c28
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -22,7 +22,7 @@ services:
           memory: "${MERMAID_LIVE_EDITOR_MEMORY_RESERVED:-128M}"
     ports:
       # Host 8160 avoids conflicts (8080 Traefik, 8081 Adminer, 8082 Kafka UI, 8083 Temporal).
-      - "${MERMAID_LIVE_EDITOR_PORT:-8160}:8080"
+      - "127.0.0.1:${MERMAID_LIVE_EDITOR_PORT:-8160}:8080"
     networks:
       - infra_shared
       - dev_tools

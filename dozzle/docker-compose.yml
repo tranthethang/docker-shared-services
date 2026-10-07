@@ -8,7 +8,7 @@ services:
       - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
     container_name: dozzle
     image: amir20/dozzle:v10.6
-    restart: "${RESTART_POLICY:-always}"
+    restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
@@ -21,10 +21,16 @@ services:
       DOZZLE_AUTH_PROVIDER: "${DOZZLE_AUTH_PROVIDER:-simple}"
       DOZZLE_AUTH_TTL: "${DOZZLE_AUTH_TTL:-48h}"
     ports:
-      - "${DOZZLE_PORT:-8888}:8080"
+      - "127.0.0.1:${DOZZLE_PORT:-8888}:8080"
     networks:
       - infra_shared
       - dev_tools
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 networks:
   infra_shared:

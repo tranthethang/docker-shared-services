@@ -9,7 +9,7 @@ ______________________________________________________________________
 ### Databases
 
 - **Postgres** (PostgreSQL 16) - Default relational database; shared backend for Gitea, Jenkins, Concourse, SonarQube, Zitadel, Inngest, Temporal, Bugsink
-- **PgVector** (PostgreSQL 17) - Standalone relational database with vector support (not used by any other service here)
+- **PgVector** (PostgreSQL 17) - Standalone relational database with vector support; shared backend for Hindsight
 - **MySQL 8** - Relational database with UTF-8 support
 - **MongoDB** - NoSQL document database
 - **Adminer** - Universal database administration interface
@@ -39,6 +39,10 @@ ______________________________________________________________________
 - **Node-RED** - Flow-based programming tool for event-driven applications
 - **Temporal** - Developer-first open-source orchestrator
 
+### Agent Memory
+
+- **Hindsight** - MCP agent memory (API + control-plane UI); Traefik-only at `hindsight.dss.localhost` / `hindsight-ui.dss.localhost`; uses shared PgVector
+
 ### Web Crawling & Scraping
 
 - **Crawl4AI** - LLM-friendly web crawler and scraping service
@@ -58,33 +62,35 @@ ______________________________________________________________________
 
 ## 🌐 Service Access
 
-| Service        | Access Point                                              | Default Credentials                                            |
-| :------------- | :-------------------------------------------------------- | :------------------------------------------------------------- |
-| Postgres 16    | `localhost:5432`                                          | `postgres` / `Password102!`                                    |
-| PgVector       | `localhost:5433` (standalone, no other service uses it)   | `postgres` / `Password102!`                                    |
-| MySQL 8        | `localhost:3306`                                          | `uid` / `Password102!`                                         |
-| MongoDB        | `localhost:27017`                                         | `root` / `Password102!`                                        |
-| Redis          | `localhost:6379`                                          | - / `Password102!`                                             |
-| RabbitMQ       | `localhost:5672`                                          | `guest` / `guest`                                              |
-| RabbitMQ UI    | `http://localhost:15672`                                  | `guest` / `guest`                                              |
-| Adminer        | `http://localhost:8081`                                   | -                                                              |
-| Gitea          | `http://localhost:3000`                                   | -                                                              |
-| Crawl4AI       | `http://localhost:11235` (Host: `crawl4ai.dss.localhost`) | -                                                              |
-| Inngest        | `http://localhost:8288` (Host: `inngest.dss.localhost`)   | -                                                              |
-| Node-RED       | `http://localhost:1880` (Host: `node-red.dss.localhost`)  | -                                                              |
-| SonarQube      | `http://localhost:9000`                                   | `admin` / `admin`                                              |
-| Jenkins        | `http://localhost:8090`                                   | -                                                              |
-| MinIO          | `http://localhost:9002`                                   | `admin` / `Password102!`                                       |
-| MinIO Console  | `http://localhost:9003`                                   | `admin` / `Password102!`                                       |
-| Mailpit        | `http://localhost:8025`                                   | -                                                              |
-| Concourse      | `http://localhost:8070`                                   | `admin` / `Password102!`                                       |
-| Redis Insight  | `http://localhost:5540`                                   | -                                                              |
-| Grafana        | `http://localhost:3001` (Host: `grafana.dss.localhost`)   | `admin` / `Password102!`                                       |
-| Loki           | `http://localhost:3100`                                   | -                                                              |
-| OTel Collector | `localhost:4317` (gRPC), `localhost:4318` (HTTP)          | Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`   |
-| Temporal UI    | `http://localhost:8083` (Host: `temporal.dss.localhost`)  | -                                                              |
-| Traefik        | `http://localhost:8080`                                   | -                                                              |
-| Zitadel        | `https://zitadel.dss.localhost` (Host port: `8180`)       | `zitadel-admin@zitadel.zitadel.dss.localhost` / `Password102!` |
+| Service        | Access Point                                                         | Default Credentials                                            |
+| :------------- | :------------------------------------------------------------------- | :------------------------------------------------------------- |
+| Postgres 16    | `localhost:5432`                                                     | `postgres` / `Password102!`                                    |
+| PgVector       | `localhost:5433` (shared backend for Hindsight)                      | `postgres` / `Password102!`                                    |
+| MySQL 8        | `localhost:3306`                                                     | `uid` / `Password102!`                                         |
+| MongoDB        | `localhost:27017`                                                    | `root` / `Password102!`                                        |
+| Redis          | `localhost:6379`                                                     | - / `Password102!`                                             |
+| RabbitMQ       | `localhost:5672`                                                     | `guest` / `guest`                                              |
+| RabbitMQ UI    | `http://localhost:15672`                                             | `guest` / `guest`                                              |
+| Adminer        | `http://localhost:8081`                                              | -                                                              |
+| Gitea          | `http://localhost:3000`                                              | -                                                              |
+| Crawl4AI       | `http://localhost:11235` (Host: `crawl4ai.dss.localhost`)            | -                                                              |
+| Hindsight API  | `https://hindsight.dss.localhost` (Traefik only; MCP `/mcp/<bank>/`) | Set `HINDSIGHT_API_LLM_API_KEY` in `hindsight/.env`            |
+| Hindsight UI   | `https://hindsight-ui.dss.localhost` (Traefik only)                  | -                                                              |
+| Inngest        | `http://localhost:8288` (Host: `inngest.dss.localhost`)              | -                                                              |
+| Node-RED       | `http://localhost:1880` (Host: `node-red.dss.localhost`)             | -                                                              |
+| SonarQube      | `http://localhost:9000`                                              | `admin` / `admin`                                              |
+| Jenkins        | `http://localhost:8090`                                              | -                                                              |
+| MinIO          | `http://localhost:9002`                                              | `admin` / `Password102!`                                       |
+| MinIO Console  | `http://localhost:9003`                                              | `admin` / `Password102!`                                       |
+| Mailpit        | `http://localhost:8025`                                              | -                                                              |
+| Concourse      | `http://localhost:8070`                                              | `admin` / `Password102!`                                       |
+| Redis Insight  | `http://localhost:5540`                                              | -                                                              |
+| Grafana        | `http://localhost:3001` (Host: `grafana.dss.localhost`)              | `admin` / `Password102!`                                       |
+| Loki           | `http://localhost:3100`                                              | -                                                              |
+| OTel Collector | `localhost:4317` (gRPC), `localhost:4318` (HTTP)                     | Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`   |
+| Temporal UI    | `http://localhost:8083` (Host: `temporal.dss.localhost`)             | -                                                              |
+| Traefik        | `http://localhost:8080`                                              | -                                                              |
+| Zitadel        | `https://zitadel.dss.localhost` (Host port: `8180`)                  | `zitadel-admin@zitadel.zitadel.dss.localhost` / `Password102!` |
 
 ______________________________________________________________________
 

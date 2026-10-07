@@ -3,7 +3,7 @@ services:
     image: otel/opentelemetry-collector-contrib:0.128.0
     container_name: otel-collector
     command: ["--config=/etc/otel-config.yaml"]
-    restart: ${RESTART_POLICY:-always}
+    restart: ${RESTART_POLICY:-unless-stopped}
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:
@@ -14,11 +14,16 @@ services:
           cpus: ${OTEL_COLLECTOR_CPU_LIMIT:-0.25}
           memory: ${OTEL_COLLECTOR_MEM_LIMIT:-512M}
     ports:
-      - "${OTEL_COLLECTOR_PORT_GRPC:-4317}:4317" # OTLP gRPC
-      - "${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
+      - "127.0.0.1:${OTEL_COLLECTOR_PORT_GRPC:-4317}:4317" # OTLP gRPC
+      - "127.0.0.1:${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
     networks:
       - infra_shared
       - dev_tools
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       loki:
         condition: service_healthy
@@ -32,14 +37,14 @@ services:
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     container_name: grafana
     image: grafana/grafana-oss:${GRAFANA_VERSION:-11.4.0}
-    restart: ${RESTART_POLICY:-always}
+    restart: ${RESTART_POLICY:-unless-stopped}
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-Password102!}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
     ports:
-      - "${GRAFANA_PORT:-3001}:3000"
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
     networks:
       - infra_shared
       - dev_tools
@@ -66,10 +71,10 @@ services:
   loki:
     container_name: loki
     image: grafana/loki:${LOKI_VERSION:-3.3.2}
-    restart: ${RESTART_POLICY:-always}
+    restart: ${RESTART_POLICY:-unless-stopped}
     command: -config.file=/etc/loki/local-config.yaml
     ports:
-      - "${LOKI_PORT:-3100}:3100"
+      - "127.0.0.1:${LOKI_PORT:-3100}:3100"
     networks:
       - infra_shared
       - dev_tools
@@ -91,7 +96,7 @@ services:
   promtail:
     container_name: promtail
     image: grafana/promtail:${PROMTAIL_VERSION:-3.3.2}
-    restart: ${RESTART_POLICY:-always}
+    restart: ${RESTART_POLICY:-unless-stopped}
     command: -config.file=/etc/promtail/config.yml
     networks:
       - infra_shared
@@ -105,6 +110,11 @@ services:
         limits:
           cpus: "${PROMTAIL_CPUS_LIMIT:-0.20}"
           memory: ${PROMTAIL_MEMORY_LIMIT:-256M}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       loki:
         condition: service_healthy
