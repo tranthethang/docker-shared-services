@@ -12,8 +12,8 @@ UV ?= uv
 #   make setup password='Password102!'
 #   DSS_SHARED_PASSWORD='Password102!' make setup
 #   make passwords password='Password102!'
-# When omitted, setup generates ONE random password and applies it to all services.
-password ?=
+# When omitted, setup uses the shared development password below.
+password ?= Password102!
 
 # Dynamic DOCKER_COMPOSE command that includes all services
 DOCKER_COMPOSE = docker compose -f docker-compose.shared.yml \
