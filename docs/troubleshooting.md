@@ -79,15 +79,18 @@ docker volume prune               # Remove unused volumes
 
 ### oauth2-proxy / Zitadel UI login
 
-| Problem                                           | Solution                                                                                                                           |
-| :------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------- |
-| Redirect loop or callback error                   | Confirm Zitadel app redirect URI is exactly `https://auth.dss.localhost/oauth2/callback` and `OAUTH2_PROXY_CLIENT_*` match the app |
-| Browser displays a “Found” link instead of opening Zitadel | Ensure shared ForwardAuth points to oauth2-proxy `/`, which returns the login redirect as an actual 302; recreate `oauth2-proxy` after changing its labels |
-| `oauth2-proxy` cannot discover issuer             | Ensure Traefik + Zitadel are up; container uses `extra_hosts: zitadel.dss.localhost:host-gateway` to reach host Traefik            |
-| UI still public after enabling auth               | Set both `AUTH_ENABLED=true` and `AUTH_MIDDLEWARE=auth-default`, then `make restart service=<folder>`                              |
-| API clients fail on chromadb/qdrant Traefik hosts | Auth is opt-in; use `AUTH_MIDDLEWARE=auth-none` for API-first access through the domain and provide native keys such as `QDRANT_API_KEY` |
-| Cookie not shared across UIs                      | Cookie domain must be `.dss.localhost` (default); browse via HTTPS Traefik hosts, not raw localhost ports                          |
-| Do not put gateway in front of Zitadel            | Keep Zitadel routers without `AUTH_MIDDLEWARE`                                                                                     |
+| Problem                                                    | Solution                                                                                                                                                                       |
+| :--------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Redirect loop or callback error                            | Confirm Zitadel app redirect URI is exactly `https://auth.dss.localhost/oauth2/callback` and `OAUTH2_PROXY_CLIENT_*` match the app                                             |
+| Browser displays a “Found” link instead of opening Zitadel | Ensure shared ForwardAuth points to oauth2-proxy `/`, which returns the login redirect as an actual 302; recreate `oauth2-proxy` after changing its labels                     |
+| `oauth2-proxy` cannot discover issuer                      | Ensure Traefik + Zitadel are up; container uses `extra_hosts: zitadel.dss.localhost:host-gateway` to reach host Traefik                                                        |
+| UI still public after enabling auth                        | Set both `AUTH_ENABLED=true` and `AUTH_MIDDLEWARE=auth-default`, then `make restart service=<folder>`                                                                          |
+| Mermaid remains open after logout                          | Use `https://auth.dss.localhost/oauth2/sign_out`, close/reload the Mermaid tab, then request the site again; an already-loaded SPA can continue running until its next request |
+| Zitadel logout did not clear UI access                     | Zitadel logout ends the IdP session, but oauth2-proxy also has a local cookie; clear it through `/oauth2/sign_out` or use the documented combined flow                         |
+| Session expires too quickly                                | Keep Zitadel lifetime practical and tune `OAUTH2_PROXY_COOKIE_EXPIRE`; keep refresh at `0` with Traefik v2.11 and do not use a 5-second lifetime for normal use                |
+| API clients fail on chromadb/qdrant Traefik hosts          | Auth is opt-in; use `AUTH_MIDDLEWARE=auth-none` for API-first access through the domain and provide native keys such as `QDRANT_API_KEY`                                       |
+| Cookie not shared across UIs                               | Cookie domain must be `.dss.localhost` (default); browse via HTTPS Traefik hosts, not raw localhost ports                                                                      |
+| Do not put gateway in front of Zitadel                     | Keep Zitadel routers without `AUTH_MIDDLEWARE`                                                                                                                                 |
 
 ### Common Issues
 

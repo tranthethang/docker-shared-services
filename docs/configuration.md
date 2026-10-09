@@ -136,6 +136,21 @@ AUTH_MIDDLEWARE=auth-default
 
 Then `make restart service=<folder>`. Set `AUTH_MIDDLEWARE=auth-none` (and `AUTH_ENABLED=false`) to return to public access.
 
+For logout, use `https://auth.dss.localhost/oauth2/sign_out`; this clears the
+oauth2-proxy session cookie. Reload or reopen the protected UI after logout,
+because an already-loaded browser SPA can continue operating without making a
+new request through Traefik. If the Zitadel SSO session must also end, follow
+the RP-initiated logout flow documented in [oauth2-proxy/README.md](../oauth2-proxy/README.md#logout-behavior).
+
+The default oauth2-proxy session settings are an 8-hour cookie expiry and
+disabled cookie refresh. Override them in `oauth2-proxy/.env` with
+`OAUTH2_PROXY_COOKIE_EXPIRE` and `OAUTH2_PROXY_COOKIE_REFRESH`. These settings
+control session duration and refresh, not explicit logout. Keep refresh at `0`
+with the current Traefik v2.11 ForwardAuth path; enabling it also requires the
+Zitadel `offline_access` scope and a proxy path that returns refreshed cookies
+to the browser. A five-second Zitadel lifetime is suitable only for a narrow
+diagnostic experiment and is not recommended for normal development use.
+
 ### Initial candidates (default: off)
 
 | Folder / UI           | Traefik host             | Notes                                      |
