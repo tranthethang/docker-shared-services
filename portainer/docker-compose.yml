@@ -17,9 +17,6 @@ services:
         reservations:
           cpus: "${PORTAINER_CPUS_RESERVED:-0.25}"
           memory: "${PORTAINER_MEMORY_RESERVED:-256M}"
-    ports:
-      - "127.0.0.1:${PORTAINER_HTTP_PORT:-9007}:9000"
-      - "127.0.0.1:${PORTAINER_HTTPS_PORT:-9443}:9443"
     volumes:
       # RW required for Portainer management API (SEC-01 intentionally not :ro).
       - /var/run/docker.sock:/var/run/docker.sock

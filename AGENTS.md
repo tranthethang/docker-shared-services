@@ -39,8 +39,8 @@ ______________________________________________________________________
 - **Caching & Messaging**: Redis, RabbitMQ, Memcached
 - **DevOps & CI/CD**: Gitea, Jenkins, Concourse, SonarQube, Act Runner
 - **Management UIs**: Adminer, Dockge, Portainer, Redis Insight, Dozzle
-- **Auth / SSO**: Zitadel (Central IdP at `https://zitadel.dss.localhost`; protected apps use `*.dss.localhost`)
-- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit, PocketBase, Hindsight (MCP memory at `https://hindsight.dss.localhost`)
+- **Auth / SSO**: Zitadel (Central IdP at `https://zitadel.dss.localhost`); optional `oauth2-proxy` gateway at `https://auth.dss.localhost` for opt-in Traefik UI protection (`AUTH_ENABLED` / `AUTH_MIDDLEWARE`; off by default)
+- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit, PocketBase, Hasura (GraphQL at `https://hasura.dss.localhost`), Hindsight (MCP memory at `https://hindsight.dss.localhost`)
 
 **Configuration Structure**:
 
@@ -65,7 +65,7 @@ make cert           # Generate SSL certificates using mkcert
 ```
 
 **Service Access**:
-Services are accessible via `localhost` on specific ports or through Traefik routing (e.g., `http://appsmith.dss.localhost`). Default credentials (e.g., `admin/Password102!`) are provided in `README.md` for development.
+Web UIs are accessed through Traefik hostnames under `https://*.dss.localhost`; do not publish UI ports to the host. Database and protocol ports may remain bound to loopback when direct client access is required. Default credentials (e.g., `admin/Password102!`) are provided in `README.md` for development.
 
 ## Docker Configuration
 

@@ -11,15 +11,29 @@ ______________________________________________________________________
 ```bash
 make help           # Show all commands
 make setup          # Setup environment files, networks, and certs
+                    # (also merges new keys from .env.example into existing .env)
 make cert           # Generate SSL certificates
 make up             # Start services (interactive or specific)
 make down           # Stop and remove services
 make stop           # Stop services (keep containers)
 make ps             # Show service status
 make logs           # View logs
+make info           # URLs, ports, opt-in UI auth guidance
 make remove-all     # Remove containers & volumes
 make restart        # Restart services
 ```
+
+### Opt-in UI auth (oauth2-proxy)
+
+```bash
+make up service=oauth2-proxy
+python bin/env_manager.py summary   # AUTH gateway on/off per candidate UI
+python bin/env_manager.py merge-missing all   # add keys from .env.example missing in .env
+# Enable for one UI: edit <service>/.env → AUTH_ENABLED=true, AUTH_MIDDLEWARE=auth-default
+make restart service=mermaid-live-editor
+```
+
+See [configuration.md](configuration.md#opt-in-zitadel-ui-authentication) and [oauth2-proxy/README.md](../oauth2-proxy/README.md).
 
 ### Docker Compose Direct
 

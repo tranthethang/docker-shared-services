@@ -26,8 +26,6 @@ services:
       - LLM_PROVIDER=${LLM_PROVIDER:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-    ports:
-      - "127.0.0.1:${CRAWL4AI_PORT:-11235}:11235"
     shm_size: "1gb"
     volumes:
       - crawl4ai_data:/var/lib/crawl4ai

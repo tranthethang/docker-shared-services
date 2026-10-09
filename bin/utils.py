@@ -20,14 +20,21 @@ def generate_secret(method: str, nbytes: int = 32) -> str:
     raise ValueError(f"Unsupported secret method: {method}")
 
 
-def read_env_value(env_path: str, key: str) -> str | None:
-    """Return the raw value for KEY in a .env file, or None if missing."""
+def iter_env_assignments(env_path: str):
+    """Yield (KEY, raw_value) for each assignment line (comments/blank skipped)."""
     with open(env_path) as f:
         for line in f:
             match = _ENV_ASSIGNMENT.match(line.rstrip("\n"))
-            if match is None or match.group(1) != key:
+            if match is None:
                 continue
-            return match.group(2).strip().strip("'\"")
+            yield match.group(1), match.group(2)
+
+
+def read_env_value(env_path: str, key: str) -> str | None:
+    """Return the raw value for KEY in a .env file, or None if missing."""
+    for name, value in iter_env_assignments(env_path):
+        if name == key:
+            return value.strip().strip("'\"")
     return None
 
 

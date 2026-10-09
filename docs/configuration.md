@@ -85,7 +85,7 @@ Services communicate using container names on the network where both endpoints a
 
 ```bash
 # Postgres 16 - the default shared DB backend (gitea, jenkins, concourse,
-# sonarqube, zitadel, inngest, temporal, bugsink all connect here by default)
+# sonarqube, zitadel, inngest, temporal, bugsink, hasura all connect here by default)
 postgres://postgres:Password102!@postgres:5432/mydb
 
 # PgVector - Postgres 17 + vector extension; shared backend for Hindsight
@@ -114,6 +114,51 @@ docker network inspect dev_tools                # Inspect legacy network
 docker network inspect infra_shared | grep -A 20 "Containers"  # List attached containers
 docker exec [container] ping [other_container]  # Test connectivity
 ```
+
+______________________________________________________________________
+
+## Opt-in Zitadel UI authentication
+
+Browser UIs can sit behind a shared `oauth2-proxy` gateway that authenticates users with Zitadel. Authentication is **opt-in and disabled by default**.
+
+### Rollout
+
+1. `make setup` (creates `oauth2-proxy/.env` and fills `OAUTH2_PROXY_COOKIE_SECRET` when empty).
+1. Start dependencies: `make up service=traefik`, `make up service=postgres`, `make up service=zitadel`.
+1. Register a confidential Web application in Zitadel Console with redirect URI `https://auth.dss.localhost/oauth2/callback`. Put the client id/secret into `oauth2-proxy/.env` (never auto-generated).
+1. `make up service=oauth2-proxy`.
+1. To protect a UI, edit that service’s `.env`:
+
+```env
+AUTH_ENABLED=true
+AUTH_MIDDLEWARE=auth-default
+```
+
+Then `make restart service=<folder>`. Set `AUTH_MIDDLEWARE=auth-none` (and `AUTH_ENABLED=false`) to return to public access.
+
+### Initial candidates (default: off)
+
+| Folder / UI           | Traefik host             | Notes                                      |
+| --------------------- | ------------------------ | ------------------------------------------ |
+| `mermaid-live-editor` | `mermaid.dss.localhost`  | Browser editor; WebSockets go through auth |
+| `temporal` (UI only)  | `temporal.dss.localhost` | gRPC `:7233` is not gated                  |
+| `chromadb`            | `chromadb.dss.localhost` | Enabling breaks non-browser API on Traefik |
+| `qdrant`              | `qdrant.dss.localhost`   | Prefer native `QDRANT_API_KEY` for APIs    |
+| `kafka` (Kafka UI)    | `kafka-ui.dss.localhost` | UI only                                    |
+
+Middleware names: `auth-none` (public default), `auth-default` (any authenticated user), `auth-admin` (extension point for stricter policy later). Do **not** protect Zitadel itself.
+
+### Status and lifecycle
+
+```bash
+make info                              # Lists gateway URL + opt-in guidance
+python bin/env_manager.py summary      # Per-UI AUTH gateway on/off
+make up service=oauth2-proxy
+make logs service=oauth2-proxy
+make restart service=mermaid-live-editor
+```
+
+Full gateway details: [oauth2-proxy/README.md](../oauth2-proxy/README.md).
 
 ______________________________________________________________________
 

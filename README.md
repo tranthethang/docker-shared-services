@@ -26,10 +26,11 @@ make info                      # URLs / ports
 ```
 
 Access via Traefik: `https://<service>.dss.localhost` (needs `make cert` / mkcert once).
+Browser UIs are available only through their domain names; UI ports are not published to the host.
 
 ## Shared password
 
-`make setup` writes **one** password into all service password fields (Postgres, Redis, MinIO, Grafana, …). Unique secrets (Garage, Woodpecker agent, Zitadel masterkey) stay separate.
+`make setup` writes **one** password into all service password fields (Postgres, Redis, MinIO, Grafana, …). Unique secrets (Garage, Woodpecker agent, Zitadel masterkey, oauth2-proxy cookie secret) stay separate.
 
 | Goal                   | Command                                         |
 | ---------------------- | ----------------------------------------------- |
@@ -62,14 +63,14 @@ make restart service=postgres
 
 ## What’s included
 
-| Area        | Examples                                                                              |
-| ----------- | ------------------------------------------------------------------------------------- |
-| Data        | Postgres 16, PgVector 17, MySQL, MariaDB, MongoDB, Redis, Memcached, ChromaDB, Qdrant |
-| Messaging   | RabbitMQ, Kafka, Centrifugo                                                           |
-| Auth / apps | Zitadel, Supabase, Gitea, n8n, Appsmith, Hindsight                                    |
-| CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                  |
-| Storage     | MinIO, Garage                                                                         |
-| Edge / obs  | Traefik, OTel (Collector + Loki + Promtail + Grafana)                                 |
+| Area        | Examples                                                                                        |
+| ----------- | ----------------------------------------------------------------------------------------------- |
+| Data        | Postgres 16, PgVector 17, MySQL, MariaDB, MongoDB, Redis, Memcached, ChromaDB, Qdrant           |
+| Messaging   | RabbitMQ, Kafka, Centrifugo                                                                     |
+| Auth / apps | Zitadel, oauth2-proxy (`auth.dss.localhost`), Supabase, Gitea, n8n, Appsmith, Hindsight, Hasura |
+| CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                            |
+| Storage     | MinIO, Garage                                                                                   |
+| Edge / obs  | Traefik, OTel (Collector + Loki + Promtail + Grafana)                                           |
 
 Full catalog: [docs/services.md](docs/services.md).
 
@@ -82,6 +83,18 @@ bin/                        # env + service managers
 <service>/                  # docker-compose.yml + .env.example
 docs/                       # deeper guides
 ```
+
+## Opt-in UI authentication
+
+Selected Traefik UIs can require Zitadel login via `oauth2-proxy` (`https://auth.dss.localhost`). Auth is **off by default**.
+
+1. Start Traefik + Zitadel + oauth2-proxy (register a Zitadel Web app — see [oauth2-proxy/README.md](oauth2-proxy/README.md)).
+1. In a candidate service `.env` set `AUTH_ENABLED=true` and `AUTH_MIDDLEWARE=auth-default`, then restart that service.
+1. Candidates (remain disabled until you opt in): Mermaid Live Editor, Temporal UI, ChromaDB, Qdrant, Kafka UI.
+
+For Mermaid Live Editor, `AUTH_ENABLED=true` alone is not sufficient; make sure `AUTH_MIDDLEWARE=auth-default` is set instead of the default `auth-none`.
+
+Details: [docs/configuration.md](docs/configuration.md#opt-in-zitadel-ui-authentication).
 
 ## Docs
 

@@ -6,6 +6,7 @@ services:
       - "traefik.http.routers.qdrant.rule=Host(`qdrant.dss.localhost`)"
       - "traefik.http.routers.qdrant.entrypoints=web,websecure"
       - "traefik.http.routers.qdrant.tls=true"
+      - "traefik.http.routers.qdrant.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     container_name: qdrant
     image: qdrant/qdrant:v1.18.3
@@ -18,9 +19,6 @@ services:
         reservations:
           cpus: "${QDRANT_CPUS_RESERVED:-0.1}"
           memory: "${QDRANT_MEMORY_RESERVED:-256M}"
-    ports:
-      - "127.0.0.1:${QDRANT_HTTP_PORT:-6333}:6333" # REST API
-      - "127.0.0.1:${QDRANT_GRPC_PORT:-6334}:6334" # gRPC
     environment:
       - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-Password102!}
       - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-INFO}

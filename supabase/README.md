@@ -25,7 +25,6 @@ sh run.sh start
 | ------------------------ | ------------------------------------------ |
 | Studio (Traefik)         | https://studio.dss.localhost               |
 | API gateway (Traefik)    | https://supabase.dss.localhost             |
-| Studio / API (host port) | http://localhost:8002                      |
 | Auth                     | https://supabase.dss.localhost/auth/v1     |
 | Storage                  | https://supabase.dss.localhost/storage/v1  |
 | Realtime                 | https://supabase.dss.localhost/realtime/v1 |
@@ -53,8 +52,6 @@ SMTP defaults to shared Mailpit (`mailpit:1025` on `infra_shared` / `dev_tools`)
 
 | Variable                   | Default | Avoids clash with                  |
 | -------------------------- | ------- | ---------------------------------- |
-| `SUPABASE_KONG_HTTP_PORT`  | `8002`  | ChromaDB `8000`                    |
-| `SUPABASE_KONG_HTTPS_PORT` | `8445`  | Appsmith `8444`                    |
 | `SUPABASE_DB_PORT`         | `5434`  | PgVector `5432`, Postgres16 `5433` |
 
 ## Makefile integration
@@ -66,7 +63,7 @@ make up service=supabase
 make down service=supabase
 make logs service=supabase
 make ps
-make info    # lists supabase.dss.localhost / :8002 / DB :5434
+make info    # lists the Supabase domains and DB :5434
 ```
 
 Day-to-day helpers live under `supabase/` (`run.sh`, `reset.sh`, `utils/`).

@@ -101,14 +101,9 @@ Compose service name is `realtime`; container name is fixed as `realtime-dev.sup
 
 Default backend is **file** under `./volumes/storage`. Image transforms are off.
 
-## Kong host ports
+## Kong access
 
-| Variable                   | Default | Avoids          |
-| -------------------------- | ------- | --------------- |
-| `SUPABASE_KONG_HTTP_PORT`  | `8002`  | ChromaDB `8000` |
-| `SUPABASE_KONG_HTTPS_PORT` | `8445`  | Appsmith `8444` |
-
-Traefik terminates TLS on `supabase.dss.localhost`; host ports remain available for direct access.
+Kong is reachable through Traefik at `https://supabase.dss.localhost`; its HTTP and HTTPS ports are not published to the host.
 
 ## Resource limits
 

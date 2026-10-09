@@ -115,10 +115,6 @@ services:
         condition: service_healthy
       supabase-meta:
         condition: service_started
-    ports:
-      # 8002 avoids ChromaDB (8000); 8445 avoids Appsmith HTTPS (8444)
-      - "127.0.0.1:${SUPABASE_KONG_HTTP_PORT:-8002}:8000/tcp"
-      - "127.0.0.1:${SUPABASE_KONG_HTTPS_PORT:-8445}:8443/tcp"
     volumes:
       - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
       - ./volumes/api/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro,z

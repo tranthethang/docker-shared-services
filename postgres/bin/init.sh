@@ -5,7 +5,7 @@ set -e
 # one with a catalog check. This runs on every container start (see the
 # compose "command" wrapper), so without this guard it would throw a
 # "database already exists" error after the very first run.
-DATABASES=(temporal sonarqube jenkins gitea inngest zitadel concourse)
+DATABASES=(temporal sonarqube jenkins gitea inngest zitadel concourse hasura)
 
 for db in "${DATABASES[@]}"; do
     exists=$(psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" -tAc \

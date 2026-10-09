@@ -59,8 +59,6 @@ services:
         reservations:
           cpus: "${KAFKA_UI_CPUS_RESERVED:-0.25}"
           memory: "${KAFKA_UI_MEMORY_RESERVED:-256M}"
-    ports:
-      - "127.0.0.1:8082:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: "local-kraft"
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:29092"
@@ -73,9 +71,11 @@ services:
       - dev_tools
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
       - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.dss.localhost`)"
       - "traefik.http.routers.kafka-ui.entrypoints=web,websecure"
       - "traefik.http.routers.kafka-ui.tls=true"
+      - "traefik.http.routers.kafka-ui.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"
     restart: "${RESTART_POLICY:-unless-stopped}"
     healthcheck:

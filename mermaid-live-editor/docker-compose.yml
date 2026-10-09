@@ -6,6 +6,7 @@ services:
       - "traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.dss.localhost`)"
       - "traefik.http.routers.mermaid-live-editor.entrypoints=web,websecure"
       - "traefik.http.routers.mermaid-live-editor.tls=true"
+      - "traefik.http.routers.mermaid-live-editor.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080"
     container_name: mermaid-live-editor
     # GHCR only publishes latest (master/stable) and nightly (develop).
@@ -20,9 +21,6 @@ services:
         reservations:
           cpus: "${MERMAID_LIVE_EDITOR_CPUS_RESERVED:-0.1}"
           memory: "${MERMAID_LIVE_EDITOR_MEMORY_RESERVED:-128M}"
-    ports:
-      # Host 8160 avoids conflicts (8080 Traefik, 8081 Adminer, 8082 Kafka UI, 8083 Temporal).
-      - "127.0.0.1:${MERMAID_LIVE_EDITOR_PORT:-8160}:8080"
     networks:
       - infra_shared
       - dev_tools

@@ -13,6 +13,7 @@ SERVICES = [
     "garage",
     "gitea",
     "gotenberg",
+    "hasura",
     "hindsight",
     "inngest",
     "jenkins",
@@ -26,6 +27,7 @@ SERVICES = [
     "mysql8",
     "n8n",
     "node-red",
+    "oauth2-proxy",
     "otel",
     "pgvector",
     "pocketbase",
@@ -54,6 +56,7 @@ START_ORDER = [
     "postgres",
     "pgvector",
     "zitadel",
+    "oauth2-proxy",
     "redis",
     "mysql8",
     "mariadb",
@@ -69,15 +72,22 @@ START_ORDER = [
     "otel",
     "supabase",
     "hindsight",
+    "hasura",
 ]
 
 VALIDATION_RULES = {
     "garage": ["GARAGE_RPC_SECRET", "GARAGE_ADMIN_TOKEN"],
+    "hasura": ["HASURA_GRAPHQL_ADMIN_SECRET"],
     "hindsight": ["HINDSIGHT_API_LLM_API_KEY"],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["PASSWORD"],
     "mysql8": ["PASSWORD"],
+    "oauth2-proxy": [
+        "OAUTH2_PROXY_CLIENT_ID",
+        "OAUTH2_PROXY_CLIENT_SECRET",
+        "OAUTH2_PROXY_COOKIE_SECRET",
+    ],
     "pgvector": ["PASSWORD"],
     "postgres": ["POSTGRES16_PASSWORD"],
     "rabbitmq": ["RABBITMQ_PASSWORD"],
@@ -94,10 +104,29 @@ AUTO_GENERATED_SECRETS = {
         "GARAGE_RPC_SECRET": ("hex", 32),
         "GARAGE_ADMIN_TOKEN": ("base64", 32),
     },
+    # Cookie encryption only — Zitadel CLIENT_ID / CLIENT_SECRET stay manual.
+    "oauth2-proxy": {
+        # oauth2-proxy v7 expects the decoded secret value to be exactly
+        # 16, 24, or 32 bytes; use 32 hex characters rather than a 32-byte
+        # base64 encoding (which is 44 characters and is rejected).
+        "OAUTH2_PROXY_COOKIE_SECRET": ("hex", 16),
+    },
     "woodpecker": {
         "WOODPECKER_AGENT_SECRET": ("hex", 32),
     },
 }
+
+# UI services that can attach Traefik middleware auth-default / auth-admin.
+# Public (default): AUTH_MIDDLEWARE=auth-none (or unset → compose default auth-none).
+AUTH_GATEWAY_MIDDLEWARE_OFF = "auth-none"
+AUTH_GATEWAY_MIDDLEWARES_ON = frozenset({"auth-default", "auth-admin"})
+AUTH_OPT_IN_UI_SERVICES = [
+    "chromadb",
+    "kafka",
+    "mermaid-live-editor",
+    "qdrant",
+    "temporal",
+]
 
 # Sentinel values treated as "still the repo default" and safe to overwrite
 # when applying the shared password.
@@ -135,6 +164,7 @@ SHARED_PASSWORD_KEYS: dict[str, list[str]] = {
     "centrifugo": ["CENTRIFUGO_API_KEY"],
     "concourse": ["POSTGRES_PASSWORD"],
     "gitea": ["POSTGRES_PASSWORD"],
+    "hasura": ["POSTGRES_PASSWORD", "HASURA_GRAPHQL_ADMIN_SECRET"],
     "hindsight": ["POSTGRES_PASSWORD"],
     "inngest": ["POSTGRES_PASSWORD", "REDIS_PASSWORD"],
     "jenkins": ["POSTGRES_PASSWORD"],
@@ -163,47 +193,33 @@ SHARED_PASSWORD_TEMPLATES: dict[tuple[str, str], str] = {
 }
 
 SERVICE_INFO_VARS = {
-    "appsmith": ["APPSMITH_PORT"],
-    "bugsink": ["BUGSINK_PORT", "BUGSINK_BASE_URL"],
-    "chromadb": ["CHROMADB_PORT"],
-    "chromadb_admin": ["CHROMADB_ADMIN_PORT"],
+    "bugsink": ["BUGSINK_BASE_URL"],
     "centrifugo": ["CENTRIFUGO_PORT"],
-    "crawl4ai": ["CRAWL4AI_PORT"],
-    "dozzle": ["DOZZLE_PORT"],
     "garage": ["GARAGE_S3_PORT", "GARAGE_ADMIN_PORT"],
-    "gitea": ["GITEA_HTTP_PORT", "GITEA_SSH_PORT"],
+    "gitea": ["GITEA_SSH_PORT"],
     "gotenberg": ["GOTENBERG_API_PORT"],
+    "hasura": ["HASURA_HOSTNAME"],
     "hindsight": [
         "HINDSIGHT_HOSTNAME",
         "HINDSIGHT_UI_HOSTNAME",
         "HINDSIGHT_PUBLIC_URL",
         "HINDSIGHT_UI_PUBLIC_URL",
     ],
-    "inngest": ["INNGEST_PORT"],
-    "mermaid-live-editor": ["MERMAID_LIVE_EDITOR_PORT"],
     "mongodb": ["MONGO_PORT"],
     "mysql8": ["MYSQL_PORT", "MYSQL_DATABASE"],
-    "n8n": ["N8N_PORT"],
-    "node-red": ["NODE_RED_PORT"],
+    "oauth2-proxy": ["OAUTH2_PROXY_HOSTNAME", "OAUTH2_PROXY_OIDC_ISSUER_URL"],
     "otel": [
         "OTEL_COLLECTOR_PORT_GRPC",
         "OTEL_COLLECTOR_PORT_HTTP",
-        "GRAFANA_PORT",
         "LOKI_PORT",
     ],
-    "pocketbase": ["POCKETBASE_PORT"],
     "pgvector": ["POSTGRES_PORT", "POSTGRES_DB"],
     "postgres": ["POSTGRES16_PORT", "POSTGRES16_DB"],
-    "qdrant": ["QDRANT_HTTP_PORT", "QDRANT_GRPC_PORT"],
     "redis": ["REDIS_PORT"],
-    "sonarqube": ["SONARQUBE_PORT"],
     "supabase": [
-        "SUPABASE_KONG_HTTP_PORT",
-        "SUPABASE_DB_PORT",
         "SUPABASE_PUBLIC_URL",
         "SUPABASE_STUDIO_HOSTNAME",
     ],
-    "temporal": ["TEMPORAL_UI_PORT", "TEMPORAL_GRPC_PORT"],
-    "woodpecker": ["WOODPECKER_HTTP_PORT"],
-    "zitadel": ["ZITADEL_PORT", "ZITADEL_HOSTNAME"],
+    "temporal": ["TEMPORAL_GRPC_PORT"],
+    "zitadel": ["ZITADEL_HOSTNAME"],
 }

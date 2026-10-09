@@ -2,9 +2,11 @@ services:
   chromadb:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
       - "traefik.http.routers.chromadb.rule=Host(`chromadb.dss.localhost`)"
       - "traefik.http.routers.chromadb.entrypoints=web,websecure"
       - "traefik.http.routers.chromadb.tls=true"
+      - "traefik.http.routers.chromadb.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.chromadb.loadbalancer.server.port=8000"
     container_name: chromadb
     image: chromadb/chroma:0.5.23
@@ -16,8 +18,6 @@ services:
           memory: "${CHROMADB_MEMORY_LIMIT:-2G}"
     volumes:
       - chromadb_data:/chroma/data
-    ports:
-      - "127.0.0.1:${CHROMADB_PORT:-8000}:8000"
     environment:
       - IS_PERSISTENT=TRUE
       - PERSIST_DIRECTORY=/chroma/data

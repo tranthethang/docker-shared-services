@@ -1,0 +1,78 @@
+services:
+  oauth2-proxy:
+    container_name: oauth2-proxy
+    image: quay.io/oauth2-proxy/oauth2-proxy:${OAUTH2_PROXY_VERSION:-v7.12.0}
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${OAUTH2_PROXY_CPUS_LIMIT:-0.5}"
+          memory: "${OAUTH2_PROXY_MEMORY_LIMIT:-256M}"
+        reservations:
+          cpus: "${OAUTH2_PROXY_CPUS_RESERVED:-0.1}"
+          memory: "${OAUTH2_PROXY_MEMORY_RESERVED:-64M}"
+    # Traefik-only access — no host port publish.
+    environment:
+      OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:4180"
+      OAUTH2_PROXY_PROVIDER: oidc
+      OAUTH2_PROXY_OIDC_ISSUER_URL: "${OAUTH2_PROXY_OIDC_ISSUER_URL:-https://zitadel.dss.localhost}"
+      OAUTH2_PROXY_CLIENT_ID: "${OAUTH2_PROXY_CLIENT_ID:-}"
+      OAUTH2_PROXY_CLIENT_SECRET: "${OAUTH2_PROXY_CLIENT_SECRET:-}"
+      OAUTH2_PROXY_COOKIE_SECRET: "${OAUTH2_PROXY_COOKIE_SECRET:-}"
+      OAUTH2_PROXY_REDIRECT_URL: "${OAUTH2_PROXY_REDIRECT_URL:-https://auth.dss.localhost/oauth2/callback}"
+      OAUTH2_PROXY_COOKIE_DOMAINS: "${OAUTH2_PROXY_COOKIE_DOMAINS:-.dss.localhost}"
+      OAUTH2_PROXY_WHITELIST_DOMAINS: "${OAUTH2_PROXY_WHITELIST_DOMAINS:-.dss.localhost}"
+      OAUTH2_PROXY_EMAIL_DOMAINS: "${OAUTH2_PROXY_EMAIL_DOMAINS:-*}"
+      OAUTH2_PROXY_COOKIE_SECURE: "${OAUTH2_PROXY_COOKIE_SECURE:-true}"
+      OAUTH2_PROXY_COOKIE_SAMESITE: "${OAUTH2_PROXY_COOKIE_SAMESITE:-lax}"
+      OAUTH2_PROXY_COOKIE_CSRF_PER_REQUEST: "true"
+      OAUTH2_PROXY_COOKIE_CSRF_EXPIRE: "5m"
+      OAUTH2_PROXY_REVERSE_PROXY: "true"
+      OAUTH2_PROXY_UPSTREAMS: "static://202"
+      OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
+      OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: "true"
+      OAUTH2_PROXY_PASS_USER_HEADERS: "true"
+      OAUTH2_PROXY_SCOPE: "${OAUTH2_PROXY_SCOPE:-openid profile email}"
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
+      OAUTH2_PROXY_CODE_CHALLENGE_METHOD: S256
+    # Reach Zitadel via Traefik on the host (issuer is HTTPS; container TLS is off).
+    extra_hosts:
+      - "zitadel.dss.localhost:host-gateway"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
+      - "traefik.http.routers.oauth2-proxy.rule=Host(`${OAUTH2_PROXY_HOSTNAME:-auth.dss.localhost}`)"
+      - "traefik.http.routers.oauth2-proxy.entrypoints=web,websecure"
+      - "traefik.http.routers.oauth2-proxy.tls=true"
+      - "traefik.http.routers.oauth2-proxy.service=oauth2-proxy"
+      - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
+      # auth-none: no-op placeholder so UI routers never use an empty middlewares label.
+      - "traefik.http.middlewares.auth-none.headers.customrequestheaders.X-Dss-Auth-Gateway: public"
+      # Authenticated sessions return 202; unauthenticated browser requests return a 302 to sign-in.
+      - "traefik.http.middlewares.auth-forward.forwardauth.address=http://oauth2-proxy:4180/"
+      - "traefik.http.middlewares.auth-forward.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.auth-forward.forwardauth.authResponseHeaders=X-Auth-Request-User,X-Auth-Request-Email,X-Auth-Request-Access-Token,Authorization"
+      - "traefik.http.middlewares.auth-default.chain.middlewares=auth-forward"
+      # Extension point for stricter policies (e.g. admin/group claims) — same forward
+      # auth today; replace or chain additional middleware when policies are added.
+      - "traefik.http.middlewares.auth-admin.chain.middlewares=auth-forward"
+    networks:
+      - infra_shared
+      - dev_tools
+    healthcheck:
+      # The official image is distroless and has no curl/wget. Running the
+      # binary's former `healthcheck` subcommand starts a second listener and
+      # fails with "address already in use". This verifies the shipped binary
+      # is runnable; Traefik performs the actual HTTP routing check.
+      test: ["CMD", "/bin/oauth2-proxy", "--version"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  infra_shared:
+    external: true
+  dev_tools:
+    external: true

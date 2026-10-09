@@ -27,7 +27,6 @@ cp crawl4ai/.env.example crawl4ai/.env
 
 Customize the variables in `crawl4ai/.env`:
 
-- `CRAWL4AI_PORT`: Host port to expose the service (default: `11235`).
 - `CRAWL4AI_API_TOKEN`: API Token for security (default: `crawl4ai102`).
   > [!IMPORTANT]
   > If `CRAWL4AI_API_TOKEN` is left empty, the server will bind to loopback (`127.0.0.1`) only for security and cannot be accessed externally. Setting this token allows the container to bind to `0.0.0.0`, making it accessible via Traefik or external networks.
@@ -58,7 +57,7 @@ ______________________________________________________________________
 
 ### Service Endpoints
 
-- **Host URL**: `http://localhost:11235` (mapped port) or `http://crawl4ai.dss.localhost` (if Traefik reverse proxy is active).
+- **URL**: `https://crawl4ai.dss.localhost` (through Traefik; UI and API are not published directly to the host).
 - **Authentication**: Include the token in your HTTP headers using the Bearer scheme:
   ```http
   Authorization: Bearer <CRAWL4AI_API_TOKEN>
@@ -69,7 +68,7 @@ ______________________________________________________________________
 Verify if the container is healthy:
 
 ```bash
-curl http://localhost:11235/health
+curl https://crawl4ai.dss.localhost/health
 ```
 
 **Response:**
@@ -89,7 +88,7 @@ Request the crawler to fetch page contents and return Markdown.
 #### cURL Example
 
 ```bash
-curl -X POST http://localhost:11235/crawl \
+curl -X POST https://crawl4ai.dss.localhost/crawl \
   -H "Authorization: Bearer crawl4ai102" \
   -H "Content-Type: application/json" \
   -d '{
@@ -105,7 +104,7 @@ curl -X POST http://localhost:11235/crawl \
 ```python
 import requests
 
-url = "http://localhost:11235/crawl"
+url = "https://crawl4ai.dss.localhost/crawl"
 headers = {
     "Authorization": "Bearer crawl4ai102",
     "Content-Type": "application/json"
