@@ -17,7 +17,7 @@ Check:
 1. `.env` exists and was filled from `.env.example`.
 1. `JWT_SECRET` is at least 32 characters; `PG_META_CRYPTO_KEY` likewise.
 1. `SECRET_KEY_BASE` is at least 64 characters; `REALTIME_DB_ENC_KEY` is exactly 16 characters.
-1. Host ports `8002`, `8445`, and `5434` are free (or change `SUPABASE_KONG_*` / `SUPABASE_DB_PORT`).
+1. Host port `5434` is free (or change `SUPABASE_DB_PORT`).
 1. Shared networks exist: `make setup` (creates `infra_shared` / `dev_tools`).
 1. Required volume files exist (`volumes/api/kong.yml`, `volumes/db/*.sql`, `volumes/api/kong-entrypoint.sh`).
 1. Docker has enough disk — Postgres and images are large.
@@ -26,7 +26,7 @@ Check:
 
 1. Start Traefik: `make up service=traefik`
 1. Confirm `SUPABASE_SUBDOMAIN` / `DOMAIN_NAME` / `SUPABASE_PUBLIC_URL` match your Traefik host rule.
-1. Use host port fallback: http://localhost:8002
+1. Use the API domain: https://supabase.dss.localhost
 
 ## Auth or Storage cannot connect to the database
 
@@ -53,7 +53,7 @@ docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" supabase-db \
 Then reload Storage in Studio (no recreate required). Verify:
 
 ```sh
-curl -sS "http://localhost:8002/storage/v1/bucket" \
+curl -sS "https://supabase.dss.localhost/storage/v1/bucket" \
   -H "apikey: $SERVICE_ROLE_KEY" \
   -H "Authorization: Bearer $SERVICE_ROLE_KEY"
 ```
@@ -79,7 +79,7 @@ docker restart supabase-auth
 - Use the current `ANON_KEY` / `SERVICE_ROLE_KEY` (or opaque keys) from `.env`.
 - After regenerating keys, recreate `supabase-kong` (and usually `supabase-auth` / `supabase-storage` / `realtime` / `supabase-studio`).
 - Studio: open https://studio.dss.localhost for direct access.
-- Host port `http://localhost:8002` bypasses Traefik — local debugging only.
+- Use `https://supabase.dss.localhost` so requests go through Traefik.
 
 ## Realtime unhealthy or WebSocket fails
 
@@ -135,7 +135,7 @@ sh utils/generate-keys.sh --update-env
 Defaults point SMTP at shared **Mailpit** (`SMTP_HOST=mailpit`, `SMTP_PORT=1025`) with `ENABLE_EMAIL_AUTOCONFIRM=false`.
 
 1. Start Mailpit: `make up service=mailpit`
-1. Open https://mailpit.dss.localhost (or host port `8025`) to read messages
+1. Open https://mailpit.dss.localhost to read messages
 1. Or set `ENABLE_EMAIL_AUTOCONFIRM=true` to skip email locally
 1. After changing SMTP env, recreate auth: `sh run.sh recreate supabase-auth`
 

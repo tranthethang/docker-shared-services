@@ -1,6 +1,6 @@
 # Hasura GraphQL Engine
 
-Hasura provides an instant GraphQL API over the shared Postgres 16 service. Metadata and the default data source both use the `hasura` database. Traffic is available on a loopback host port and via Traefik TLS.
+Hasura provides an instant GraphQL API over the shared Postgres 16 service. Metadata and the default data source both use the `hasura` database. The Console and GraphQL endpoint are available through Traefik TLS at `hasura.dss.localhost`.
 
 Upstream: [hasura/graphql-engine](https://github.com/hasura/graphql-engine).
 
@@ -18,7 +18,6 @@ make up service=hasura
 | ---------------- | ----------------------------------------- | ------------------------------ |
 | Console (TLS)    | `https://hasura.dss.localhost/console`    | Admin secret: `Password102!`   |
 | GraphQL endpoint | `https://hasura.dss.localhost/v1/graphql` | Header `x-hasura-admin-secret` |
-| Direct host port | `http://localhost:8085`                   | Same instance (no Traefik TLS) |
 
 ## Database Dependency
 
@@ -43,7 +42,6 @@ POSTGRES_DB=hasura
 ## Configuration Notes
 
 - **Image**: `hasura/graphql-engine` pinned via `HASURA_VERSION` (default `v2.50.3`).
-- **Host port**: `8085` → container `8080` (avoids Traefik dashboard on host `8080`).
 - **Console / dev mode**: enabled by default for local use; set `HASURA_GRAPHQL_ENABLE_CONSOLE=false` and `HASURA_GRAPHQL_DEV_MODE=false` for stricter setups.
 - **Admin secret**: `HASURA_GRAPHQL_ADMIN_SECRET` (synced by `make setup` shared-password flow).
 

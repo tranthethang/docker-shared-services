@@ -16,7 +16,6 @@ make up service=zitadel       # Starts Zitadel API and Login UI
 | ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------ |
 | Console UI       | `https://zitadel.dss.localhost/ui/console`  | User: `zitadel-admin@zitadel.zitadel.dss.localhost` / Password: `Password102!` |
 | Login UI (v2)    | `https://zitadel.dss.localhost/ui/v2/login` | Served by `zitadel-login`                                                      |
-| Direct host port | `http://localhost:8180`                     | Same instance (no Traefik TLS)                                                 |
 
 ## Database Dependency
 

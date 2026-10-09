@@ -3,6 +3,9 @@ import os
 import shutil
 
 from config import (
+    AUTH_GATEWAY_MIDDLEWARE_OFF,
+    AUTH_GATEWAY_MIDDLEWARES_ON,
+    AUTH_OPT_IN_UI_SERVICES,
     AUTO_GENERATED_SECRETS,
     SERVICE_INFO_VARS,
     SERVICES,
@@ -15,6 +18,7 @@ from utils import (
     error,
     generate_password,
     generate_secret,
+    iter_env_assignments,
     print_header,
     read_env_value,
     set_env_value,
@@ -68,6 +72,58 @@ def create_env(service_arg):
     else:
         print("\n✅ No missing .env files to create.")
     warning("Next: shared password sync (fill-shared-password) + unique secrets (fill-secrets).")
+
+
+def _example_env_assignments(example_path: str) -> list[tuple[str, str]]:
+    """Return (KEY, raw_value) pairs from .env.example in file order (first wins)."""
+    seen: set[str] = set()
+    pairs: list[tuple[str, str]] = []
+    for key, value in iter_env_assignments(example_path):
+        if key in seen:
+            continue
+        seen.add(key)
+        pairs.append((key, value))
+    return pairs
+
+
+def merge_missing_env_keys(service_arg):
+    """Append keys that exist in .env.example but are absent from .env.
+
+    Never overwrites existing keys (including empty values). Safe for repeated
+    `make setup` after .env.example gains new variables (e.g. AUTH_*).
+    """
+    services = get_services(service_arg)
+    print("\nMerging missing keys from .env.example into existing .env files...\n")
+    added_total = 0
+    for s in services:
+        env_path = os.path.join(s, ".env")
+        example_path = os.path.join(s, ".env.example")
+        if not os.path.exists(env_path) or not os.path.exists(example_path):
+            continue
+        missing = [
+            (key, value)
+            for key, value in _example_env_assignments(example_path)
+            if read_env_value(env_path, key) is None
+        ]
+        if not missing:
+            continue
+        with open(env_path) as f:
+            content = f.read()
+        suffix_parts = []
+        if content and not content.endswith("\n"):
+            suffix_parts.append("\n")
+        if content.strip():
+            suffix_parts.append("\n")
+        for key, value in missing:
+            suffix_parts.append(f"{key}={value}\n")
+            success(f"{s}: added {key}")
+            added_total += 1
+        with open(env_path, "a") as f:
+            f.write("".join(suffix_parts))
+    if added_total == 0:
+        print("✅ No missing keys to merge.")
+    else:
+        print(f"\n✅ Added {added_total} missing key(s) from .env.example.")
 
 
 def fill_secrets(service_arg):
@@ -272,6 +328,15 @@ def show_summary(service_arg):
                             found = True
             if not found:
                 print("  (no specific ports configured in .env)")
+        if s in AUTH_OPT_IN_UI_SERVICES:
+            enabled = (read_env_value(env_path, "AUTH_ENABLED") or "false").lower()
+            middleware = (read_env_value(env_path, "AUTH_MIDDLEWARE") or "").strip()
+            effective = middleware or AUTH_GATEWAY_MIDDLEWARE_OFF
+            state = "on" if effective in AUTH_GATEWAY_MIDDLEWARES_ON else "off"
+            print(
+                f"  AUTH gateway: {state} "
+                f"(AUTH_ENABLED={enabled}, AUTH_MIDDLEWARE={middleware or AUTH_GATEWAY_MIDDLEWARE_OFF})"
+            )
         print("")
 
 
@@ -282,6 +347,7 @@ def main():
         choices=[
             "check",
             "create",
+            "merge-missing",
             "fill-secrets",
             "fill-shared-password",
             "validate",
@@ -313,6 +379,8 @@ def main():
         check_env(args.service)
     elif args.command == "create":
         create_env(args.service)
+    elif args.command == "merge-missing":
+        merge_missing_env_keys(args.service)
     elif args.command == "fill-secrets":
         fill_secrets(args.service)
     elif args.command in ("fill-shared-password", "passwords"):

@@ -12,8 +12,6 @@ services:
     command: quickstart
     volumes:
       - concourse_data:/concourse
-    ports:
-      - "127.0.0.1:${CONCOURSE_PORT:-8070}:8080"
     deploy:
       resources:
         limits:

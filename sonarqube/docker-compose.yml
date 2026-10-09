@@ -10,8 +10,6 @@ services:
     container_name: sonarqube
     image: sonarqube:community
     restart: "${RESTART_POLICY:-unless-stopped}"
-    ports:
-      - "127.0.0.1:${SONARQUBE_PORT:-9000}:9000"
     deploy:
       resources:
         limits:

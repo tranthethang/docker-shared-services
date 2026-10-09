@@ -14,9 +14,6 @@ services:
         reservations:
           cpus: "${ZITADEL_CPUS_RESERVED:-0.2}"
           memory: "${ZITADEL_MEMORY_RESERVED:-256M}"
-    # Host 8180 avoids Traefik dashboard on 8080 (container still listens on 8080)
-    ports:
-      - "127.0.0.1:${ZITADEL_PORT:-8180}:8080"
     environment:
       - ZITADEL_EXTERNALDOMAIN=${ZITADEL_HOSTNAME:-zitadel.dss.localhost}
       - ZITADEL_EXTERNALPORT=443

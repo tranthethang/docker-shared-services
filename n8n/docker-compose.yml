@@ -17,8 +17,6 @@ services:
         reservations:
           cpus: "${N8N_CPUS_RESERVED:-0.5}"
           memory: "${N8N_MEMORY_RESERVED:-512M}"
-    ports:
-      - "127.0.0.1:${N8N_PORT:-5678}:5678"
     environment:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_HOST=${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-dss.localhost}

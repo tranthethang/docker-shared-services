@@ -11,9 +11,6 @@ services:
         reservations:
           cpus: "${HASURA_CPUS_RESERVED:-0.1}"
           memory: "${HASURA_MEMORY_RESERVED:-128M}"
-    # Host 8085 avoids Traefik dashboard on 8080 (container still listens on 8080)
-    ports:
-      - "127.0.0.1:${HASURA_PORT:-8085}:8080"
     environment:
       # Shared PostgreSQL 16 (postgres/docker-compose.yml) on infra_shared
       HASURA_GRAPHQL_METADATA_DATABASE_URL: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hasura}"

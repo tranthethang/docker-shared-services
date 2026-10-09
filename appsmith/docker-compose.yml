@@ -16,9 +16,6 @@ services:
           memory: "${APPSMITH_MEMORY_LIMIT:-4G}"
     volumes:
       - appsmith_data:/appsmith-stacks
-    ports:
-      - "127.0.0.1:${APPSMITH_PORT:-8091}:80"
-      - "127.0.0.1:${APPSMITH_HTTPS_PORT:-8444}:443"
     networks:
       - infra_shared
       - dev_tools

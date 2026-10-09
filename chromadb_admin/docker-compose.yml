@@ -3,8 +3,13 @@ services:
     container_name: chromadb-admin
     image: fengzhichao/chromadb-admin:0.0.2
     restart: "${RESTART_POLICY:-unless-stopped}"
-    ports:
-      - "127.0.0.1:${CHROMADB_ADMIN_PORT:-8001}:3001"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
+      - "traefik.http.routers.chromadb-admin.rule=Host(`chromadb-admin.dss.localhost`)"
+      - "traefik.http.routers.chromadb-admin.entrypoints=web,websecure"
+      - "traefik.http.routers.chromadb-admin.tls=true"
+      - "traefik.http.services.chromadb-admin.loadbalancer.server.port=3001"
     environment:
       - CHROMA_URL=${CHROMADB_ADMIN_URL:-http://chromadb:8000}
     deploy:

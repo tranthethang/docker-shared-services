@@ -17,8 +17,6 @@ services:
         reservations:
           cpus: "${NODE_RED_CPUS_RESERVED:-0.1}"
           memory: "${NODE_RED_MEMORY_RESERVED:-128M}"
-    ports:
-      - "127.0.0.1:${NODE_RED_PORT:-1880}:1880"
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:

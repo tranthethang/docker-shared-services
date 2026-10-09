@@ -59,6 +59,7 @@ ______________________________________________________________________
 - **Promtail** - Ships Docker container stdout to Loki
 - **Traefik** - Reverse proxy and load balancer
 - **Zitadel** - Central Identity Provider / OIDC & OAuth2 Server
+- **oauth2-proxy** - Opt-in Traefik authentication gateway (`auth.dss.localhost`) backed by Zitadel
 - **Redis Insight** - Redis management UI
 - **Dozzle** - Live container log tail (complement to Loki history search)
 
@@ -74,28 +75,30 @@ ______________________________________________________________________
 | MongoDB        | `localhost:27017`                                                    | `root` / `Password102!`                                        |
 | Redis          | `localhost:6379`                                                     | - / `Password102!`                                             |
 | RabbitMQ       | `localhost:5672`                                                     | `guest` / `guest`                                              |
-| RabbitMQ UI    | `http://localhost:15672`                                             | `guest` / `guest`                                              |
-| Adminer        | `http://localhost:8081`                                              | -                                                              |
-| Gitea          | `http://localhost:3000`                                              | -                                                              |
-| Crawl4AI       | `http://localhost:11235` (Host: `crawl4ai.dss.localhost`)            | -                                                              |
+| RabbitMQ UI    | `https://rabbitmq.dss.localhost`                                    | `guest` / `guest`                                              |
+| Adminer        | `https://adminer.dss.localhost`                                    | -                                                              |
+| ChromaDB Admin | `https://chromadb-admin.dss.localhost`                             | -                                                              |
+| Gitea          | `https://gitea.dss.localhost`                                      | -                                                              |
+| Crawl4AI       | `https://crawl4ai.dss.localhost`                                   | Bearer token from `crawl4ai/.env`                              |
 | Hindsight API  | `https://hindsight.dss.localhost` (Traefik only; MCP `/mcp/<bank>/`) | Set `HINDSIGHT_API_LLM_API_KEY` in `hindsight/.env`            |
 | Hindsight UI   | `https://hindsight-ui.dss.localhost` (Traefik only)                  | -                                                              |
-| Hasura         | `http://localhost:8085` (Host: `hasura.dss.localhost`)               | Admin secret: `Password102!`                                   |
-| Inngest        | `http://localhost:8288` (Host: `inngest.dss.localhost`)              | -                                                              |
-| Node-RED       | `http://localhost:1880` (Host: `node-red.dss.localhost`)             | -                                                              |
-| SonarQube      | `http://localhost:9000`                                              | `admin` / `admin`                                              |
-| Jenkins        | `http://localhost:8090`                                              | -                                                              |
-| MinIO          | `http://localhost:9002`                                              | `admin` / `Password102!`                                       |
-| MinIO Console  | `http://localhost:9003`                                              | `admin` / `Password102!`                                       |
-| Mailpit        | `http://localhost:8025`                                              | -                                                              |
-| Concourse      | `http://localhost:8070`                                              | `admin` / `Password102!`                                       |
-| Redis Insight  | `http://localhost:5540`                                              | -                                                              |
-| Grafana        | `http://localhost:3001` (Host: `grafana.dss.localhost`)              | `admin` / `Password102!`                                       |
+| Hasura         | `https://hasura.dss.localhost`                                      | Admin secret: `Password102!`                                   |
+| Inngest        | `https://inngest.dss.localhost`                                    | -                                                              |
+| Node-RED       | `https://node-red.dss.localhost`                                   | -                                                              |
+| SonarQube      | `https://sonarqube.dss.localhost`                                  | `admin` / `admin`                                              |
+| Jenkins        | `https://jenkins.dss.localhost`                                    | -                                                              |
+| MinIO          | `https://minio.dss.localhost`                                      | `admin` / `Password102!`                                       |
+| MinIO Console  | `https://minio.dss.localhost`                                      | `admin` / `Password102!`                                       |
+| Mailpit        | `https://mailpit.dss.localhost`                                    | -                                                              |
+| Concourse      | `https://concourse.dss.localhost`                                  | `admin` / `Password102!`                                       |
+| Redis Insight  | `https://redisinsight.dss.localhost`                               | -                                                              |
+| Grafana        | `https://grafana.dss.localhost`                                    | `admin` / `Password102!`                                       |
 | Loki           | `http://localhost:3100`                                              | -                                                              |
 | OTel Collector | `localhost:4317` (gRPC), `localhost:4318` (HTTP)                     | Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`   |
-| Temporal UI    | `http://localhost:8083` (Host: `temporal.dss.localhost`)             | -                                                              |
+| Temporal UI    | `https://temporal.dss.localhost`                                    | Opt-in Zitadel via `AUTH_*` (off by default)                   |
 | Traefik        | `http://localhost:8080`                                              | -                                                              |
-| Zitadel        | `https://zitadel.dss.localhost` (Host port: `8180`)                  | `zitadel-admin@zitadel.zitadel.dss.localhost` / `Password102!` |
+| oauth2-proxy   | `https://auth.dss.localhost` (Traefik only)                          | Zitadel OIDC client id/secret in `oauth2-proxy/.env`           |
+| Zitadel        | `https://zitadel.dss.localhost`                                     | `zitadel-admin@zitadel.zitadel.dss.localhost` / `Password102!` |
 
 ______________________________________________________________________
 

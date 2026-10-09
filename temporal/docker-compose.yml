@@ -44,9 +44,11 @@ services:
   temporal-ui:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=infra_shared"
       - "traefik.http.routers.temporal.rule=Host(`temporal.dss.localhost`)"
       - "traefik.http.routers.temporal.entrypoints=web,websecure"
       - "traefik.http.routers.temporal.tls=true"
+      - "traefik.http.routers.temporal.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.temporal.loadbalancer.server.port=8080"
     container_name: temporal-ui
     image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.30.0}
@@ -65,8 +67,6 @@ services:
     networks:
       - infra_shared
       - dev_tools
-    ports:
-      - "127.0.0.1:${TEMPORAL_UI_PORT:-8083}:8080"
     depends_on:
       temporal:
         condition: service_healthy
