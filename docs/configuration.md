@@ -123,9 +123,9 @@ Browser UIs can sit behind a shared `oauth2-proxy` gateway that authenticates us
 
 ### Rollout
 
-1. `make setup` (creates `oauth2-proxy/.env` and fills `OAUTH2_PROXY_COOKIE_SECRET` when empty).
+1. `make setup` (creates `oauth2-proxy/.env` and fills `OAUTH2_PROXY_COOKIE_SECRET` when empty). General setup validation only requires the cookie secret; empty `OAUTH2_PROXY_CLIENT_ID` / `OAUTH2_PROXY_CLIENT_SECRET` are expected until you opt in.
 1. Start dependencies: `make up service=traefik`, `make up service=postgres`, `make up service=zitadel`.
-1. Register a confidential Web application in Zitadel Console with redirect URI `https://auth.dss.localhost/oauth2/callback`. Put the client id/secret into `oauth2-proxy/.env` (never auto-generated).
+1. When configuring the auth gateway, register a confidential Web application in Zitadel Console with redirect URI `https://auth.dss.localhost/oauth2/callback`. Put the client id/secret into `oauth2-proxy/.env` (manual prerequisite for oauth2-proxy — never auto-generated).
 1. `make up service=oauth2-proxy`.
 1. To protect a UI, edit that service’s `.env`:
 

@@ -86,9 +86,9 @@ docs/                       # deeper guides
 
 ## Opt-in UI authentication
 
-Selected Traefik UIs can require Zitadel login via `oauth2-proxy` (`https://auth.dss.localhost`). Auth is **off by default**.
+Selected Traefik UIs can require Zitadel login via `oauth2-proxy` (`https://auth.dss.localhost`). Auth is **off by default**. `make setup` only requires the oauth2-proxy cookie secret; Zitadel client id/secret are a prerequisite when you configure the gateway.
 
-1. Start Traefik + Zitadel + oauth2-proxy (register a Zitadel Web app — see [oauth2-proxy/README.md](oauth2-proxy/README.md)).
+1. Start Traefik + Zitadel + oauth2-proxy (register a Zitadel Web app and set client credentials — see [oauth2-proxy/README.md](oauth2-proxy/README.md)).
 1. In a candidate service `.env` set `AUTH_ENABLED=true` and `AUTH_MIDDLEWARE=auth-default`, then restart that service.
 1. Candidates (remain disabled until you opt in): Mermaid Live Editor, Temporal UI, ChromaDB, Qdrant, Kafka UI.
 

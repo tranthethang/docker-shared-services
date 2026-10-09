@@ -81,14 +81,14 @@ VALIDATION_RULES = {
     "hindsight": ["HINDSIGHT_API_LLM_API_KEY"],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
     "minio": ["MINIO_ROOT_PASSWORD"],
-    "mongodb": ["PASSWORD"],
-    "mysql8": ["PASSWORD"],
+    "mongodb": ["MONGO_ROOT_PASSWORD"],
+    "mysql8": ["MYSQL_ROOT_PASSWORD"],
+    # Cookie secret only — Zitadel CLIENT_ID / CLIENT_SECRET are opt-in
+    # prerequisites when configuring the auth gateway, not general setup.
     "oauth2-proxy": [
-        "OAUTH2_PROXY_CLIENT_ID",
-        "OAUTH2_PROXY_CLIENT_SECRET",
         "OAUTH2_PROXY_COOKIE_SECRET",
     ],
-    "pgvector": ["PASSWORD"],
+    "pgvector": ["POSTGRES_PASSWORD"],
     "postgres": ["POSTGRES16_PASSWORD"],
     "rabbitmq": ["RABBITMQ_PASSWORD"],
     "woodpecker": ["WOODPECKER_AGENT_SECRET"],
