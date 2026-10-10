@@ -16,12 +16,45 @@ make cert           # Generate SSL certificates
 make up             # Start services (interactive or specific)
 make down           # Stop and remove services
 make stop           # Stop services (keep containers)
+make manage         # Interactive multi-select start/stop
+make tui            # Optional Textual dashboard (uv + TTY)
 make ps             # Show service status
 make logs           # View logs
 make info           # URLs, ports, opt-in UI auth guidance
 make remove-all     # Remove containers & volumes
 make restart        # Restart services
 ```
+
+### Optional Textual dashboard (`make tui`)
+
+Keyboard-driven status/health/logs UI that reuses the same Compose conventions as the Makefile. Does **not** replace `make manage` or other CLI targets.
+
+```bash
+uv sync --group tui   # install optional deps (textual, docker SDK)
+make tui
+```
+
+| Key                   | Action                                                       |
+| --------------------- | ------------------------------------------------------------ |
+| `↑`/`↓` or `j`/`k`    | Move selection                                               |
+| `/`                   | Filter services (`Enter`/`Esc` returns to the list)          |
+| `r`                   | Force a status refresh (status also auto-updates)            |
+| `Enter`               | Container details (details also follow the cursor)           |
+| `l`                   | Follow live logs (last 200 lines + new); press again to stop |
+| `u` / `s` / `Shift+R` | Up / stop / restart selected stack                           |
+| `d`                   | Down selected stack (confirm)                                |
+| `Space`               | Toggle manage selection                                      |
+| `m`                   | Apply manage plan (confirm; start/stop order preserved)      |
+| `?`                   | Help                                                         |
+| `q`                   | Quit                                                         |
+
+Notes:
+
+- Status refreshes automatically on Docker container events (start, stop, health changes); `r` forces a refresh.
+- Logs are streamed **unredacted**, exactly like `make logs` / `docker logs`, and only when you press `l`. Application logs can contain credentials; treat the screen accordingly.
+- When a Compose action fails, the operations panel shows the last lines of Compose's error output with values from the root and service `.env` files masked as `***`. Run the matching `make` target for the full output.
+
+Setup errors (missing `uv`, non-interactive terminal, or Docker unreachable) print actionable messages and leave Makefile/CLI workflows available.
 
 ### Opt-in UI auth (oauth2-proxy)
 

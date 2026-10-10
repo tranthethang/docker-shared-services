@@ -1,6 +1,6 @@
 # Docker Shared Services
 
-![Docker Shared Services](assets/repo.png)
+![Docker Shared Services](assets/tux.svg)
 
 Local Docker Compose stack for common infra: databases, cache, messaging, CI/CD, auth, storage, and observability. Managed with a `Makefile` + scripts in `bin/`.
 
@@ -49,6 +49,7 @@ Value is stored as `DSS_SHARED_PASSWORD` in the root `.env`.
 | `make passwords`                        | Apply / rotate the shared password                             |
 | `make up` / `down` / `stop` / `restart` | Lifecycle (`service=<folder>` optional)                        |
 | `make manage`                           | Interactive multi-select start/stop                            |
+| `make tui`                              | Optional Textual dashboard (needs `uv` + interactive TTY)      |
 | `make logs` / `ps` / `health` / `info`  | Observe                                                        |
 | `make cert`                             | TLS for `*.dss.localhost` (requires mkcert)                    |
 | `make validate`                         | Validate all compose files                                     |
@@ -60,6 +61,17 @@ make up service=redis
 make logs service=gitea
 make restart service=postgres
 ```
+
+### Optional Textual dashboard
+
+`make tui` opens a keyboard-driven terminal UI for status, health, logs, and the same lifecycle actions as `make up` / `down` / `stop` / `restart` / `manage`. Existing Makefile and CLI workflows are unchanged.
+
+```bash
+uv sync --group tui   # once: install optional Textual + Docker SDK deps
+make tui              # interactive terminal required
+```
+
+Press `?` inside the TUI for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `make logs`); press `l` again to stop. If `uv` or a TTY is missing, the command prints how to use `make manage` / `make up` / `make ps` instead.
 
 ## What’s included
 
@@ -105,7 +117,7 @@ Details: [docs/configuration.md](docs/configuration.md#opt-in-zitadel-ui-authent
 
 ## Requirements
 
-Docker Engine 20.10+, Compose v2+, Make, Python 3. Optional: [mkcert](https://github.com/FiloSottile/mkcert) for local HTTPS.
+Docker Engine 20.10+, Compose v2+, Make, Python 3. Optional: [uv](https://docs.astral.sh/uv/) for `make tui`, [mkcert](https://github.com/FiloSottile/mkcert) for local HTTPS.
 
 ## License
 

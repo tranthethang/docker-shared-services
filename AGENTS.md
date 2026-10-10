@@ -55,6 +55,8 @@ ______________________________________________________________________
 ```bash
 make setup          # Initialize environment files, shared networks, and certificates
 make up             # Start services (interactive or specific)
+make manage         # Interactive multi-select start/stop
+make tui            # Optional Textual dashboard (requires uv + interactive TTY)
 make ps             # Show status of all services
 make logs           # View aggregated logs
 make down           # Stop and remove services

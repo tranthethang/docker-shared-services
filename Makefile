@@ -1,4 +1,4 @@
-.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage sync format format-check
+.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage tui sync format format-check
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -136,6 +136,20 @@ restart: ## Restart services (usage: make restart [service=pgvector])
 
 manage: ## Interactive multi-select service manager (up selected, down unselected)
 	@$(PYTHON_SVC_MGR) manage
+
+tui: ## Optional Textual dashboard (requires uv + interactive terminal)
+	@if ! command -v $(UV) >/dev/null 2>&1; then \
+		echo "❌ uv is required for make tui."; \
+		echo "   Install: https://docs.astral.sh/uv/"; \
+		echo "   Non-TUI workflows still work: make manage, make up, make ps, make logs, …"; \
+		exit 1; \
+	fi
+	@if [ ! -t 0 ] || [ ! -t 1 ]; then \
+		echo "❌ make tui needs an interactive terminal (TTY)."; \
+		echo "   Use make manage / make up / make ps / make logs instead."; \
+		exit 1; \
+	fi
+	@PYTHONPATH=bin $(UV) run --group tui python -m tui
 
 logs: ## Show logs (usage: make logs [service=pgvector])
 	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
