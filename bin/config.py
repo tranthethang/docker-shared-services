@@ -307,18 +307,13 @@ def startup_queue(services) -> list[str]:
     selected = list(dict.fromkeys(services))
     selected_set = set(selected)
     deps = {
-        name: [dep for dep in direct_dependencies(name) if dep in selected_set]
-        for name in selected
+        name: [dep for dep in direct_dependencies(name) if dep in selected_set] for name in selected
     }
     order_map = {name: index for index, name in enumerate(START_ORDER)}
     remaining = set(selected)
     queued: list[str] = []
     while remaining:
-        ready = [
-            name
-            for name in remaining
-            if all(dep not in remaining for dep in deps[name])
-        ]
+        ready = [name for name in remaining if all(dep not in remaining for dep in deps[name])]
         if not ready:
             queued.extend(sorted(remaining, key=lambda name: (order_map.get(name, 999), name)))
             break

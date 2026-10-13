@@ -255,7 +255,9 @@ def fill_shared_password(
     """
     resolved = _resolve_shared_password(password)
     if resolved in INVALID_PASSWORD_VALUES:
-        error(f"{LEGACY_PLACEHOLDER_PASSWORD} is an insecure placeholder; choose a secure password.")
+        error(
+            f"{LEGACY_PLACEHOLDER_PASSWORD} is an insecure placeholder; choose a secure password."
+        )
         raise SystemExit(1)
     print("\nApplying shared password across services...\n")
     if password:
