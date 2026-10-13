@@ -27,11 +27,6 @@ services:
       - GARAGE_METRICS_TOKEN=${GARAGE_METRICS_TOKEN:-${GARAGE_ADMIN_TOKEN}}
       # So `docker exec garage /garage …` picks up the same config without -c.
       - GARAGE_CONFIG_FILE=/etc/garage/garage.toml
-    ports:
-      - "127.0.0.1:${GARAGE_S3_PORT:-3900}:3900"    # S3 API
-      - "127.0.0.1:${GARAGE_RPC_PORT:-3901}:3901"   # Inter-node RPC
-      - "127.0.0.1:${GARAGE_WEB_PORT:-3902}:3902"   # S3 static website hosting
-      - "127.0.0.1:${GARAGE_ADMIN_PORT:-3903}:3903" # Admin API / metrics
     volumes:
       - ./config:/etc/garage:ro
       - garage_meta:/var/lib/garage/meta

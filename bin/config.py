@@ -195,7 +195,6 @@ SHARED_PASSWORD_TEMPLATES: dict[tuple[str, str], str] = {
 SERVICE_INFO_VARS = {
     "bugsink": ["BUGSINK_BASE_URL"],
     "centrifugo": ["CENTRIFUGO_PORT"],
-    "garage": ["GARAGE_S3_PORT", "GARAGE_ADMIN_PORT"],
     "gitea": ["GITEA_SSH_PORT"],
     "gotenberg": ["GOTENBERG_API_PORT"],
     "hasura": ["HASURA_HOSTNAME"],
