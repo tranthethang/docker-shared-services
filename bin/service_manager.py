@@ -2,10 +2,14 @@ import argparse
 import os
 import subprocess
 import sys
+import time
 
 from checkbox_menu import show_checkbox_menu
-from config import ACTIONS, SERVICES, START_ORDER
+from config import ACTIONS, SERVICES, START_ORDER, dependency_queue, startup_queue
 from utils import error, print_header, success, warning
+
+# A database can spend its start_period plus several probe retries before it accepts clients.
+READY_TIMEOUT_SECONDS = 300
 
 
 def is_valid_service(service):
@@ -176,8 +180,100 @@ def get_running_services():
 
 
 def sort_for_startup(services):
-    order_map = {s: i for i, s in enumerate(START_ORDER)}
-    return sorted(services, key=lambda s: (order_map.get(s, 999), s))
+    return startup_queue(services)
+
+
+def _container_ids(service):
+    result = subprocess.run(
+        get_compose_cmd(service) + ["ps", "-aq"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return []
+    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def _container_ready(container_id):
+    result = subprocess.run(
+        [
+            "docker",
+            "inspect",
+            "--format",
+            "{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}",
+            container_id,
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return False
+    parts = result.stdout.split()
+    if len(parts) < 2:
+        return False
+    status, health = parts[0], parts[1]
+    return status == "running" and health in ("none", "healthy")
+
+
+def wait_until_ready(service, timeout=READY_TIMEOUT_SECONDS, announce=None):
+    """Block until every container in ``service`` is running and healthy when probed."""
+
+    def say(message):
+        if announce:
+            announce(message)
+        else:
+            print(message)
+
+    ids = _container_ids(service)
+    if not ids:
+        error(f"{service} has no containers")
+        return False
+    if all(_container_ready(container_id) for container_id in ids):
+        return True
+
+    say(f"ℹ️  Waiting until {service} is ready...")
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        time.sleep(2)
+        ids = _container_ids(service)
+        if ids and all(_container_ready(container_id) for container_id in ids):
+            success(f"{service} is ready")
+            return True
+    error(f"{service} was not ready within {timeout}s")
+    return False
+
+
+def _service_is_ready(service):
+    ids = _container_ids(service)
+    return bool(ids) and all(_container_ready(container_id) for container_id in ids)
+
+
+def ensure_dependencies_ready(service, announce=None):
+    """Start missing backends, then wait until each one is ready."""
+
+    def say(message):
+        if announce:
+            announce(message)
+        else:
+            print(message)
+
+    from env_manager import check_prerequisites
+
+    for dependency in dependency_queue(service):
+        if _service_is_ready(dependency):
+            continue
+        say(f"ℹ️  Queuing {dependency} before {service}...")
+        if not check_prerequisites(dependency):
+            error(f"Cannot start {service}: prerequisite checks failed for {dependency}")
+            return False
+        result = subprocess.run(get_compose_cmd(dependency) + ["up", "-d"])
+        if result.returncode != 0:
+            error(f"Failed to start dependency {dependency}")
+            return False
+        if not wait_until_ready(dependency, announce=announce):
+            error(f"Cannot start {service}: dependency {dependency} is not ready")
+            return False
+    return True
 
 
 def sort_for_shutdown(services):
@@ -305,6 +401,9 @@ def apply_manage_changes(selected):
         ensure_network()
 
     for service in to_up:
+        if not ensure_dependencies_ready(service):
+            failed.append(service)
+            break
         cmd = get_compose_cmd(service)
         success(f"Starting {service}...")
         result = subprocess.run(cmd + ["up", "-d"])
@@ -358,6 +457,8 @@ def execute_action(service, action):
             error(f"Cannot start {service}: prerequisite checks failed.")
             sys.exit(1)
         ensure_network()
+        if not ensure_dependencies_ready(service):
+            sys.exit(1)
         success(f"Starting {service}...")
         subprocess.run(cmd + ["up", "-d"])
         success(f"{service} started successfully")

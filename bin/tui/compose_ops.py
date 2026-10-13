@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from config import SERVICES
 from service_manager import (
+    ensure_dependencies_ready,
     get_compose_cmd,
     sort_for_shutdown,
     sort_for_startup,
@@ -117,6 +118,12 @@ def run_action(
             on_progress(f"Ensuring shared networks, then starting {service}…")
         if not _ensure_network():
             return OpResult(False, f"Failed to prepare networks for {service}", [service])
+        if not ensure_dependencies_ready(service, announce=on_progress):
+            return OpResult(
+                False,
+                f"Failed to start {service}: a dependency is not ready",
+                [service],
+            )
         code = _run_compose(service, ["up", "-d"], on_progress)
         if code == 0:
             return OpResult(True, f"{service} started", [])

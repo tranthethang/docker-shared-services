@@ -9,6 +9,7 @@ from config import (
     AUTH_OPT_IN_UI_SERVICES,
     AUTO_GENERATED_SECRETS,
     INVALID_PASSWORD_VALUES,
+    LEGACY_PLACEHOLDER_PASSWORD,
     SERVICE_INFO_VARS,
     SERVICES,
     SHARED_PASSWORD_KEYS,
@@ -229,8 +230,8 @@ def _should_overwrite(current: str | None, force: bool) -> bool:
         return True
     if current in SHARED_PASSWORD_PLACEHOLDERS:
         return True
-    # Compound defaults that still embed the repo placeholder.
-    if "Password102!" in current:
+    # Compound values from old .env files that still embed the legacy placeholder.
+    if LEGACY_PLACEHOLDER_PASSWORD in current:
         return True
     return False
 
@@ -249,12 +250,12 @@ def fill_shared_password(
       3. Existing non-placeholder DSS_SHARED_PASSWORD in root .env
       4. Fresh random password (generate_password)
 
-    By default only placeholders (Password102!, empty, known change-me values)
+    By default only placeholders (empty, known change-me values, legacy default)
     are overwritten. Use force=True to rewrite all listed keys.
     """
     resolved = _resolve_shared_password(password)
     if resolved in INVALID_PASSWORD_VALUES:
-        error("Password102! is an insecure placeholder; choose a secure password.")
+        error(f"{LEGACY_PLACEHOLDER_PASSWORD} is an insecure placeholder; choose a secure password.")
         raise SystemExit(1)
     print("\nApplying shared password across services...\n")
     if password:

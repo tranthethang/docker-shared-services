@@ -136,7 +136,7 @@ AUTH_OPT_IN_UI_SERVICES = [
 ]
 
 # Sentinel values treated as "still the repo default" and safe to overwrite
-# when applying the shared password. Password102! is removed (treated as invalid).
+# when applying the shared password.
 SHARED_PASSWORD_PLACEHOLDERS = frozenset(
     {
         "",
@@ -145,7 +145,10 @@ SHARED_PASSWORD_PLACEHOLDERS = frozenset(
     }
 )
 
-INVALID_PASSWORD_VALUES = frozenset({"Password102!"})
+# Old repo default. Example files now ship empty values, but .env files created
+# before that may still hold it, so setup keeps overwriting and rejecting it.
+LEGACY_PLACEHOLDER_PASSWORD = "Password102!"
+INVALID_PASSWORD_VALUES = frozenset({LEGACY_PLACEHOLDER_PASSWORD})
 
 # Service dir -> vars that must pass validate_password_strength before `up`.
 # Zitadel's default password policy rejects the first admin password without a symbol.
@@ -155,7 +158,7 @@ STRONG_PASSWORD_REQUIRED = {
 
 # One shared password is written to every key listed here (service dir -> vars).
 # "." is the repo-root .env. ZITADEL_MASTERKEY is intentionally excluded (must
-# be exactly 32 chars; short passwords like Password102! are invalid there).
+# be exactly 32 chars; the shared password is not that shape).
 SHARED_PASSWORD_KEYS: dict[str, list[str]] = {
     ".": [
         "DSS_SHARED_PASSWORD",
@@ -269,3 +272,58 @@ PACKAGE_REQUIRES: dict[str, list[str]] = {
     "redis": ["inngest", "redisinsight"],
     "zitadel": ["oauth2-proxy"],
 }
+
+
+def direct_dependencies(service: str, available: set[str] | None = None) -> list[str]:
+    """Backends ``service`` must reach before it starts. ``available`` limits the set."""
+    backends: list[str] = []
+    for backend, consumers in PACKAGE_REQUIRES.items():
+        if service not in consumers or backend == service:
+            continue
+        if available is not None and backend not in available:
+            continue
+        backends.append(backend)
+    order_map = {name: index for index, name in enumerate(START_ORDER)}
+    return sorted(set(backends), key=lambda name: (order_map.get(name, 999), name))
+
+
+def dependency_queue(service: str, available: set[str] | None = None) -> list[str]:
+    """Transitive backends that must be ready before ``service``, in startup order."""
+    seen: list[str] = []
+
+    def walk(name: str) -> None:
+        for dep in direct_dependencies(name, available):
+            if dep in seen:
+                continue
+            walk(dep)
+            seen.append(dep)
+
+    walk(service)
+    return startup_queue(seen)
+
+
+def startup_queue(services) -> list[str]:
+    """Dependency order, using ``START_ORDER`` when several services are ready together."""
+    selected = list(dict.fromkeys(services))
+    selected_set = set(selected)
+    deps = {
+        name: [dep for dep in direct_dependencies(name) if dep in selected_set]
+        for name in selected
+    }
+    order_map = {name: index for index, name in enumerate(START_ORDER)}
+    remaining = set(selected)
+    queued: list[str] = []
+    while remaining:
+        ready = [
+            name
+            for name in remaining
+            if all(dep not in remaining for dep in deps[name])
+        ]
+        if not ready:
+            queued.extend(sorted(remaining, key=lambda name: (order_map.get(name, 999), name)))
+            break
+        ready.sort(key=lambda name: (order_map.get(name, 999), name))
+        chosen = ready[0]
+        queued.append(chosen)
+        remaining.remove(chosen)
+    return queued

@@ -18,7 +18,7 @@ cp pgvector/.env.example pgvector/.env
 ### Shared password (recommended)
 
 `make setup` applies **one** shared password to every service password field that
-still has the repo placeholder (`Password102!` or empty). Unique secrets (Garage,
+is still empty (or holds the legacy `Password102!` default from an older `.env`). Unique secrets (Garage,
 Woodpecker agent, Zitadel masterkey) are generated separately.
 
 ```bash

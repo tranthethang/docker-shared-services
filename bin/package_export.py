@@ -23,6 +23,8 @@ from config import (
     START_ORDER,
     STRONG_PASSWORD_REQUIRED,
     VALIDATION_RULES,
+    direct_dependencies,
+    startup_queue,
 )
 
 _NAME_RE = re.compile(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
@@ -434,8 +436,65 @@ def _make_lines(text: str) -> str:
 
 def _startup_order(services: list[str]) -> list[str]:
     """Same ordering as ``service_manager.sort_for_startup``."""
-    order = {name: index for index, name in enumerate(START_ORDER)}
-    return sorted(services, key=lambda name: (order.get(name, 999), name))
+    return startup_queue(services)
+
+
+_QUEUE_SHELL = r"""
+>@set -e; \
+>wait_ready() { \
+>dep="$$1"; \
+>deadline=$$((SECONDS + $(READY_TIMEOUT))); \
+>echo "  Waiting until $$dep is ready..."; \
+>while [ "$$SECONDS" -lt "$$deadline" ]; do \
+>ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" ps -aq); \
+>if [ -z "$$ids" ]; then \
+>echo "  ERROR: $$dep has no containers" >&2; \
+>return 1; \
+>fi; \
+>ready=1; \
+>for id in $$ids; do \
+>state=$$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$$id"); \
+>status="$${state%% *}"; \
+>health="$${state#* }"; \
+>if [ "$$status" != "running" ] || { [ "$$health" != "none" ] && [ "$$health" != "healthy" ]; }; then \
+>ready=0; \
+>fi; \
+>done; \
+>if [ "$$ready" -eq 1 ]; then \
+>echo "  $$dep is ready"; \
+>return 0; \
+>fi; \
+>sleep 2; \
+>done; \
+>echo "  ERROR: $$dep was not ready within $(READY_TIMEOUT)s" >&2; \
+>return 1; \
+>}; \
+>for s in $(STARTUP_SERVICES); do \
+>for item in $(SERVICE_DEPS) .:. ; do \
+>if [ "$${item%%:*}" = "$$s" ]; then \
+>wait_ready "$${item#*:}"; \
+>fi; \
+>done; \
+>echo "Starting $$s..."; \
+>$(COMPOSE) up -d__FLAGS__; \
+>done
+"""
+
+
+def _queue_recipe(flags: str) -> str:
+    suffix = f" {flags}" if flags else ""
+    text = _QUEUE_SHELL.lstrip("\n").replace("__FLAGS__", suffix)
+    return _make_lines(text)
+
+
+def _dependency_tokens(services: list[str]) -> str:
+    """``consumer:backend`` pairs, in startup order, for the packaged Makefile."""
+    selected = set(services)
+    tokens: list[str] = []
+    for service in _startup_order(services):
+        for backend in direct_dependencies(service, selected):
+            tokens.append(f"{service}:{backend}")
+    return " ".join(tokens)
 
 
 def _makefile(services: list[str]) -> str:
@@ -483,6 +542,9 @@ password ?=
 # loads <service>/.env for interpolation and resolves ./ paths inside <service>/.
 STARTUP_SERVICES := {" ".join(startup)}
 SHUTDOWN_SERVICES := {" ".join(reversed(startup))}
+# consumer:backend. up/recreate wait until each backend is running and healthy.
+SERVICE_DEPS := {_dependency_tokens(services)}
+READY_TIMEOUT ?= 300
 COMPOSE = docker compose --project-directory $$s -f docker-compose.shared.yml -f $$s/docker-compose.yml
 """
     body += _make_lines(
@@ -562,14 +624,15 @@ cert: ## Generate SSL certificates for Traefik
 >exit 1; \
 >fi
 
-up: ## Validate compose, then start the packaged stack
+up: ## Validate compose, then start the packaged stack in dependency order
 >@set -e; for s in $(STARTUP_SERVICES); do \
 >echo "Validating $$s..."; $(COMPOSE) config -q; \
 >done
->@set -e; for s in $(STARTUP_SERVICES); do \
->echo "Starting $$s..."; $(COMPOSE) up -d; \
->done
-
+"""
+    )
+    body += _queue_recipe("")
+    body += _make_lines(
+        r"""
 down: ## Stop and remove containers (keeps volumes)
 >@set -e; for s in $(SHUTDOWN_SERVICES); do \
 >echo "Stopping $$s..."; $(COMPOSE) down; \
@@ -580,12 +643,10 @@ restart: ## Restart the packaged stack
 >echo "Restarting $$s..."; $(COMPOSE) restart; \
 >done
 
-recreate: ## Recreate the packaged stack
->@set -e; for s in $(STARTUP_SERVICES); do \
->echo "Recreating $$s..."; $(COMPOSE) up -d --force-recreate; \
->done
+recreate: ## Recreate the packaged stack in dependency order
 """
     )
+    body += _queue_recipe("--force-recreate")
     return body
 
 
