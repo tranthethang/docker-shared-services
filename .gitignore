@@ -68,6 +68,7 @@ dozzle/data/
 !dozzle/data/.gitkeep
 
 # --- Docker Build Artifacts ---
+/dist/
 docker-compose.override.yml
 docker-compose.prod.yml
 docker-compose.lock

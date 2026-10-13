@@ -236,3 +236,36 @@ SERVICE_INFO_VARS = {
     "temporal": ["TEMPORAL_GRPC_PORT"],
     "zitadel": ["ZITADEL_HOSTNAME"],
 }
+
+# Services checked when the package wizard opens.
+PACKAGE_DEFAULT_SERVICES = [
+    "traefik",
+    "oauth2-proxy",
+    "postgres",
+    "zitadel",
+    "redis",
+    "adminer",
+    "mailpit",
+    "garage",
+    "hasura",
+]
+
+# Backend -> services that require it. Resolution is transitive, then ordered as SERVICES.
+# Zitadel's optional Redis cache URL does not require redis. Woodpecker and Supabase
+# do not require postgres. A compose file with traefik.enable=true also requires traefik.
+PACKAGE_REQUIRES: dict[str, list[str]] = {
+    "postgres": [
+        "bugsink",
+        "concourse",
+        "gitea",
+        "hasura",
+        "inngest",
+        "jenkins",
+        "sonarqube",
+        "temporal",
+        "zitadel",
+    ],
+    "pgvector": ["hindsight"],
+    "redis": ["inngest", "redisinsight"],
+    "zitadel": ["oauth2-proxy"],
+}

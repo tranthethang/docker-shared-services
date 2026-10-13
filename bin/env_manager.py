@@ -20,13 +20,13 @@ from config import (
 from utils import (
     error,
     generate_password,
-    validate_password_strength,
     generate_secret,
     iter_env_assignments,
     print_header,
     read_env_value,
     set_env_value,
     success,
+    validate_password_strength,
     warning,
 )
 
