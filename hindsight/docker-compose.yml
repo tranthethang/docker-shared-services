@@ -29,7 +29,7 @@ services:
           memory: "${HINDSIGHT_MEMORY_RESERVED:-256M}"
     # Traefik-only access — no host port publish (see plan: omit ports:).
     environment:
-      HINDSIGHT_API_DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-pgvector}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hindsight}"
+      HINDSIGHT_API_DATABASE_URL: "postgresql://${PGVECTOR_USER:-postgres}:${PGVECTOR_PASSWORD:-Password102!}@${PGVECTOR_HOST:-pgvector}:${PGVECTOR_PORT:-5432}/${PGVECTOR_DB:-hindsight}"
       # Chat via openai-quota-gateway (OpenAI-compatible /v1/chat/completions).
       HINDSIGHT_API_LLM_PROVIDER: "${HINDSIGHT_API_LLM_PROVIDER:-openai}"
       HINDSIGHT_API_LLM_API_KEY: "${HINDSIGHT_API_LLM_API_KEY:-}"
@@ -63,6 +63,11 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   infra_shared:

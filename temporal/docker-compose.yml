@@ -14,9 +14,9 @@ services:
     environment:
       - DB=${DB:-postgres12}
       - DB_PORT=${DB_PORT:-5432}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PWD=${POSTGRES_PWD:-Password102!}
-      - POSTGRES_SEEDS=${POSTGRES_SEEDS:-postgres}
+      - POSTGRES_USER=${POSTGRES16_USER:-postgres}
+      - POSTGRES_PWD=${POSTGRES16_PASSWORD:-Password102!}
+      - POSTGRES_SEEDS=${POSTGRES16_HOST:-postgres}
       # Archival Configuration
       - ARCHIVAL_ENABLED=${TEMPORAL_ARCHIVAL_ENABLED:-true}
       - DEFAULT_NAMESPACE_RETENTION=${TEMPORAL_ARCHIVAL_RETENTION_DAYS:-1}
@@ -40,6 +40,11 @@ services:
       timeout: 5s
       retries: 10
       start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   temporal-ui:
     labels:
@@ -76,6 +81,11 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   infra_shared:

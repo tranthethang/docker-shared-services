@@ -36,11 +36,16 @@ services:
     environment:
       - JENKINS_OPTS=--httpPort=8080
       - TZ="${TZ:-Asia/Ho_Chi_Minh}"
-      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
-      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_HOST=${POSTGRES16_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES16_PORT:-5432}
       - JENKINS_DB_NAME=${JENKINS_DB_NAME:-jenkins}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Password102!}
+      - POSTGRES_USER=${POSTGRES16_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES16_PASSWORD:-Password102!}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   infra_shared:

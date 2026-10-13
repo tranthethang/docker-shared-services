@@ -1,7 +1,7 @@
 services:
   centrifugo:
     container_name: centrifugo
-    image: centrifugo/centrifugo:v5
+    image: centrifugo/centrifugo:v5.4.9
     restart: "${RESTART_POLICY:-unless-stopped}"
     command: ["centrifugo", "--config=/centrifugo/config.json"]
     deploy:
@@ -33,6 +33,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   infra_shared:

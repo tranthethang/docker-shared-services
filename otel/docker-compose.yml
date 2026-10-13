@@ -65,6 +65,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   loki:
     container_name: loki
@@ -90,6 +95,11 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   promtail:
     container_name: promtail
@@ -101,7 +111,6 @@ services:
       - dev_tools
     volumes:
       - ./config/promtail.yml:/etc/promtail/config.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
       resources:
@@ -117,7 +126,8 @@ services:
       loki:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "perl -e 'use IO::Socket::INET; my $$s = IO::Socket::INET->new(PeerAddr => \"127.0.0.1:9080\", Timeout => 2) or exit 1; print $$s \"GET /ready HTTP/1.0\\r\\n\\r\\n\"; my $$l = <$$s>; exit($$l =~ /200/ ? 0 : 1);'"]
+      test: ["CMD-SHELL", "perl -e 'use IO::Socket::INET; my $$s = IO::Socket::INET->new(PeerAddr => \"127.0.0.1:9080\", Timeout\
+            \ => 2) or exit 1; print $$s \"GET /ready HTTP/1.0\\r\\n\\r\\n\"; my $$l = <$$s>; exit($$l =~ /200/ ? 0 : 1);'"]
       interval: 15s
       timeout: 5s
       retries: 3

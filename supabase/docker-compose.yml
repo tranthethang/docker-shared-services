@@ -58,6 +58,11 @@ services:
     networks:
       - infra_shared
       - dev_tools
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   supabase-kong:
     container_name: supabase-kong
@@ -143,6 +148,11 @@ services:
         aliases:
           - api-gw
       dev_tools:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   supabase-auth:
     container_name: supabase-auth
@@ -198,6 +208,11 @@ services:
     networks:
       - infra_shared
       - dev_tools
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   supabase-storage:
     container_name: supabase-storage
@@ -244,6 +259,11 @@ services:
 
   # Container name is intentional: Realtime derives tenant id from the subdomain
   # (realtime-dev). Do not rename to supabase-realtime.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   realtime:
     container_name: realtime-dev.supabase-realtime
     image: supabase/realtime:v2.102.3
@@ -287,6 +307,11 @@ services:
     networks:
       - infra_shared
       - dev_tools
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   supabase-meta:
     container_name: supabase-meta
@@ -304,7 +329,8 @@ services:
       supabase-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() =>\
+            \ process.exit(1))"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -322,6 +348,11 @@ services:
       - dev_tools
 
   # Dedicated Supabase Postgres (not shared pgvector/postgres stacks)
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   supabase-db:
     container_name: supabase-db
     image: supabase/postgres:17.6.1.136
@@ -346,7 +377,7 @@ services:
       - ./volumes/db/storage-grants.sql:/docker-entrypoint-initdb.d/init-scripts/99-storage-grants.sql:Z
       # Realtime Elixir metadata schema (_realtime)
       - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
-      - ./volumes/db/data:/var/lib/postgresql/data:Z
+      - supabase_db_data:/var/lib/postgresql/data:Z
       - supabase_db_config:/etc/postgresql-custom
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
@@ -367,10 +398,17 @@ services:
     networks:
       - infra_shared
       - dev_tools
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   supabase_db_config:
     name: supabase_db_config
+  supabase_db_data:
+    name: supabase_db_data
 
 networks:
   infra_shared:

@@ -13,8 +13,8 @@ services:
           memory: "${HASURA_MEMORY_RESERVED:-128M}"
     environment:
       # Shared PostgreSQL 16 (postgres/docker-compose.yml) on infra_shared
-      HASURA_GRAPHQL_METADATA_DATABASE_URL: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hasura}"
-      PG_DATABASE_URL: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hasura}"
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: "postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:-Password102!}@${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-hasura}"
+      PG_DATABASE_URL: "postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:-Password102!}@${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-hasura}"
       HASURA_GRAPHQL_ENABLE_CONSOLE: "${HASURA_GRAPHQL_ENABLE_CONSOLE:-true}"
       HASURA_GRAPHQL_DEV_MODE: "${HASURA_GRAPHQL_DEV_MODE:-true}"
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: "${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup, http-log, webhook-log, websocket-log,\
@@ -37,6 +37,11 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   infra_shared:

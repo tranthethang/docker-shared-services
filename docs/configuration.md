@@ -41,7 +41,8 @@ into each service’s password variables (Postgres, Redis, MinIO, Grafana, …).
 
 ```bash
 # Edit that service's .env only (won't be overwritten unless you pass force=1)
-POSTGRES_PASSWORD=your_strong_password
+POSTGRES16_PASSWORD=your_strong_password
+PGVECTOR_PASSWORD=your_strong_password
 MYSQL_ROOT_PASSWORD=your_strong_password
 MONGO_ROOT_PASSWORD=your_strong_password
 ```
@@ -50,7 +51,7 @@ MONGO_ROOT_PASSWORD=your_strong_password
 
 ```bash
 # Edit service .env file
-POSTGRES_PORT=5555          # pgvector's own port (default is already 5433,
+PGVECTOR_PORT=5555          # pgvector's host port (default is already 5433,
                              # chosen so it never clashes with Postgres 16 on 5432)
 MYSQL_PORT=3307              # Instead of 3306
 ```
@@ -58,10 +59,10 @@ MYSQL_PORT=3307              # Instead of 3306
 ### Resource Limits
 
 ```env
-POSTGRES_CPUS_LIMIT=2
-POSTGRES_MEMORY_LIMIT=2G
-POSTGRES_CPUS_RESERVED=1
-POSTGRES_MEMORY_RESERVED=1G
+PGVECTOR_CPUS_LIMIT=2
+PGVECTOR_MEMORY_LIMIT=2G
+PGVECTOR_CPUS_RESERVED=1
+PGVECTOR_MEMORY_RESERVED=1G
 ```
 
 ### Enable/Disable Services
@@ -100,7 +101,7 @@ redis://:Password102!@redis:6379
 amqp://admin:<DSS_SHARED_PASSWORD>@rabbitmq:5672
 
 # Service-to-service (default shared Postgres backend)
-POSTGRES_HOST=postgres
+POSTGRES16_HOST=postgres
 REDIS_HOST=redis
 RABBITMQ_HOST=rabbitmq
 ```

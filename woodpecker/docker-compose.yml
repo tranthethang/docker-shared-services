@@ -1,6 +1,6 @@
 services:
   woodpecker-server:
-    image: woodpeckerci/woodpecker-server:v3
+    image: woodpeckerci/woodpecker-server:v3.19.0
     container_name: woodpecker-server
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -45,6 +45,11 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   socket-proxy:
     image: tecnativa/docker-socket-proxy:v0.5.0
@@ -71,9 +76,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - woodpecker_docker
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   woodpecker-agent:
-    image: woodpeckerci/woodpecker-agent:v3
+    image: woodpeckerci/woodpecker-agent:v3.19.0
     container_name: woodpecker-agent
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -103,6 +113,11 @@ services:
       - infra_shared
       - dev_tools
       - woodpecker_docker
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   woodpecker_data:

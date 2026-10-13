@@ -1,7 +1,7 @@
 services:
   gotenberg:
     container_name: gotenberg
-    image: gotenberg/gotenberg:8
+    image: gotenberg/gotenberg:8.37.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -22,6 +22,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   infra_shared:

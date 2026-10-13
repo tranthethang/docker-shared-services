@@ -32,11 +32,11 @@ Hasura stores metadata (and uses `PG_DATABASE_URL` as the default Postgres sourc
 Connection defaults (override in `hasura/.env`):
 
 ```text
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=Password102!
-POSTGRES_DB=hasura
+POSTGRES16_HOST=postgres
+POSTGRES16_PORT=5432
+POSTGRES16_USER=postgres
+POSTGRES16_PASSWORD=Password102!
+POSTGRES16_DB=hasura
 ```
 
 ## Configuration Notes

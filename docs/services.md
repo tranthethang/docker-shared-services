@@ -75,30 +75,30 @@ ______________________________________________________________________
 | MongoDB        | `localhost:27017`                                                    | `root` / `Password102!`                                        |
 | Redis          | `localhost:6379`                                                     | - / `Password102!`                                             |
 | RabbitMQ       | `localhost:5672`                                                     | `guest` / `guest`                                              |
-| RabbitMQ UI    | `https://rabbitmq.dss.localhost`                                    | `guest` / `guest`                                              |
-| Adminer        | `https://adminer.dss.localhost`                                    | -                                                              |
-| ChromaDB Admin | `https://chromadb-admin.dss.localhost`                             | -                                                              |
-| Gitea          | `https://gitea.dss.localhost`                                      | -                                                              |
-| Crawl4AI       | `https://crawl4ai.dss.localhost`                                   | Bearer token from `crawl4ai/.env`                              |
+| RabbitMQ UI    | `https://rabbitmq.dss.localhost`                                     | `guest` / `guest`                                              |
+| Adminer        | `https://adminer.dss.localhost`                                      | -                                                              |
+| ChromaDB Admin | `https://chromadb-admin.dss.localhost`                               | -                                                              |
+| Gitea          | `https://gitea.dss.localhost`                                        | -                                                              |
+| Crawl4AI       | `https://crawl4ai.dss.localhost`                                     | Bearer token from `crawl4ai/.env`                              |
 | Hindsight API  | `https://hindsight.dss.localhost` (Traefik only; MCP `/mcp/<bank>/`) | Set `HINDSIGHT_API_LLM_API_KEY` in `hindsight/.env`            |
 | Hindsight UI   | `https://hindsight-ui.dss.localhost` (Traefik only)                  | -                                                              |
-| Hasura         | `https://hasura.dss.localhost`                                      | Admin secret: `Password102!`                                   |
-| Inngest        | `https://inngest.dss.localhost`                                    | -                                                              |
-| Node-RED       | `https://node-red.dss.localhost`                                   | -                                                              |
-| SonarQube      | `https://sonarqube.dss.localhost`                                  | `admin` / `admin`                                              |
-| Jenkins        | `https://jenkins.dss.localhost`                                    | -                                                              |
-| MinIO          | `https://minio.dss.localhost`                                      | `admin` / `Password102!`                                       |
-| MinIO Console  | `https://minio.dss.localhost`                                      | `admin` / `Password102!`                                       |
-| Mailpit        | `https://mailpit.dss.localhost`                                    | -                                                              |
-| Concourse      | `https://concourse.dss.localhost`                                  | `admin` / `Password102!`                                       |
-| Redis Insight  | `https://redisinsight.dss.localhost`                               | -                                                              |
-| Grafana        | `https://grafana.dss.localhost`                                    | `admin` / `Password102!`                                       |
+| Hasura         | `https://hasura.dss.localhost`                                       | Admin secret: `Password102!`                                   |
+| Inngest        | `https://inngest.dss.localhost`                                      | -                                                              |
+| Node-RED       | `https://node-red.dss.localhost`                                     | -                                                              |
+| SonarQube      | `https://sonarqube.dss.localhost`                                    | `admin` / `admin`                                              |
+| Jenkins        | `https://jenkins.dss.localhost`                                      | -                                                              |
+| MinIO          | `https://minio.dss.localhost`                                        | `admin` / `Password102!`                                       |
+| MinIO Console  | `https://minio.dss.localhost`                                        | `admin` / `Password102!`                                       |
+| Mailpit        | `https://mailpit.dss.localhost`                                      | -                                                              |
+| Concourse      | `https://concourse.dss.localhost`                                    | `admin` / `Password102!`                                       |
+| Redis Insight  | `https://redisinsight.dss.localhost`                                 | -                                                              |
+| Grafana        | `https://grafana.dss.localhost`                                      | `admin` / `Password102!`                                       |
 | Loki           | `http://localhost:3100`                                              | -                                                              |
 | OTel Collector | `localhost:4317` (gRPC), `localhost:4318` (HTTP)                     | Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`   |
-| Temporal UI    | `https://temporal.dss.localhost`                                    | Opt-in Zitadel via `AUTH_*` (off by default)                   |
+| Temporal UI    | `https://temporal.dss.localhost`                                     | Opt-in Zitadel via `AUTH_*` (off by default)                   |
 | Traefik        | `http://localhost:8080`                                              | -                                                              |
 | oauth2-proxy   | `https://auth.dss.localhost` (Traefik only)                          | Zitadel OIDC client id/secret in `oauth2-proxy/.env`           |
-| Zitadel        | `https://zitadel.dss.localhost`                                     | `zitadel-admin@zitadel.zitadel.dss.localhost` / `Password102!` |
+| Zitadel        | `https://zitadel.dss.localhost`                                      | `zitadel-admin@zitadel.zitadel.dss.localhost` / `Password102!` |
 
 ______________________________________________________________________
 

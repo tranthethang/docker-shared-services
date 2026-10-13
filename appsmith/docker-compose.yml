@@ -7,7 +7,7 @@ services:
       - "traefik.http.routers.appsmith.tls=true"
       - "traefik.http.services.appsmith.loadbalancer.server.port=80"
     container_name: appsmith
-    image: appsmith/appsmith-ce:v2.1
+    image: appsmith/appsmith-ce:v2.5.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -25,6 +25,11 @@ services:
       timeout: 10s
       retries: 5
       start_period: 120s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   appsmith_data:

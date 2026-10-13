@@ -20,8 +20,8 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "5m"
-        max-file: "2"
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "memcached-tool", "localhost", "stats"]
       interval: 10s

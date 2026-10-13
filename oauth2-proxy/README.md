@@ -48,11 +48,11 @@ Issuer discovery: `https://zitadel.dss.localhost/.well-known/openid-configuratio
 
 Defined on this service (Docker provider):
 
-| Middleware     | Purpose                                                                    |
-| -------------- | -------------------------------------------------------------------------- |
-| `auth-none`    | No-op (public UI; default for opt-in services)                             |
-| `auth-default` | Require any authenticated Zitadel user (ForwardAuth with browser redirect) |
-| `auth-admin`   | Extension point for stricter policies (same forward auth until customized) |
+| Middleware     | Purpose                                                                       |
+| -------------- | ----------------------------------------------------------------------------- |
+| `auth-none`    | No-op (public UI; default for opt-in services)                                |
+| `auth-default` | Require any authenticated Zitadel user (ForwardAuth with browser redirect)    |
+| `auth-admin`   | Extension point for stricter policies (same forward auth until customized)    |
 | `auth-forward` | ForwardAuth to oauth2-proxy `/` (202 authenticated, 302 to sign-in otherwise) |
 
 Protect a UI by setting in that service’s `.env` and restarting it:

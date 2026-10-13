@@ -88,11 +88,11 @@ Override with `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD`. Hostname is con
 
 ### Host ports (fallback / APIs — no Traefik UI)
 
-| What             | Address                 | Notes                                      |
-| ---------------- | ----------------------- | ------------------------------------------ |
-| Loki HTTP API    | `http://localhost:3100` | Ready check, push/query API; **no web UI** |
-| OTLP gRPC        | `localhost:4317`        | For apps on the host                       |
-| OTLP HTTP        | `localhost:4318`        | For apps on the host                       |
+| What          | Address                 | Notes                                      |
+| ------------- | ----------------------- | ------------------------------------------ |
+| Loki HTTP API | `http://localhost:3100` | Ready check, push/query API; **no web UI** |
+| OTLP gRPC     | `localhost:4317`        | For apps on the host                       |
+| OTLP HTTP     | `localhost:4318`        | For apps on the host                       |
 
 Promtail has **no** published UI or Traefik route.
 
@@ -261,12 +261,12 @@ ______________________________________________________________________
 
 | Symptom                               | What to check                                                                                 |
 | ------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `https://grafana.dss.localhost` fails | Check that Traefik is running and that certificates cover `*.dss.localhost`.                |
+| `https://grafana.dss.localhost` fails | Check that Traefik is running and that certificates cover `*.dss.localhost`.                  |
 | App cannot reach Collector            | Same Docker network? Hostname `otel-collector`? Host apps use `localhost:4317` (not Traefik). |
 | No logs in Grafana                    | Promtail needs Docker socket; Collector needs Loki healthy. Run `./otel/test-otel.sh`.        |
 | Grafana has no Loki datasource        | Confirm mount `./grafana/provisioning` and restart Grafana.                                   |
 | Loki disk growth                      | Retention is `168h` in `config/loki.yml`; lower `retention_period` if needed.                 |
-| Port already allocated                | Change `OTEL_COLLECTOR_PORT_*` or `LOKI_PORT` in `otel/.env` / root `.env`.  |
+| Port already allocated                | Change `OTEL_COLLECTOR_PORT_*` or `LOKI_PORT` in `otel/.env` / root `.env`.                   |
 
 Collector health extension (inside the container network): `http://otel-collector:13133/`.
 

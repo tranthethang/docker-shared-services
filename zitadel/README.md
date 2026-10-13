@@ -12,10 +12,10 @@ make up service=traefik       # Reverse proxy / TLS termination
 make up service=zitadel       # Starts Zitadel API and Login UI
 ```
 
-| Resource         | URL                                         | Default Credentials                                                            |
-| ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------ |
-| Console UI       | `https://zitadel.dss.localhost/ui/console`  | User: `zitadel-admin@zitadel.zitadel.dss.localhost` / Password: `Password102!` |
-| Login UI (v2)    | `https://zitadel.dss.localhost/ui/v2/login` | Served by `zitadel-login`                                                      |
+| Resource      | URL                                         | Default Credentials                                                            |
+| ------------- | ------------------------------------------- | ------------------------------------------------------------------------------ |
+| Console UI    | `https://zitadel.dss.localhost/ui/console`  | User: `zitadel-admin@zitadel.zitadel.dss.localhost` / Password: `Password102!` |
+| Login UI (v2) | `https://zitadel.dss.localhost/ui/v2/login` | Served by `zitadel-login`                                                      |
 
 ## Database Dependency
 

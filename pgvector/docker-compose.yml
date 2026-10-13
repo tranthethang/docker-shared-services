@@ -1,22 +1,22 @@
 services:
   pgvector:
     container_name: pgvector
-    image: pgvector/pgvector:pg17
+    image: pgvector/pgvector:0.8.7-pg17
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
         limits:
-          cpus: "${POSTGRES_CPUS_LIMIT:-1}"
-          memory: "${POSTGRES_MEMORY_LIMIT:-1G}"
+          cpus: "${PGVECTOR_CPUS_LIMIT:-1}"
+          memory: "${PGVECTOR_MEMORY_LIMIT:-1G}"
         reservations:
-          cpus: "${POSTGRES_CPUS_RESERVED:-0.5}"
-          memory: "${POSTGRES_MEMORY_RESERVED:-512M}"
+          cpus: "${PGVECTOR_CPUS_RESERVED:-0.5}"
+          memory: "${PGVECTOR_MEMORY_RESERVED:-512M}"
     environment:
-      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-Password102!}"
-      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_USER: "${PGVECTOR_USER:-postgres}"
+      POSTGRES_PASSWORD: "${PGVECTOR_PASSWORD:-Password102!}"
+      POSTGRES_DB: "${PGVECTOR_DB:-postgres}"
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+      - "127.0.0.1:${PGVECTOR_PORT:-5433}:5432"
     networks:
       - infra_shared
       - dev_tools
