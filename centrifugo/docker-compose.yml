@@ -17,14 +17,13 @@ services:
     volumes:
       - ./config.json:/centrifugo/config.json:ro
     environment:
-      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=${JWT_SIGNING_KEY:-Password102!}
+      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env — run make setup}
       - CENTRIFUGO_TOKEN_USER_ID_CLAIM=user_id
-      - CENTRIFUGO_API_KEY=${CENTRIFUGO_API_KEY:-Password102!}
+      - CENTRIFUGO_API_KEY=${CENTRIFUGO_API_KEY:?Set CENTRIFUGO_API_KEY in .env — run make setup}
       - CENTRIFUGO_ADMIN=false
       - CENTRIFUGO_ALLOWED_ORIGINS=${CENTRIFUGO_ALLOWED_ORIGINS:-*}
     networks:
-      infra_shared:
-      dev_tools:
+      backend_net:
         aliases:
           - centrifugo
     healthcheck:
@@ -40,7 +39,5 @@ services:
         max-file: "3"
 
 networks:
-  infra_shared:
-    external: true
-  dev_tools:
+  backend_net:
     external: true

@@ -17,8 +17,7 @@ services:
       - "127.0.0.1:${OTEL_COLLECTOR_PORT_GRPC:-4317}:4317" # OTLP gRPC
       - "127.0.0.1:${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
     logging:
       driver: json-file
       options:
@@ -31,8 +30,9 @@ services:
   grafana:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOSTNAME:-grafana.dss.localhost}`)"
-      - "traefik.http.routers.grafana.entrypoints=web,websecure"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     container_name: grafana
@@ -40,12 +40,12 @@ services:
     restart: ${RESTART_POLICY:-unless-stopped}
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-Password102!}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env — run make setup}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
@@ -79,8 +79,8 @@ services:
     ports:
       - "127.0.0.1:${LOKI_PORT:-3100}:3100"
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
+      - data_net
     volumes:
       - ./config/loki.yml:/etc/loki/local-config.yaml:ro
       - loki_data:/loki
@@ -107,8 +107,7 @@ services:
     restart: ${RESTART_POLICY:-unless-stopped}
     command: -config.file=/etc/promtail/config.yml
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
     volumes:
       - ./config/promtail.yml:/etc/promtail/config.yml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -134,9 +133,11 @@ services:
       start_period: 15s
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
+    external: true
+  data_net:
     external: true
 
 volumes:

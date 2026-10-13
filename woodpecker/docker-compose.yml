@@ -30,12 +30,13 @@ services:
     volumes:
       - woodpecker_data:/var/lib/woodpecker
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.woodpecker.rule=Host(`${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-dss.localhost}`)"
-      - "traefik.http.routers.woodpecker.entrypoints=web,websecure"
+      - "traefik.http.routers.woodpecker.entrypoints=websecure"
       - "traefik.http.routers.woodpecker.tls=true"
       - "traefik.http.services.woodpecker.loadbalancer.server.port=8000"
     healthcheck:
@@ -110,8 +111,7 @@ services:
       - WOODPECKER_BACKEND_DOCKER=true
       - DOCKER_HOST=tcp://socket-proxy:2375
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
       - woodpecker_docker
     logging:
       driver: json-file
@@ -124,9 +124,9 @@ volumes:
     name: woodpecker_data
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true
   # Only the agent may reach the socket proxy. Do not attach this network elsewhere.
   woodpecker_docker:

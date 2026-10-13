@@ -64,7 +64,9 @@ make restart
 ### Network issues
 
 ```bash
-docker network inspect infra_shared
+docker network inspect traefik_proxy
+docker network inspect backend_net
+docker network inspect data_net
 docker logs [container_id]
 docker exec [container1] ping [container2]
 ```
@@ -121,7 +123,7 @@ For issues or questions:
 1. Review service-specific `.env.example` files.
 1. Check Docker logs: `make logs`
 1. Validate configuration: `make validate`
-1. Inspect networks: `docker network inspect infra_shared` and `docker network inspect dev_tools`
+1. Inspect networks: `docker network inspect traefik_proxy`, `docker network inspect backend_net`, and `docker network inspect data_net`
 
 ______________________________________________________________________
 

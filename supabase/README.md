@@ -1,6 +1,6 @@
 # Supabase (minimal + Realtime)
 
-Self-hosted Supabase pruned to **Auth + dedicated Postgres + Storage + Realtime + Studio**, behind Kong. Part of [docker-shared-services](../): shared networks (`infra_shared`, `dev_tools`), Traefik TLS, and optional Mailpit for auth email.
+Self-hosted Supabase pruned to **Auth + dedicated Postgres + Storage + Realtime + Studio**, behind Kong. Part of [docker-shared-services](../): shared networks (`traefik_proxy`, `backend_net`, `data_net`), Traefik TLS, and optional Mailpit for auth email.
 
 This stack uses its **own** Postgres (`supabase-db` on host port `5434`). It does **not** use the shared PgVector or Postgres 16 services.
 
@@ -46,7 +46,7 @@ Studio UI is open directly for local development at https://studio.dss.localhost
 
 **Not included:** PostgREST, GraphQL, imgproxy, Edge Functions, Logflare/Vector, Supavisor, TLS proxy overlays (Traefik handles TLS).
 
-SMTP defaults to shared Mailpit (`mailpit:1025` on `infra_shared` / `dev_tools`).
+SMTP defaults to shared Mailpit (`mailpit:1025` on `backend_net`).
 
 ## Port map (host)
 

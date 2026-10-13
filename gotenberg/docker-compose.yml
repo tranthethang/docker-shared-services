@@ -14,8 +14,7 @@ services:
     ports:
       - "127.0.0.1:${GOTENBERG_API_PORT:-3030}:3000"
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
@@ -29,7 +28,5 @@ services:
         max-file: "3"
 
 networks:
-  infra_shared:
-    external: true
-  dev_tools:
+  backend_net:
     external: true

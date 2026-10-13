@@ -14,10 +14,10 @@ make up service=traefik       # Optional: reverse proxy / TLS
 make up service=hasura
 ```
 
-| Resource         | URL                                       | Default Credentials            |
-| ---------------- | ----------------------------------------- | ------------------------------ |
-| Console (TLS)    | `https://hasura.dss.localhost/console`    | Admin secret: `Password102!`   |
-| GraphQL endpoint | `https://hasura.dss.localhost/v1/graphql` | Header `x-hasura-admin-secret` |
+| Resource         | URL                                       | Default Credentials                 |
+| ---------------- | ----------------------------------------- | ----------------------------------- |
+| Console (TLS)    | `https://hasura.dss.localhost/console`    | Admin secret: `DSS_SHARED_PASSWORD` |
+| GraphQL endpoint | `https://hasura.dss.localhost/v1/graphql` | Header `x-hasura-admin-secret`      |
 
 ## Database Dependency
 
@@ -35,7 +35,7 @@ Connection defaults (override in `hasura/.env`):
 POSTGRES16_HOST=postgres
 POSTGRES16_PORT=5432
 POSTGRES16_USER=postgres
-POSTGRES16_PASSWORD=Password102!
+POSTGRES16_PASSWORD=<DSS_SHARED_PASSWORD>
 POSTGRES16_DB=hasura
 ```
 

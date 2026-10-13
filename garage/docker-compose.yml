@@ -33,19 +33,20 @@ services:
       - garage_data:/var/lib/garage/data
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.garage-s3.rule=Host(`s3.garage.dss.localhost`)"
-      - "traefik.http.routers.garage-s3.entrypoints=web,websecure"
+      - "traefik.http.routers.garage-s3.entrypoints=websecure"
       - "traefik.http.routers.garage-s3.tls=true"
       - "traefik.http.routers.garage-s3.service=garage-s3"
       - "traefik.http.services.garage-s3.loadbalancer.server.port=3900"
       - "traefik.http.routers.garage-admin.rule=Host(`admin.garage.dss.localhost`)"
-      - "traefik.http.routers.garage-admin.entrypoints=web,websecure"
+      - "traefik.http.routers.garage-admin.entrypoints=websecure"
       - "traefik.http.routers.garage-admin.tls=true"
       - "traefik.http.routers.garage-admin.service=garage-admin"
       - "traefik.http.services.garage-admin.loadbalancer.server.port=3903"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     # Image is distroless (no shell/curl). CLI + healthcheck share GARAGE_CONFIG_FILE.
     healthcheck:
       test: ["CMD", "/garage", "status"]
@@ -60,9 +61,9 @@ services:
         max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true
 
 volumes:

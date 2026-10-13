@@ -5,7 +5,7 @@ Spin up the **minimal Supabase** stack (Auth, dedicated Postgres, Storage, Realt
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) with Compose v2 (`docker compose`)
-- Shared networks from repo root: `make setup` (creates `infra_shared` and `dev_tools`)
+- Shared networks from repo root: `make setup` (creates `traefik_proxy`, `backend_net`, and `data_net`)
 - `openssl` (used by key-generation scripts)
 - Optional: `make up service=traefik` for TLS hosts
 - Optional: `make up service=mailpit` for auth confirmation emails

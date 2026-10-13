@@ -46,7 +46,7 @@ ______________________________________________________________________
 
 - **Global `.env`**: Created from root `.env.example`, contains shared variables and resource limits.
 - **Service `.env`**: Each directory has its own `.env` (copy from `.env.example`) for service-specific overrides.
-- **Shared networks**: External bridge networks `infra_shared` (10.0.0.0/16) and `dev_tools` (10.1.0.0/16), declared in `docker-compose.shared.yml`. Docker cannot assign the same CIDR to two networks; adjacent `/16` blocks keep addressing under `10.0.0.0/8`. Most services attach to both so Traefik (on `infra_shared`) and legacy compose stacks (on `dev_tools`) can reach them by container name on the appropriate network.
+- **Shared networks**: External bridge networks `traefik_proxy` (10.0.0.0/16), `backend_net` (10.1.0.0/16), and `data_net` (10.2.0.0/16), declared in `docker-compose.shared.yml`. Docker cannot assign the same CIDR to two networks; adjacent `/16` blocks keep addressing under `10.0.0.0/8`. Traefik attaches only to `traefik_proxy`. Application containers use `backend_net`. Databases and caches use `data_net` and `backend_net` so clients can reach them. See `docs/network-segmentation.md`.
 
 ## Usage & Operations
 
@@ -67,7 +67,7 @@ make cert           # Generate SSL certificates using mkcert
 ```
 
 **Service Access**:
-Web UIs are accessed through Traefik hostnames under `https://*.dss.localhost`; do not publish UI ports to the host. Database and protocol ports may remain bound to loopback when direct client access is required. Default credentials (e.g., `admin/Password102!`) are provided in `README.md` for development.
+Web UIs are accessed through Traefik hostnames under `https://*.dss.localhost`; do not publish UI ports to the host. Database and protocol ports may remain bound to loopback when direct client access is required. Run `make setup` before starting services. It generates `DSS_SHARED_PASSWORD` in the root `.env`; the Traefik dashboard login is `admin` plus that password. Example files still show `Password102!`, and setup rejects that value.
 
 ## Docker Configuration
 
@@ -76,7 +76,7 @@ Web UIs are accessed through Traefik hostnames under `https://*.dss.localhost`; 
 - **Base Images**: Official Docker Hub images.
 - **Resource Limits**: CPU and Memory limits/reservations defined via environment variables.
 - **Persistence**: Named Docker volumes (e.g., `pgvector_data`, `gitea_data`) for data durability.
-- **Networking**: `docker-compose.shared.yml` defines external networks `infra_shared` and `dev_tools`. Traefik is configured to use `infra_shared` for Docker provider routing.
+- **Networking**: `docker-compose.shared.yml` defines external networks `traefik_proxy`, `backend_net`, and `data_net`. Traefik uses `traefik_proxy` for Docker provider routing.
 
 ## Validation
 

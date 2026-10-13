@@ -9,11 +9,11 @@ PYTHON_SVC_MGR := python3 bin/service_manager.py
 UV ?= uv
 
 # Optional shared password for setup/passwords targets:
-#   make setup password='Password102!'
-#   DSS_SHARED_PASSWORD='Password102!' make setup
-#   make passwords password='Password102!'
-# When omitted, setup uses the shared development password below.
-password ?= Password102!
+#   make setup password='your-secure-password'
+#   DSS_SHARED_PASSWORD='your-secure-password' make setup
+#   make passwords password='your-secure-password'
+# When omitted, setup generates a shared password on first use.
+password ?=
 
 # Dynamic DOCKER_COMPOSE command that includes all services
 DOCKER_COMPOSE = docker compose -f docker-compose.shared.yml \
@@ -34,10 +34,10 @@ help: ## Show this help message
 		awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
-setup: ## Setup env files, networks, certs (optional: password='Password102!')
-	@echo "Checking shared Docker networks (infra_shared, dev_tools)..."
-	@# Two bridges cannot share one CIDR; prefer adjacent /16s in 10/8. Fall back if pool overlaps (OrbStack/Docker Desktop).
-	@for pair in "infra_shared:10.0.0.0/16" "dev_tools:10.1.0.0/16"; do \
+setup: ## Setup env files, networks, certs (optional: password='your-secure-password')
+	@echo "Checking shared Docker networks (traefik_proxy, backend_net, data_net)..."
+	@# Bridges cannot share one CIDR; prefer adjacent /16s in 10/8. Fall back if pool overlaps (OrbStack/Docker Desktop).
+	@for pair in "traefik_proxy:10.0.0.0/16" "backend_net:10.1.0.0/16" "data_net:10.2.0.0/16"; do \
 		name=$${pair%%:*}; subnet=$${pair#*:}; \
 		if docker network inspect $$name >/dev/null 2>&1; then \
 			echo "  $$name: already exists"; \
@@ -59,8 +59,8 @@ setup: ## Setup env files, networks, certs (optional: password='Password102!')
 	fi
 	@# Append keys newly added to .env.example without overwriting existing values.
 	@$(PYTHON_ENV_MGR) merge-missing all
-	@# ONE shared password for all Password102! placeholders (DB/Redis/MinIO/…).
-	@# Override: make setup password='Password102!'  OR  DSS_SHARED_PASSWORD='…' make setup
+	@# ONE shared password for every placeholder password (DB/Redis/MinIO/…).
+	@# Override: make setup password='your-secure-password'  OR  DSS_SHARED_PASSWORD='…' make setup
 	@# Unique secrets (Garage, Woodpecker agent) are filled next and stay distinct.
 	@$(PYTHON_ENV_MGR) fill-shared-password $(if $(password),--password "$(password)",)
 	@$(PYTHON_ENV_MGR) fill-secrets all
@@ -75,7 +75,10 @@ setup: ## Setup env files, networks, certs (optional: password='Password102!')
 		if [[ -z "$$DOZZLE_PW" && -f .env ]]; then \
 			DOZZLE_PW=$$(grep -E '^DSS_SHARED_PASSWORD=' .env | head -1 | cut -d= -f2-); \
 		fi; \
-		DOZZLE_PW="$${DOZZLE_PW:-Password102!}"; \
+		if [[ -z "$$DOZZLE_PW" || "$$DOZZLE_PW" == "Password102!" ]]; then \
+			echo "  ERROR: DSS_SHARED_PASSWORD is missing or still Password102!. Run make setup before generating Dozzle users." >&2; \
+			exit 1; \
+		fi; \
 		echo "  dozzle/data/users.yml not found -> generating admin (shared password)..."; \
 		docker run --rm -i amir20/dozzle generate admin \
 		  --password "$$DOZZLE_PW" \
@@ -220,9 +223,10 @@ info: ## Show service information and access URLs
 	@echo "║                     Service Information                        ║"
 	@echo "╚════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "Networks (10/8 plan, two non-overlapping /16s):"
-	@echo "  • infra_shared — 10.0.0.0/16 (Traefik + main stack)"
-	@echo "  • dev_tools — 10.1.0.0/16 (legacy / external compose)"
+	@echo "Networks (three-tier topology, 10/8 plan):"
+	@echo "  • traefik_proxy — 10.0.0.0/16 (Traefik ingress + routed web services)"
+	@echo "  • backend_net   — 10.1.0.0/16 (application logic containers & workers)"
+	@echo "  • data_net      — 10.2.0.0/16 (isolated databases, caches, and storage)"
 	@echo ""
 	@echo "Services:"
 	@echo "  • Adminer - https://adminer.dss.localhost"
@@ -266,7 +270,7 @@ info: ## Show service information and access URLs
 	@echo "  • SonarQube - https://sonarqube.dss.localhost"
 	@echo "  • Supabase - https://studio.dss.localhost (API: https://supabase.dss.localhost, DB: localhost:5434)"
 	@echo "  • Temporal - localhost:7233 (UI: https://temporal.dss.localhost)"
-	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
+	@echo "  • Traefik (Reverse Proxy) - https://traefik.dss.localhost (BasicAuth)"
 	@echo "  • Woodpecker CI - https://woodpecker.dss.localhost"
 	@echo "  • Zitadel - https://zitadel.dss.localhost"
 	@echo ""

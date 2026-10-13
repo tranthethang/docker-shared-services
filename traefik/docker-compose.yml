@@ -1,7 +1,16 @@
 services:
   traefik:
-    image: "traefik:v2.11.31"
+    image: "traefik:v3.7"
     container_name: "traefik"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.dss.localhost`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH:?Set TRAEFIK_DASHBOARD_AUTH in .env\
+        \ (run make setup)}"
     deploy:
       resources:
         limits:
@@ -11,23 +20,24 @@ services:
           cpus: "${TRAEFIK_CPUS_RESERVED:-0.5}"
           memory: "${TRAEFIK_MEMORY_RESERVED:-256M}"
     command:
-      # Dashboard/API stay available for local DX but are only published on loopback (see ports).
-      - "--api.insecure=true"
       - "--api.dashboard=true"
       - "--ping=true"
       - "--entryPoints.web.address=:80"
+      - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entryPoints.web.http.redirections.entryPoint.permanent=true"
       - "--entryPoints.websecure.address=:443"
       - "--providers.file=true"
       - "--providers.file.filename=/traefik/config.yml"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=infra_shared"
+      - "--providers.docker.network=traefik_proxy"
+      - "--providers.docker.defaultRule=Host(`{{ normalize .Name }}.dss.localhost`)"
       - "--log.level=${LOG_LEVEL:-INFO}"
     ports:
       # Loopback-only: *.dss.localhost and local tools still work; LAN exposure is blocked (SEC-02/SEC-05).
       - "127.0.0.1:80:80"
       - "127.0.0.1:443:443"
-      - "127.0.0.1:8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config.yml:/traefik/config.yml:ro
@@ -45,13 +55,11 @@ services:
       start_period: 10s
     restart: "${RESTART_POLICY:-unless-stopped}"
     networks:
-      infra_shared:
+      traefik_proxy:
         aliases:
           - minio.dss.localhost
           - s3.minio.dss.localhost
 
 networks:
-  infra_shared:
-    external: true
-  dev_tools:
+  traefik_proxy:
     external: true

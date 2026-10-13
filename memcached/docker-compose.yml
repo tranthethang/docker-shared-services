@@ -14,8 +14,8 @@ services:
     ports:
       - "127.0.0.1:${MEMCACHED_PORT:-11211}:11211"
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
+      - data_net
     stop_grace_period: 20s
     logging:
       driver: json-file
@@ -30,7 +30,7 @@ services:
       start_period: 5s
 
 networks:
-  infra_shared:
+  backend_net:
     external: true
-  dev_tools:
+  data_net:
     external: true

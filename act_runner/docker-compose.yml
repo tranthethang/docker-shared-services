@@ -19,8 +19,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - act_runner_data:/data
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
 
     healthcheck:
       # Verify the runner daemon process is alive (ls /data only proved the volume mount).
@@ -37,9 +36,7 @@ services:
         max-file: "3"
 
 networks:
-  infra_shared:
-    external: true
-  dev_tools:
+  backend_net:
     external: true
 
 volumes:

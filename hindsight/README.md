@@ -19,7 +19,7 @@ docker exec pgvector psql -U postgres -c "CREATE DATABASE hindsight;"
 docker exec pgvector psql -U postgres -d hindsight -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ```
 
-2. Ensure **openai-quota-gateway** is running on `infra_shared` (sibling repo). Copy env and set the gateway API key:
+2. Ensure **openai-quota-gateway** is running on `backend_net` (sibling repo). Copy env and set the gateway API key:
 
 ```bash
 cp hindsight/.env.example hindsight/.env

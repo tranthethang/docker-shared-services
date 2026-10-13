@@ -13,13 +13,13 @@ services:
           memory: "${PGVECTOR_MEMORY_RESERVED:-512M}"
     environment:
       POSTGRES_USER: "${PGVECTOR_USER:-postgres}"
-      POSTGRES_PASSWORD: "${PGVECTOR_PASSWORD:-Password102!}"
+      POSTGRES_PASSWORD: "${PGVECTOR_PASSWORD:?Set PGVECTOR_PASSWORD in .env — run make setup}"
       POSTGRES_DB: "${PGVECTOR_DB:-postgres}"
     ports:
       - "127.0.0.1:${PGVECTOR_PORT:-5433}:5432"
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
+      - data_net
     volumes:
       - pgvector_data:/var/lib/postgresql/data
     stop_grace_period: 60s
@@ -36,9 +36,9 @@ services:
       start_period: 20s
 
 networks:
-  infra_shared:
+  backend_net:
     external: true
-  dev_tools:
+  data_net:
     external: true
 
 volumes:

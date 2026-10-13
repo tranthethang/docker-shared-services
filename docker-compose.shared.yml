@@ -1,7 +1,10 @@
 networks:
-  infra_shared:
-    name: infra_shared
+  traefik_proxy:
+    name: traefik_proxy
     external: true
-  dev_tools:
-    name: dev_tools
+  backend_net:
+    name: backend_net
+    external: true
+  data_net:
+    name: data_net
     external: true

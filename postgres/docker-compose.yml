@@ -14,14 +14,14 @@ services:
           memory: "${POSTGRES16_MEMORY_RESERVED:-512M}"
     environment:
       POSTGRES_USER: "${POSTGRES16_USER:-postgres}"
-      POSTGRES_PASSWORD: "${POSTGRES16_PASSWORD:-Password102!}"
+      POSTGRES_PASSWORD: "${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}"
       POSTGRES_DB: "${POSTGRES16_DB:-postgres_db}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
     ports:
       - "127.0.0.1:${POSTGRES16_PORT:-5432}:5432"
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
+      - data_net
     volumes:
       - ./bin/init.sh:/docker-entrypoint-initdb.d/10-init.sh:ro
       - postgres_data:/var/lib/postgresql/data
@@ -38,9 +38,9 @@ services:
       start_period: 20s
 
 networks:
-  infra_shared:
+  backend_net:
     external: true
-  dev_tools:
+  data_net:
     external: true
 
 volumes:

@@ -2,8 +2,9 @@ services:
   mailpit:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.mailpit.rule=Host(`mailpit.dss.localhost`)"
-      - "traefik.http.routers.mailpit.entrypoints=web,websecure"
+      - "traefik.http.routers.mailpit.entrypoints=websecure"
       - "traefik.http.routers.mailpit.tls=true"
       - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
     container_name: mailpit
@@ -20,8 +21,8 @@ services:
     ports:
       - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     healthcheck:
       test: ["CMD", "/mailpit", "readyz"]
       interval: 30s
@@ -35,7 +36,7 @@ services:
         max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true

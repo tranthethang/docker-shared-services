@@ -38,7 +38,7 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_HOST: ${POSTGRES_HOST:-supabase-db}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password102!}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       POSTGRES_USER_READ_WRITE: postgres
       PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
       DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION:-Default Organization}
@@ -56,8 +56,7 @@ services:
     volumes:
       - ./volumes/snippets:/app/snippets:z
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
     logging:
       driver: json-file
       options:
@@ -78,19 +77,19 @@ services:
           memory: "${SUPABASE_KONG_MEMORY_RESERVED:-128M}"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=infra_shared"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.services.supabase.loadbalancer.server.port=8000"
       # Public APIs (clients use anon/service keys)
       - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-dss.localhost}`) && (PathPrefix(`/auth`)\
         \ || PathPrefix(`/storage`) || PathPrefix(`/realtime`) || PathPrefix(`/pg`) || PathPrefix(`/.well-known`) || PathPrefix(`/api/mcp`)\
         \ || PathPrefix(`/mcp`))"
-      - "traefik.http.routers.supabase-api.entrypoints=web,websecure"
+      - "traefik.http.routers.supabase-api.entrypoints=websecure"
       - "traefik.http.routers.supabase-api.tls=true"
       - "traefik.http.routers.supabase-api.priority=100"
       - "traefik.http.routers.supabase-api.service=supabase"
       # Studio UI (un-gated local dev)
       - "traefik.http.routers.supabase-studio.rule=Host(`${SUPABASE_STUDIO_HOSTNAME:-studio.dss.localhost}`)"
-      - "traefik.http.routers.supabase-studio.entrypoints=web,websecure"
+      - "traefik.http.routers.supabase-studio.entrypoints=websecure"
       - "traefik.http.routers.supabase-studio.tls=true"
       - "traefik.http.routers.supabase-studio.priority=50"
       - "traefik.http.routers.supabase-studio.service=supabase"
@@ -99,7 +98,7 @@ services:
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.replacement=https://${SUPABASE_STUDIO_HOSTNAME:-studio.dss.localhost}/$${1}"
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.permanent=false"
       - "traefik.http.routers.supabase-ui-redirect.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-dss.localhost}`)"
-      - "traefik.http.routers.supabase-ui-redirect.entrypoints=web,websecure"
+      - "traefik.http.routers.supabase-ui-redirect.entrypoints=websecure"
       - "traefik.http.routers.supabase-ui-redirect.tls=true"
       - "traefik.http.routers.supabase-ui-redirect.priority=1"
       - "traefik.http.routers.supabase-ui-redirect.middlewares=supabase-to-studio"
@@ -141,13 +140,13 @@ services:
       ANON_KEY_ASYMMETRIC: ${ANON_KEY_ASYMMETRIC:-}
       SERVICE_ROLE_KEY_ASYMMETRIC: ${SERVICE_ROLE_KEY_ASYMMETRIC:-}
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-admin}
-      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-Password102!}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:?Set DASHBOARD_PASSWORD in .env — run make setup}
     entrypoint: ["/bin/sh", "/home/kong/kong-entrypoint.sh"]
     networks:
-      infra_shared:
+      traefik_proxy:
+      backend_net:
         aliases:
           - api-gw
-      dev_tools:
     logging:
       driver: json-file
       options:
@@ -179,7 +178,8 @@ services:
       GOTRUE_API_PORT: 9999
       API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://supabase.dss.localhost/auth/v1}
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make
+        setup}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
       GOTRUE_SITE_URL: ${SITE_URL:-https://supabase.dss.localhost}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS:-}
       GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP:-false}
@@ -193,7 +193,7 @@ services:
       GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS:-false}
       GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM:-false}
       GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL:-admin@example.com}
-      # Default to shared Mailpit on infra_shared / dev_tools
+      # Default to shared Mailpit on backend_net
       GOTRUE_SMTP_HOST: ${SMTP_HOST:-mailpit}
       GOTRUE_SMTP_PORT: ${SMTP_PORT:-1025}
       GOTRUE_SMTP_USER: ${SMTP_USER:-}
@@ -206,8 +206,7 @@ services:
       GOTRUE_EXTERNAL_PHONE_ENABLED: ${ENABLE_PHONE_SIGNUP:-false}
       GOTRUE_SMS_AUTOCONFIRM: ${ENABLE_PHONE_AUTOCONFIRM:-true}
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
     logging:
       driver: json-file
       options:
@@ -239,7 +238,7 @@ services:
       ANON_KEY: ${ANON_KEY}
       SERVICE_KEY: ${SERVICE_ROLE_KEY}
       AUTH_JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
       STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.dss.localhost}
       REQUEST_ALLOW_X_FORWARDED_PATH: "true"
       FILE_SIZE_LIMIT: 52428800
@@ -254,8 +253,7 @@ services:
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
 
   # Container name is intentional: Realtime derives tenant id from the subdomain
   # (realtime-dev). Do not rename to supabase-realtime.
@@ -290,7 +288,7 @@ services:
       DB_HOST: ${POSTGRES_HOST:-supabase-db}
       DB_PORT: ${POSTGRES_PORT:-5432}
       DB_USER: supabase_admin
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-Password102!}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       DB_NAME: ${POSTGRES_DB:-postgres}
       DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
       DB_ENC_KEY: ${REALTIME_DB_ENC_KEY:-supabaserealtime}
@@ -305,8 +303,7 @@ services:
       RUN_JANITOR: "true"
       DISABLE_HEALTHCHECK_LOGGING: "true"
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
     logging:
       driver: json-file
       options:
@@ -341,11 +338,10 @@ services:
       PG_META_DB_PORT: ${POSTGRES_PORT:-5432}
       PG_META_DB_NAME: ${POSTGRES_DB:-postgres}
       PG_META_DB_USER: postgres
-      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:-Password102!}
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
 
   # Dedicated Supabase Postgres (not shared pgvector/postgres stacks)
     logging:
@@ -388,16 +384,16 @@ services:
       POSTGRES_HOST: /var/run/postgresql
       PGPORT: 5432
       POSTGRES_PORT: 5432
-      PGPASSWORD: ${POSTGRES_PASSWORD:-Password102!}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password102!}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       PGDATABASE: ${POSTGRES_DB:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXP: ${JWT_EXPIRY:-3600}
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=fatal"]
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -411,7 +407,9 @@ volumes:
     name: supabase_db_data
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
+    external: true
+  data_net:
     external: true

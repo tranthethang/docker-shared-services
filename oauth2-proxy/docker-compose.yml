@@ -41,9 +41,9 @@ services:
       - "zitadel.dss.localhost:host-gateway"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=infra_shared"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.oauth2-proxy.rule=Host(`${OAUTH2_PROXY_HOSTNAME:-auth.dss.localhost}`)"
-      - "traefik.http.routers.oauth2-proxy.entrypoints=web,websecure"
+      - "traefik.http.routers.oauth2-proxy.entrypoints=websecure"
       - "traefik.http.routers.oauth2-proxy.tls=true"
       - "traefik.http.routers.oauth2-proxy.service=oauth2-proxy"
       - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
@@ -58,8 +58,8 @@ services:
       # auth today; replace or chain additional middleware when policies are added.
       - "traefik.http.middlewares.auth-admin.chain.middlewares=auth-forward"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     healthcheck:
       # The official image is distroless and has no curl/wget. Running the
       # binary's former `healthcheck` subcommand starts a second listener and
@@ -77,7 +77,7 @@ services:
         max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true

@@ -25,7 +25,7 @@ Docker stdout ─► Promtail ────────────────�
 | -------- | ----------------------------- | ------------------------ |
 | URL      | https://grafana.dss.localhost | `GRAFANA_HOSTNAME`       |
 | Username | `admin`                       | `GRAFANA_ADMIN_USER`     |
-| Password | `Password102!`                | `GRAFANA_ADMIN_PASSWORD` |
+| Password | `DSS_SHARED_PASSWORD`         | `GRAFANA_ADMIN_PASSWORD` |
 
 Dev-only defaults (same pattern as other services in this repo). Change them in `otel/.env` or the root `.env` before exposing beyond localhost.
 
@@ -33,7 +33,7 @@ ______________________________________________________________________
 
 ## Prerequisites
 
-- Shared networks exist (`make setup` from the repo root creates `infra_shared` and `dev_tools`).
+- Shared networks exist (`make setup` from the repo root creates `traefik_proxy`, `backend_net`, and `data_net`).
 - **Traefik** running (`make up service=traefik`) for browser access via `*.dss.localhost` (same pattern as Zitadel).
 - TLS certs for `*.dss.localhost` (`make cert` / `make setup`).
 
@@ -70,7 +70,7 @@ Smoke test (health checks + sample OTLP log):
 Then open Grafana: [https://grafana.dss.localhost](https://grafana.dss.localhost)
 
 - Username: `admin`
-- Password: `Password102!`
+- Password: `DSS_SHARED_PASSWORD`
 
 ______________________________________________________________________
 
@@ -80,9 +80,9 @@ Only **Grafana** is exposed through Traefik (like `https://zitadel.dss.localhost
 
 ### Browser (Traefik)
 
-| What    | URL                               | Default login                          |
-| ------- | --------------------------------- | -------------------------------------- |
-| Grafana | **https://grafana.dss.localhost** | user `admin` / password `Password102!` |
+| What    | URL                               | Default login                                 |
+| ------- | --------------------------------- | --------------------------------------------- |
+| Grafana | **https://grafana.dss.localhost** | user `admin` / password `DSS_SHARED_PASSWORD` |
 
 Override with `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD`. Hostname is controlled by `GRAFANA_HOSTNAME` (default `grafana.dss.localhost`).
 
@@ -98,7 +98,7 @@ Promtail has **no** published UI or Traefik route.
 
 ### Docker network (other containers)
 
-Apps on `infra_shared` / `dev_tools` should use the Collector **container name** (not Traefik):
+Apps on `backend_net` should use the Collector **container name** (not Traefik):
 
 ```bash
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -153,7 +153,7 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
     networks:
-      - infra_shared   # or dev_tools — same networks as this stack
+      - backend_net   # same network as otel-collector
 ```
 
 ### What Promtail already covers
@@ -172,7 +172,7 @@ ______________________________________________________________________
 ## Using Grafana
 
 1. Open **https://grafana.dss.localhost** (Traefik + TLS; same `*.dss.localhost` style as Zitadel).
-1. Sign in with default account **`admin` / `Password102!`** (or your `GRAFANA_ADMIN_*` values).
+1. Sign in with default account **`admin` / `DSS_SHARED_PASSWORD`** (or your `GRAFANA_ADMIN_*` values).
 1. Go to **Explore** → datasource **Loki** (provisioned from `grafana/provisioning/`).
 1. Example LogQL:
 

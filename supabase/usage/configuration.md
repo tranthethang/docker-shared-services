@@ -78,7 +78,7 @@ Logs Explorer is disabled (`ENABLED_FEATURES_LOGS_ALL=false`) because analytics 
 | `ENABLE_EMAIL_AUTOCONFIRM` | `false`            | Use Mailpit (`SMTP_HOST=mailpit`) for confirmation emails |
 | `ENABLE_ANONYMOUS_USERS`   | `false`            | Anonymous sign-in                                         |
 | `ENABLE_PHONE_SIGNUP`      | `false`            | Phone auth                                                |
-| `SMTP_HOST` / `SMTP_PORT`  | `mailpit` / `1025` | Shared Mailpit on `infra_shared`                          |
+| `SMTP_HOST` / `SMTP_PORT`  | `mailpit` / `1025` | Shared Mailpit on `backend_net`                           |
 
 OAuth, SAML, MFA, and Auth hooks can be added under the `supabase-auth` service when needed.
 

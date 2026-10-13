@@ -13,8 +13,8 @@ Local Docker Compose stack for common infra: databases, cache, messaging, CI/CD,
 ```bash
 # 1) Networks, .env files, shared password, optional TLS certs
 make setup
-# Keep the classic password instead of a random one:
-#   make setup password='Password102!'
+# Or choose a secure shared password:
+#   make setup password='your-secure-password'
 
 # 2) Start what you need
 make up                        # interactive
@@ -27,17 +27,19 @@ make info                      # URLs / ports
 
 Access via Traefik: `https://<service>.dss.localhost` (needs `make cert` / mkcert once).
 Browser UIs are available only through their domain names; UI ports are not published to the host.
+Run `make setup` before any direct `docker compose up`; Compose requires the generated `.env` files and credentials.
+The Traefik dashboard is at `https://traefik.dss.localhost/dashboard/` with username `admin` and the shared password in the root `.env`.
 
 ## Shared password
 
 `make setup` writes **one** password into all service password fields (Postgres, Redis, MinIO, Grafana, …). Unique secrets (Garage, Woodpecker agent, Zitadel masterkey, oauth2-proxy cookie secret) stay separate.
 
-| Goal                   | Command                                         |
-| ---------------------- | ----------------------------------------------- |
-| Random shared password | `make setup`                                    |
-| Use `Password102!`     | `make setup password='Password102!'`            |
-| Same via env           | `DSS_SHARED_PASSWORD='Password102!' make setup` |
-| Rotate later           | `make passwords password='NewPass' force=1`     |
+| Goal                   | Command                                                 |
+| ---------------------- | ------------------------------------------------------- |
+| Random shared password | `make setup`                                            |
+| Choose a password      | `make setup password='your-secure-password'`            |
+| Same via env           | `DSS_SHARED_PASSWORD='your-secure-password' make setup` |
+| Rotate later           | `make passwords password='NewPass' force=1`             |
 
 Value is stored as `DSS_SHARED_PASSWORD` in the root `.env`.
 
@@ -89,7 +91,7 @@ Full catalog: [docs/services.md](docs/services.md).
 ## Layout
 
 ```
-docker-compose.shared.yml   # networks: infra_shared, dev_tools
+docker-compose.shared.yml   # networks: traefik_proxy, backend_net, data_net
 Makefile                    # day-to-day commands
 bin/                        # env + service managers
 <service>/                  # docker-compose.yml + .env.example
