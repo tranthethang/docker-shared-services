@@ -6,6 +6,7 @@ import time
 
 from checkbox_menu import show_checkbox_menu
 from config import ACTIONS, SERVICES, START_ORDER, dependency_queue, startup_queue
+from service_catalog import catalog_problems, load_catalog
 from utils import error, print_header, success, warning
 
 # A database can spend its start_period plus several probe retries before it accepts clients.
@@ -118,6 +119,7 @@ def validate_all_compose():
     """Validate each service with --project-directory so service/.env is loaded."""
     print("Validating Docker Compose configuration...")
     failed = []
+    compose_services = {}
 
     for service in sorted(SERVICES):
         compose_file = os.path.join(service, "docker-compose.yml")
@@ -145,11 +147,29 @@ def validate_all_compose():
                 print(stderr, file=sys.stderr)
             failed.append(service)
 
+        if result.returncode == 0:
+            listed = subprocess.run(
+                get_compose_cmd(service) + ["config", "--services"],
+                capture_output=True,
+                text=True,
+            )
+            if listed.returncode == 0:
+                compose_services[service] = [
+                    line.strip() for line in listed.stdout.splitlines() if line.strip()
+                ]
+
+    print("Validating service catalog (bin/service_catalog.json)...")
+    problems = catalog_problems(load_catalog(), compose_services)
+    for problem in problems:
+        error(problem)
+    if problems:
+        failed.append("service_catalog.json")
+
     if failed:
         error(f"Validation failed for: {', '.join(failed)}")
         sys.exit(1)
 
-    success("Compose configuration is valid")
+    success("Compose configuration and service catalog are valid")
 
 
 def get_stack_services(service):
