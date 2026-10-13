@@ -4,7 +4,7 @@ services:
     image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.16.3}
     # root so first-instance bootstrap can write login-client.pat into the shared volume
     user: "0"
-    command: start-from-init --masterkey "${ZITADEL_MASTERKEY:-MasterkeyNeedsToHave32Characters}"
+    command: start-from-init --masterkeyFromEnv
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -15,6 +15,7 @@ services:
           cpus: "${ZITADEL_CPUS_RESERVED:-0.2}"
           memory: "${ZITADEL_MEMORY_RESERVED:-256M}"
     environment:
+      - ZITADEL_MASTERKEY=${ZITADEL_MASTERKEY:-MasterkeyNeedsToHave32Characters}
       - ZITADEL_EXTERNALDOMAIN=${ZITADEL_HOSTNAME:-zitadel.dss.localhost}
       - ZITADEL_EXTERNALPORT=443
       - ZITADEL_EXTERNALSECURE=true

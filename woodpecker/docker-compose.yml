@@ -46,6 +46,32 @@ services:
       retries: 3
       start_period: 20s
 
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    container_name: woodpecker-socket-proxy
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${WOODPECKER_SOCKET_PROXY_CPUS_LIMIT:-0.25}"
+          memory: "${WOODPECKER_SOCKET_PROXY_MEMORY_LIMIT:-128M}"
+        reservations:
+          cpus: "${WOODPECKER_SOCKET_PROXY_CPUS_RESERVED:-0.05}"
+          memory: "${WOODPECKER_SOCKET_PROXY_MEMORY_RESERVED:-32M}"
+    environment:
+      # INFO is denied by default; the agent calls Docker Info before it can run.
+      - INFO=1
+      - CONTAINERS=1
+      - POST=1
+      - EXEC=0
+      - IMAGES=1
+      - NETWORKS=1
+      - VOLUMES=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - woodpecker_docker
+
   woodpecker-agent:
     image: woodpeckerci/woodpecker-agent:v3
     container_name: woodpecker-agent
@@ -61,6 +87,8 @@ services:
     depends_on:
       woodpecker-server:
         condition: service_healthy
+      socket-proxy:
+        condition: service_started
     env_file:
       - ./.env
     environment:
@@ -70,12 +98,11 @@ services:
         32)}
       - WOODPECKER_MAX_WORKFLOWS=${WOODPECKER_MAX_WORKFLOWS:-2}
       - WOODPECKER_BACKEND_DOCKER=true
-    volumes:
-      # RW required for Docker pipeline backend (SEC-01 intentionally not :ro).
-      - /var/run/docker.sock:/var/run/docker.sock
+      - DOCKER_HOST=tcp://socket-proxy:2375
     networks:
       - infra_shared
       - dev_tools
+      - woodpecker_docker
 
 volumes:
   woodpecker_data:
@@ -86,3 +113,7 @@ networks:
     external: true
   dev_tools:
     external: true
+  # Only the agent may reach the socket proxy. Do not attach this network elsewhere.
+  woodpecker_docker:
+    name: woodpecker_docker
+    internal: true

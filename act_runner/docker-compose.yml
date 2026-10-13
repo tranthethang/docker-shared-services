@@ -16,7 +16,7 @@ services:
       GITEA_RUNNER_REGISTRATION_TOKEN: "${GITEA_RUNNER_TOKEN:-}"
       GITEA_RUNNER_NAME: "${GITEA_RUNNER_NAME:-act-runner}"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
       - act_runner_data:/data
     networks:
       - infra_shared
