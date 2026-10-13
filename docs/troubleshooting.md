@@ -47,24 +47,26 @@ make restart
 
 > [!NOTE]
 > Postgres 16 (`POSTGRES16_PORT`, default `5432`) is the default shared DB
-> backend other services connect to. PgVector (`POSTGRES_PORT`, default
+> backend other services connect to. PgVector (`PGVECTOR_PORT`, default
 > `5433`) is a separate, standalone Postgres 17 + vector-extension instance
-> that no other service in this repo depends on — the two are intentionally
-> kept on different host ports so they can run at the same time.
+> used by Hindsight. The two are intentionally kept on different host ports
+> so they can run at the same time.
 
 ### Out of memory
 
 ```bash
 # Reduce resource limits in .env
-POSTGRES_MEMORY_LIMIT=512M
-POSTGRES_MEMORY_RESERVED=256M
+PGVECTOR_MEMORY_LIMIT=512M
+PGVECTOR_MEMORY_RESERVED=256M
 make restart
 ```
 
 ### Network issues
 
 ```bash
-docker network inspect infra_shared
+docker network inspect traefik_proxy
+docker network inspect backend_net
+docker network inspect data_net
 docker logs [container_id]
 docker exec [container1] ping [container2]
 ```
@@ -79,15 +81,15 @@ docker volume prune               # Remove unused volumes
 
 ### oauth2-proxy / Zitadel UI login
 
-| Problem                                           | Solution                                                                                                                           |
-| :------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------- |
-| Redirect loop or callback error                   | Confirm Zitadel app redirect URI is exactly `https://auth.dss.localhost/oauth2/callback` and `OAUTH2_PROXY_CLIENT_*` match the app |
+| Problem                                                    | Solution                                                                                                                                                   |
+| :--------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Redirect loop or callback error                            | Confirm Zitadel app redirect URI is exactly `https://auth.dss.localhost/oauth2/callback` and `OAUTH2_PROXY_CLIENT_*` match the app                         |
 | Browser displays a “Found” link instead of opening Zitadel | Ensure shared ForwardAuth points to oauth2-proxy `/`, which returns the login redirect as an actual 302; recreate `oauth2-proxy` after changing its labels |
-| `oauth2-proxy` cannot discover issuer             | Ensure Traefik + Zitadel are up; container uses `extra_hosts: zitadel.dss.localhost:host-gateway` to reach host Traefik            |
-| UI still public after enabling auth               | Set both `AUTH_ENABLED=true` and `AUTH_MIDDLEWARE=auth-default`, then `make restart service=<folder>`                              |
-| API clients fail on chromadb/qdrant Traefik hosts | Auth is opt-in; use `AUTH_MIDDLEWARE=auth-none` for API-first access through the domain and provide native keys such as `QDRANT_API_KEY` |
-| Cookie not shared across UIs                      | Cookie domain must be `.dss.localhost` (default); browse via HTTPS Traefik hosts, not raw localhost ports                          |
-| Do not put gateway in front of Zitadel            | Keep Zitadel routers without `AUTH_MIDDLEWARE`                                                                                     |
+| `oauth2-proxy` cannot discover issuer                      | Ensure Traefik + Zitadel are up; container uses `extra_hosts: zitadel.dss.localhost:host-gateway` to reach host Traefik                                    |
+| UI still public after enabling auth                        | Set both `AUTH_ENABLED=true` and `AUTH_MIDDLEWARE=auth-default`, then `make restart service=<folder>`                                                      |
+| API clients fail on chromadb/qdrant Traefik hosts          | Auth is opt-in; use `AUTH_MIDDLEWARE=auth-none` for API-first access through the domain and provide native keys such as `QDRANT_API_KEY`                   |
+| Cookie not shared across UIs                               | Cookie domain must be `.dss.localhost` (default); browse via HTTPS Traefik hosts, not raw localhost ports                                                  |
+| Do not put gateway in front of Zitadel                     | Keep Zitadel routers without `AUTH_MIDDLEWARE`                                                                                                             |
 
 ### Common Issues
 
@@ -121,7 +123,7 @@ For issues or questions:
 1. Review service-specific `.env.example` files.
 1. Check Docker logs: `make logs`
 1. Validate configuration: `make validate`
-1. Inspect networks: `docker network inspect infra_shared` and `docker network inspect dev_tools`
+1. Inspect networks: `docker network inspect traefik_proxy`, `docker network inspect backend_net`, and `docker network inspect data_net`
 
 ______________________________________________________________________
 

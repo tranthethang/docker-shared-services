@@ -2,14 +2,14 @@ services:
   hindsight:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=infra_shared"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.hindsight.rule=Host(`${HINDSIGHT_HOSTNAME:-hindsight.dss.localhost}`)"
-      - "traefik.http.routers.hindsight.entrypoints=web,websecure"
+      - "traefik.http.routers.hindsight.entrypoints=websecure"
       - "traefik.http.routers.hindsight.tls=true"
       - "traefik.http.routers.hindsight.service=hindsight"
       - "traefik.http.services.hindsight.loadbalancer.server.port=8888"
       - "traefik.http.routers.hindsight-ui.rule=Host(`${HINDSIGHT_UI_HOSTNAME:-hindsight-ui.dss.localhost}`)"
-      - "traefik.http.routers.hindsight-ui.entrypoints=web,websecure"
+      - "traefik.http.routers.hindsight-ui.entrypoints=websecure"
       - "traefik.http.routers.hindsight-ui.tls=true"
       - "traefik.http.routers.hindsight-ui.service=hindsight-ui"
       - "traefik.http.services.hindsight-ui.loadbalancer.server.port=9999"
@@ -29,7 +29,8 @@ services:
           memory: "${HINDSIGHT_MEMORY_RESERVED:-256M}"
     # Traefik-only access — no host port publish (see plan: omit ports:).
     environment:
-      HINDSIGHT_API_DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Password102!}@${POSTGRES_HOST:-pgvector}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-hindsight}"
+      HINDSIGHT_API_DATABASE_URL: "postgresql://${PGVECTOR_USER:-postgres}:${PGVECTOR_PASSWORD:?Set PGVECTOR_PASSWORD in .env\
+        \ — run make setup}@${PGVECTOR_HOST:-pgvector}:${PGVECTOR_PORT:-5432}/${PGVECTOR_DB:-hindsight}"
       # Chat via openai-quota-gateway (OpenAI-compatible /v1/chat/completions).
       HINDSIGHT_API_LLM_PROVIDER: "${HINDSIGHT_API_LLM_PROVIDER:-openai}"
       HINDSIGHT_API_LLM_API_KEY: "${HINDSIGHT_API_LLM_API_KEY:-}"
@@ -53,8 +54,8 @@ services:
       HINDSIGHT_CP_DATAPLANE_API_URL: "${HINDSIGHT_CP_DATAPLANE_API_URL:-http://127.0.0.1:8888}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     healthcheck:
       # /health/ready verifies PostgreSQL connectivity (alias: /health).
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/health/ready',\
@@ -63,9 +64,14 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true

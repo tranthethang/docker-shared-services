@@ -25,10 +25,10 @@ Woodpecker agent, Zitadel masterkey) are generated separately.
 # Generate a random shared password and write it into all service .env files
 make setup
 
-# Keep using the classic local default
-make setup password='Password102!'
+# Or choose a secure shared password
+make setup password='your-secure-password'
 # equivalent:
-DSS_SHARED_PASSWORD='Password102!' make setup
+DSS_SHARED_PASSWORD='your-secure-password' make setup
 
 # Rotate later (overwrites even non-placeholder values)
 make passwords password='MyNewSharedPass' force=1
@@ -36,12 +36,15 @@ make passwords password='MyNewSharedPass' force=1
 
 The chosen value is stored as `DSS_SHARED_PASSWORD` in the root `.env` and copied
 into each service’s password variables (Postgres, Redis, MinIO, Grafana, …).
+Run `make setup` before direct `docker compose up` commands so the required `.env` files and credentials exist.
+The Traefik dashboard uses `admin` and this shared password at `https://traefik.dss.localhost/dashboard/`.
 
 ### Change a single service password
 
 ```bash
 # Edit that service's .env only (won't be overwritten unless you pass force=1)
-POSTGRES_PASSWORD=your_strong_password
+POSTGRES16_PASSWORD=your_strong_password
+PGVECTOR_PASSWORD=your_strong_password
 MYSQL_ROOT_PASSWORD=your_strong_password
 MONGO_ROOT_PASSWORD=your_strong_password
 ```
@@ -50,7 +53,7 @@ MONGO_ROOT_PASSWORD=your_strong_password
 
 ```bash
 # Edit service .env file
-POSTGRES_PORT=5555          # pgvector's own port (default is already 5433,
+PGVECTOR_PORT=5555          # pgvector's host port (default is already 5433,
                              # chosen so it never clashes with Postgres 16 on 5432)
 MYSQL_PORT=3307              # Instead of 3306
 ```
@@ -58,10 +61,10 @@ MYSQL_PORT=3307              # Instead of 3306
 ### Resource Limits
 
 ```env
-POSTGRES_CPUS_LIMIT=2
-POSTGRES_MEMORY_LIMIT=2G
-POSTGRES_CPUS_RESERVED=1
-POSTGRES_MEMORY_RESERVED=1G
+PGVECTOR_CPUS_LIMIT=2
+PGVECTOR_MEMORY_LIMIT=2G
+PGVECTOR_CPUS_RESERVED=1
+PGVECTOR_MEMORY_RESERVED=1G
 ```
 
 ### Enable/Disable Services
@@ -72,35 +75,36 @@ ______________________________________________________________________
 
 ## 🌐 Network Configuration
 
-Services use two **external** bridge networks (created by `make setup` if missing). Docker does not allow two networks to share the same CIDR, so both use adjacent `/16` blocks in `10.0.0.0/8`:
+Services use three **external** bridge networks (created by `make setup` if missing), with separate `/16` blocks in `10.0.0.0/8`:
 
-| Network        | Subnet        | Role                                                                         |
-| :------------- | :------------ | :--------------------------------------------------------------------------- |
-| `infra_shared` | `10.0.0.0/16` | Primary stack, Traefik discovery (`--providers.docker.network=infra_shared`) |
-| `dev_tools`    | `10.1.0.0/16` | Legacy or external compose projects that attach to `dev_tools`               |
+| Network         | Subnet        | Role                                  |
+| :-------------- | :------------ | :------------------------------------ |
+| `traefik_proxy` | `10.0.0.0/16` | Traefik and routed HTTP services      |
+| `backend_net`   | `10.1.0.0/16` | Application and worker communication  |
+| `data_net`      | `10.2.0.0/16` | Databases, caches, and direct clients |
 
-Most service containers join **both** networks so they can reach Traefik on `infra_shared` and legacy workloads on `dev_tools`.
+See [network segmentation](network-segmentation.md) for each container's network attachments.
 
 Services communicate using container names on the network where both endpoints are attached:
 
 ```bash
 # Postgres 16 - the default shared DB backend (gitea, jenkins, concourse,
 # sonarqube, zitadel, inngest, temporal, bugsink, hasura all connect here by default)
-postgres://postgres:Password102!@postgres:5432/mydb
+postgres://postgres:<DSS_SHARED_PASSWORD>@postgres:5432/mydb
 
 # PgVector - Postgres 17 + vector extension; shared backend for Hindsight
 # (and available for your own workloads). Port 5432 inside the network,
 # host-mapped to 5433.
-postgres://postgres:Password102!@pgvector:5432/mydb
+postgres://postgres:<DSS_SHARED_PASSWORD>@pgvector:5432/mydb
 
 # Redis
-redis://:Password102!@redis:6379
+redis://:<DSS_SHARED_PASSWORD>@redis:6379
 
 # RabbitMQ (default user is admin; password = shared password)
 amqp://admin:<DSS_SHARED_PASSWORD>@rabbitmq:5672
 
 # Service-to-service (default shared Postgres backend)
-POSTGRES_HOST=postgres
+POSTGRES16_HOST=postgres
 REDIS_HOST=redis
 RABBITMQ_HOST=rabbitmq
 ```
@@ -108,10 +112,10 @@ RABBITMQ_HOST=rabbitmq
 ### Network Inspection
 
 ```bash
-docker network ls                            # List networks
-docker network inspect infra_shared             # Inspect primary network
-docker network inspect dev_tools                # Inspect legacy network
-docker network inspect infra_shared | grep -A 20 "Containers"  # List attached containers
+docker network ls                               # List networks
+docker network inspect traefik_proxy            # Inspect ingress network
+docker network inspect backend_net              # Inspect application network
+docker network inspect data_net                 # Inspect data network
 docker exec [container] ping [other_container]  # Test connectivity
 ```
 

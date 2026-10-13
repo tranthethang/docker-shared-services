@@ -1,6 +1,6 @@
 # Supabase (minimal + Realtime)
 
-Self-hosted Supabase pruned to **Auth + dedicated Postgres + Storage + Realtime + Studio**, behind Kong. Part of [docker-shared-services](../): shared networks (`infra_shared`, `dev_tools`), Traefik TLS, and optional Mailpit for auth email.
+Self-hosted Supabase pruned to **Auth + dedicated Postgres + Storage + Realtime + Studio**, behind Kong. Part of [docker-shared-services](../): shared networks (`traefik_proxy`, `backend_net`, `data_net`), Traefik TLS, and optional Mailpit for auth email.
 
 This stack uses its **own** Postgres (`supabase-db` on host port `5434`). It does **not** use the shared PgVector or Postgres 16 services.
 
@@ -21,14 +21,14 @@ sh utils/generate-keys.sh --update-env
 sh run.sh start
 ```
 
-| Resource                 | URL                                        |
-| ------------------------ | ------------------------------------------ |
-| Studio (Traefik)         | https://studio.dss.localhost               |
-| API gateway (Traefik)    | https://supabase.dss.localhost             |
-| Auth                     | https://supabase.dss.localhost/auth/v1     |
-| Storage                  | https://supabase.dss.localhost/storage/v1  |
-| Realtime                 | https://supabase.dss.localhost/realtime/v1 |
-| Postgres                 | `localhost:5434`                           |
+| Resource              | URL                                        |
+| --------------------- | ------------------------------------------ |
+| Studio (Traefik)      | https://studio.dss.localhost               |
+| API gateway (Traefik) | https://supabase.dss.localhost             |
+| Auth                  | https://supabase.dss.localhost/auth/v1     |
+| Storage               | https://supabase.dss.localhost/storage/v1  |
+| Realtime              | https://supabase.dss.localhost/realtime/v1 |
+| Postgres              | `localhost:5434`                           |
 
 Studio UI is open directly for local development at https://studio.dss.localhost. Visiting https://supabase.dss.localhost redirects Studio UI to https://studio.dss.localhost.
 
@@ -46,13 +46,46 @@ Studio UI is open directly for local development at https://studio.dss.localhost
 
 **Not included:** PostgREST, GraphQL, imgproxy, Edge Functions, Logflare/Vector, Supavisor, TLS proxy overlays (Traefik handles TLS).
 
-SMTP defaults to shared Mailpit (`mailpit:1025` on `infra_shared` / `dev_tools`).
+SMTP defaults to shared Mailpit (`mailpit:1025` on `backend_net`).
 
 ## Port map (host)
 
-| Variable                   | Default | Avoids clash with                  |
-| -------------------------- | ------- | ---------------------------------- |
-| `SUPABASE_DB_PORT`         | `5434`  | PgVector `5432`, Postgres16 `5433` |
+| Variable           | Default | Avoids clash with                  |
+| ------------------ | ------- | ---------------------------------- |
+| `SUPABASE_DB_PORT` | `5434`  | PgVector `5432`, Postgres16 `5433` |
+
+## Database storage & migration
+
+`supabase-db` data directory (`/var/lib/postgresql/data`) is backed by a Docker named volume (`supabase_db_data`) rather than the host bind mount (`./volumes/db/data`). This avoids severe filesystem synchronization bottlenecks and permission friction on macOS Docker Desktop.
+
+### Migrating existing host-path data
+
+If you previously ran Supabase with data in `./volumes/db/data`:
+
+1. **Dump / Restore (recommended)**:
+   Before switching or using the previous bind mount:
+
+   ```sh
+   pg_dump -h 127.0.0.1 -p 5434 -U postgres -d postgres -F c -b -v -f supabase_backup.dump
+   ```
+
+   Start the new stack with `supabase_db_data`:
+
+   ```sh
+   make up service=supabase
+   pg_restore -h 127.0.0.1 -p 5434 -U postgres -d postgres -v supabase_backup.dump
+   ```
+
+1. **File copy into an empty named volume**:
+   Use this only before starting the updated Supabase stack, while the database is stopped. The target volume must be empty; do not copy files over a volume that PostgreSQL has already initialized. From the repository root:
+
+   ```sh
+   make down service=supabase
+   docker volume create supabase_db_data
+   docker run --rm --mount type=bind,src="$(pwd)/supabase/volumes/db/data",dst=/src,readonly --mount type=volume,src=supabase_db_data,dst=/dst alpine cp -a /src/. /dst/
+   ```
+
+   Ensure permissions remain owned by PostgreSQL (`uid 999` or the image's postgres user), then start the stack. If `supabase_db_data` has already been initialized, use the dump/restore method above instead of overlaying files.
 
 ## Makefile integration
 

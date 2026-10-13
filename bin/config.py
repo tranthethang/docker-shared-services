@@ -88,18 +88,22 @@ VALIDATION_RULES = {
     "oauth2-proxy": [
         "OAUTH2_PROXY_COOKIE_SECRET",
     ],
-    "pgvector": ["POSTGRES_PASSWORD"],
+    "pgvector": ["PGVECTOR_PASSWORD"],
     "postgres": ["POSTGRES16_PASSWORD"],
     "rabbitmq": ["RABBITMQ_PASSWORD"],
+    "traefik": ["TRAEFIK_DASHBOARD_AUTH"],
     "woodpecker": ["WOODPECKER_AGENT_SECRET"],
     "zitadel": ["ZITADEL_MASTERKEY"],
 }
 
 # Local random secrets that `make setup` can auto-fill when empty.
-# Format: service -> { VAR: (method, nbytes) } where method is "hex" or "base64".
+# Format: service -> { VAR: (method, nbytes) } where method is "hex" or "base64" or "htpasswd".
 # External API keys (e.g. HINDSIGHT_API_LLM_API_KEY) stay manual.
 # These stay UNIQUE per variable (not the shared password).
 AUTO_GENERATED_SECRETS = {
+    ".": {
+        "TRAEFIK_DASHBOARD_AUTH": ("htpasswd", 16),
+    },
     "garage": {
         "GARAGE_RPC_SECRET": ("hex", 32),
         "GARAGE_ADMIN_TOKEN": ("base64", 32),
@@ -110,6 +114,9 @@ AUTO_GENERATED_SECRETS = {
         # 16, 24, or 32 bytes; use 32 hex characters rather than a 32-byte
         # base64 encoding (which is 44 characters and is rejected).
         "OAUTH2_PROXY_COOKIE_SECRET": ("hex", 16),
+    },
+    "traefik": {
+        "TRAEFIK_DASHBOARD_AUTH": ("htpasswd", 16),
     },
     "woodpecker": {
         "WOODPECKER_AGENT_SECRET": ("hex", 32),
@@ -129,15 +136,16 @@ AUTH_OPT_IN_UI_SERVICES = [
 ]
 
 # Sentinel values treated as "still the repo default" and safe to overwrite
-# when applying the shared password.
+# when applying the shared password. Password102! is removed (treated as invalid).
 SHARED_PASSWORD_PLACEHOLDERS = frozenset(
     {
         "",
-        "Password102!",
         "change-me-generate-with-openssl-rand-base64-50",
         "replace_with_openssl_rand_hex_32",
     }
 )
+
+INVALID_PASSWORD_VALUES = frozenset({"Password102!"})
 
 # One shared password is written to every key listed here (service dir -> vars).
 # "." is the repo-root .env. ZITADEL_MASTERKEY is intentionally excluded (must
@@ -146,7 +154,7 @@ SHARED_PASSWORD_KEYS: dict[str, list[str]] = {
     ".": [
         "DSS_SHARED_PASSWORD",
         "POSTGRES16_PASSWORD",
-        "POSTGRES_PASSWORD",
+        "PGVECTOR_PASSWORD",
         "MYSQL_PASSWORD",
         "MYSQL_ROOT_PASSWORD",
         "MARIADB_PASSWORD",
@@ -160,27 +168,27 @@ SHARED_PASSWORD_KEYS: dict[str, list[str]] = {
         "JWT_SIGNING_KEY",
         "CENTRIFUGO_API_KEY",
     ],
-    "bugsink": ["POSTGRES_PASSWORD", "BUGSINK_SECRET_KEY"],
-    "centrifugo": ["CENTRIFUGO_API_KEY"],
-    "concourse": ["POSTGRES_PASSWORD"],
-    "gitea": ["POSTGRES_PASSWORD"],
-    "hasura": ["POSTGRES_PASSWORD", "HASURA_GRAPHQL_ADMIN_SECRET"],
-    "hindsight": ["POSTGRES_PASSWORD"],
-    "inngest": ["POSTGRES_PASSWORD", "REDIS_PASSWORD"],
-    "jenkins": ["POSTGRES_PASSWORD"],
+    "bugsink": ["POSTGRES16_PASSWORD", "BUGSINK_SECRET_KEY"],
+    "centrifugo": ["CENTRIFUGO_API_KEY", "JWT_SIGNING_KEY"],
+    "concourse": ["POSTGRES16_PASSWORD"],
+    "gitea": ["POSTGRES16_PASSWORD"],
+    "hasura": ["POSTGRES16_PASSWORD", "HASURA_GRAPHQL_ADMIN_SECRET"],
+    "hindsight": ["PGVECTOR_PASSWORD"],
+    "inngest": ["POSTGRES16_PASSWORD", "REDIS_PASSWORD"],
+    "jenkins": ["POSTGRES16_PASSWORD"],
     "mariadb": ["MARIADB_PASSWORD", "MARIADB_ROOT_PASSWORD"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["MONGO_ROOT_PASSWORD"],
     "mysql8": ["MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD"],
     "otel": ["GRAFANA_ADMIN_PASSWORD"],
-    "pgvector": ["POSTGRES_PASSWORD"],
+    "pgvector": ["PGVECTOR_PASSWORD"],
     "postgres": ["POSTGRES16_PASSWORD"],
     "qdrant": ["QDRANT_API_KEY"],
     "rabbitmq": ["RABBITMQ_PASSWORD"],
     "redis": ["REDIS_PASSWORD"],
-    "sonarqube": ["POSTGRES_PASSWORD"],
+    "sonarqube": ["POSTGRES16_PASSWORD"],
     "supabase": ["POSTGRES_PASSWORD", "DASHBOARD_PASSWORD"],
-    "temporal": ["POSTGRES_PWD", "TEMPORAL_S3_SECRET_KEY"],
+    "temporal": ["POSTGRES16_PASSWORD", "TEMPORAL_S3_SECRET_KEY"],
     "zitadel": ["ZITADEL_ADMIN_PASSWORD", "POSTGRES16_PASSWORD"],
 }
 
@@ -212,7 +220,7 @@ SERVICE_INFO_VARS = {
         "OTEL_COLLECTOR_PORT_HTTP",
         "LOKI_PORT",
     ],
-    "pgvector": ["POSTGRES_PORT", "POSTGRES_DB"],
+    "pgvector": ["PGVECTOR_PORT", "PGVECTOR_DB"],
     "postgres": ["POSTGRES16_PORT", "POSTGRES16_DB"],
     "redis": ["REDIS_PORT"],
     "supabase": [

@@ -14,7 +14,7 @@ services:
           memory: "${MINIO_MEMORY_RESERVED:-512M}"
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-admin}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-Password102!}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env — run make setup}
       - MINIO_BROWSER=${MINIO_BROWSER:-on}
       - MINIO_BROWSER_REDIRECT_URL=${MINIO_BROWSER_REDIRECT_URL:-https://minio.dss.localhost}
       - MINIO_SERVER_URL=${MINIO_SERVER_URL:-http://minio:9000}
@@ -25,30 +25,36 @@ services:
       - minio_data:/data
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.minio.rule=Host(`minio.dss.localhost`)"
-      - "traefik.http.routers.minio.entrypoints=web,websecure"
+      - "traefik.http.routers.minio.entrypoints=websecure"
       - "traefik.http.routers.minio.tls=true"
       - "traefik.http.routers.minio.service=minio"
       - "traefik.http.services.minio.loadbalancer.server.port=9001"
       - "traefik.http.routers.minio-s3.rule=Host(`s3.minio.dss.localhost`)"
-      - "traefik.http.routers.minio-s3.entrypoints=web,websecure"
+      - "traefik.http.routers.minio-s3.entrypoints=websecure"
       - "traefik.http.routers.minio-s3.tls=true"
       - "traefik.http.routers.minio-s3.service=minio-s3"
       - "traefik.http.services.minio-s3.loadbalancer.server.port=9000"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true
 
 volumes:

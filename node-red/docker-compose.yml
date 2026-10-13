@@ -2,8 +2,9 @@ services:
   node-red:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.node-red.rule=Host(`node-red.dss.localhost`)"
-      - "traefik.http.routers.node-red.entrypoints=web,websecure"
+      - "traefik.http.routers.node-red.entrypoints=websecure"
       - "traefik.http.routers.node-red.tls=true"
       - "traefik.http.services.node-red.loadbalancer.server.port=1880"
     container_name: node-red
@@ -22,8 +23,9 @@ services:
     volumes:
       - node_red_data:/data
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
+      - data_net
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:1880/', (res) => { if (res.statusCode >= 200 && res.statusCode\
             \ < 400) { process.exit(0); } else { process.exit(1); } }).on('error', (e) => { process.exit(1); })"]
@@ -31,11 +33,18 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
+    external: true
+  data_net:
     external: true
 
 volumes:

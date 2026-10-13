@@ -4,7 +4,7 @@ services:
     image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.16.3}
     # root so first-instance bootstrap can write login-client.pat into the shared volume
     user: "0"
-    command: start-from-init --masterkey "${ZITADEL_MASTERKEY:-MasterkeyNeedsToHave32Characters}"
+    command: start-from-init --masterkeyFromEnv
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -15,6 +15,7 @@ services:
           cpus: "${ZITADEL_CPUS_RESERVED:-0.2}"
           memory: "${ZITADEL_MEMORY_RESERVED:-256M}"
     environment:
+      - ZITADEL_MASTERKEY=${ZITADEL_MASTERKEY:-MasterkeyNeedsToHave32Characters}
       - ZITADEL_EXTERNALDOMAIN=${ZITADEL_HOSTNAME:-zitadel.dss.localhost}
       - ZITADEL_EXTERNALPORT=443
       - ZITADEL_EXTERNALSECURE=true
@@ -23,12 +24,12 @@ services:
       - ZITADEL_DATABASE_POSTGRES_PORT=${POSTGRES16_PORT:-5432}
       - ZITADEL_DATABASE_POSTGRES_DATABASE=${POSTGRES16_DB:-zitadel}
       - ZITADEL_DATABASE_POSTGRES_USER_USERNAME=${POSTGRES16_USER:-postgres}
-      - ZITADEL_DATABASE_POSTGRES_USER_PASSWORD=${POSTGRES16_PASSWORD:-Password102!}
+      - ZITADEL_DATABASE_POSTGRES_USER_PASSWORD=${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}
       - ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE=disable
       - ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME=${POSTGRES16_USER:-postgres}
-      - ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD=${POSTGRES16_PASSWORD:-Password102!}
+      - ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD=${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}
       - ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE=disable
-      - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD=${ZITADEL_ADMIN_PASSWORD:-Password102!}
+      - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD=${ZITADEL_ADMIN_PASSWORD:?Set ZITADEL_ADMIN_PASSWORD in .env — run make setup}
       - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED=false
       - ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME=login-client
       - ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME=Login Client
@@ -42,7 +43,7 @@ services:
       - ZITADEL_SAML_DEFAULTLOGINURLV2=https://${ZITADEL_HOSTNAME:-zitadel.dss.localhost}/ui/v2/login/login?samlRequest=
       # Optional Redis cache (off by default; set ENABLED=true after `make up service=redis`)
       - ZITADEL_CACHES_CONNECTORS_REDIS_ENABLED=${ZITADEL_CACHES_CONNECTORS_REDIS_ENABLED:-false}
-      - ZITADEL_CACHES_CONNECTORS_REDIS_URL=${ZITADEL_CACHES_CONNECTORS_REDIS_URL:-redis://:Password102!@redis:6379/0}
+      - ZITADEL_CACHES_CONNECTORS_REDIS_URL=${ZITADEL_CACHES_CONNECTORS_REDIS_URL:-}
       - ZITADEL_CACHES_INSTANCE_CONNECTOR=${ZITADEL_CACHES_INSTANCE_CONNECTOR:-}
       - ZITADEL_CACHES_MILESTONES_CONNECTOR=${ZITADEL_CACHES_MILESTONES_CONNECTOR:-}
       - ZITADEL_CACHES_ORGANIZATION_CONNECTOR=${ZITADEL_CACHES_ORGANIZATION_CONNECTOR:-}
@@ -50,23 +51,28 @@ services:
       - zitadel-machinekey:/machinekey
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=infra_shared"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.zitadel-api.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.dss.localhost}`) && !PathPrefix(`/ui/v2/login`)"
-      - "traefik.http.routers.zitadel-api.entrypoints=web,websecure"
+      - "traefik.http.routers.zitadel-api.entrypoints=websecure"
       - "traefik.http.routers.zitadel-api.tls=true"
       - "traefik.http.routers.zitadel-api.priority=10"
       - "traefik.http.routers.zitadel-api.service=zitadel-api"
       - "traefik.http.services.zitadel-api.loadbalancer.server.port=8080"
       - "traefik.http.services.zitadel-api.loadbalancer.server.scheme=h2c"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     healthcheck:
       test: ["CMD", "/app/zitadel", "ready"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   zitadel-login:
     container_name: zitadel-login
@@ -91,23 +97,23 @@ services:
       - zitadel-machinekey:/machinekey:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=infra_shared"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.middlewares.zitadel-root-rewrite.replacepath.path=/ui/v2/login/"
       - "traefik.http.routers.zitadel-root.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.dss.localhost}`) && Path(`/`)"
-      - "traefik.http.routers.zitadel-root.entrypoints=web,websecure"
+      - "traefik.http.routers.zitadel-root.entrypoints=websecure"
       - "traefik.http.routers.zitadel-root.tls=true"
       - "traefik.http.routers.zitadel-root.priority=400"
       - "traefik.http.routers.zitadel-root.middlewares=zitadel-root-rewrite"
       - "traefik.http.routers.zitadel-root.service=zitadel-login"
       - "traefik.http.routers.zitadel-login.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.dss.localhost}`) && PathPrefix(`/ui/v2/login`)"
-      - "traefik.http.routers.zitadel-login.entrypoints=web,websecure"
+      - "traefik.http.routers.zitadel-login.entrypoints=websecure"
       - "traefik.http.routers.zitadel-login.tls=true"
       - "traefik.http.routers.zitadel-login.priority=100"
       - "traefik.http.routers.zitadel-login.service=zitadel-login"
       - "traefik.http.services.zitadel-login.loadbalancer.server.port=3000"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     depends_on:
       zitadel:
         condition: service_healthy
@@ -117,11 +123,16 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true
 
 volumes:

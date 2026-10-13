@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dozzle.rule=Host(`dozzle.dss.localhost`)"
-      - "traefik.http.routers.dozzle.entrypoints=web,websecure"
+      - "traefik.http.routers.dozzle.entrypoints=websecure"
       - "traefik.http.routers.dozzle.tls=true"
       - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
     container_name: dozzle
@@ -21,17 +21,19 @@ services:
       DOZZLE_AUTH_PROVIDER: "${DOZZLE_AUTH_PROVIDER:-simple}"
       DOZZLE_AUTH_TTL: "${DOZZLE_AUTH_TTL:-48h}"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
-    external: true
-  dev_tools:
+  traefik_proxy:
     external: true

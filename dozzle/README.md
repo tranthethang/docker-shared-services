@@ -1,39 +1,36 @@
 # Dozzle authentication (simple / users.yml)
 
-Mặc định Dozzle được cấu hình với `--auth-provider=simple`, đọc user từ file:
+Dozzle uses `--auth-provider=simple` and reads users from `dozzle/data/users.yml`.
 
-`dozzle/data/users.yml`
-
-## Tài khoản mặc định
+## Login
 
 - Username: `admin`
-- Password (plaintext): `Password102!`
+- Password: `DSS_SHARED_PASSWORD` from the root `.env` after `make setup`
 
-Dozzle lưu password dưới dạng **bcrypt hash** trong file `users.yml`.
+Dozzle stores a **bcrypt hash** in `users.yml`.
 
-## Tạo `dozzle/data/users.yml` thủ công
+## Create `dozzle/data/users.yml` manually
 
-Chạy lệnh sau (nó sẽ tự generate bcrypt hash và ghi vào `dozzle/data/users.yml`):
+Load the shared password from the root `.env`, then generate the users file:
 
 ```bash
+DSS_SHARED_PASSWORD=$(python3 -c "import sys; sys.path.insert(0, 'bin'); from utils import read_env_value; print(read_env_value('.env', 'DSS_SHARED_PASSWORD'))")
 docker run --rm -i amir20/dozzle generate admin \
-  --password Password102! \
+  --password "$DSS_SHARED_PASSWORD" \
   --email admin@example.com \
   --name "Admin" > ./dozzle/data/users.yml
 ```
 
-## Khi chạy `make setup`
+`make setup` creates `dozzle/data/users.yml` if it is missing.
 
-`make setup` sẽ tự kiểm tra và tạo `dozzle/data/users.yml` nếu file chưa tồn tại.
+## Run from the repository root
 
-## Chạy từ root repo (`make up`)
+`make up` runs Docker Compose from the repository root. The volume uses `${PWD}/dozzle/data:/data` so it mounts the Dozzle data directory.
 
-`make up` chạy `docker compose` từ thư mục gốc repo, nên volume dùng `${PWD}/dozzle/data:/data` (không dùng `./data`, vì sẽ mount nhầm thư mục `data/` ở root).
-
-Nếu container đã tạo trước đó với mount cũ, recreate:
+To recreate an existing container after changing its mount:
 
 ```bash
 make up service=dozzle
-# hoặc
+# Or:
 docker compose -f docker-compose.shared.yml -f dozzle/docker-compose.yml up -d --force-recreate
 ```

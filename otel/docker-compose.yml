@@ -17,8 +17,7 @@ services:
       - "127.0.0.1:${OTEL_COLLECTOR_PORT_GRPC:-4317}:4317" # OTLP gRPC
       - "127.0.0.1:${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
     logging:
       driver: json-file
       options:
@@ -31,8 +30,9 @@ services:
   grafana:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOSTNAME:-grafana.dss.localhost}`)"
-      - "traefik.http.routers.grafana.entrypoints=web,websecure"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     container_name: grafana
@@ -40,12 +40,12 @@ services:
     restart: ${RESTART_POLICY:-unless-stopped}
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-Password102!}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env — run make setup}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
@@ -65,6 +65,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   loki:
     container_name: loki
@@ -74,8 +79,8 @@ services:
     ports:
       - "127.0.0.1:${LOKI_PORT:-3100}:3100"
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
+      - data_net
     volumes:
       - ./config/loki.yml:/etc/loki/local-config.yaml:ro
       - loki_data:/loki
@@ -90,24 +95,32 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  promtail:
-    container_name: promtail
-    image: grafana/promtail:${PROMTAIL_VERSION:-3.3.2}
+  alloy:
+    container_name: alloy
+    image: grafana/alloy:${ALLOY_VERSION:-v1.20.1}
     restart: ${RESTART_POLICY:-unless-stopped}
-    command: -config.file=/etc/promtail/config.yml
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
     volumes:
-      - ./config/promtail.yml:/etc/promtail/config.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./config/alloy.alloy:/etc/alloy/config.alloy:ro
+      - alloy_data:/var/lib/alloy/data
       - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
       resources:
         limits:
-          cpus: "${PROMTAIL_CPUS_LIMIT:-0.20}"
-          memory: ${PROMTAIL_MEMORY_LIMIT:-256M}
+          cpus: "${ALLOY_CPUS_LIMIT:-0.2}"
+          memory: ${ALLOY_MEMORY_LIMIT:-128M}
     logging:
       driver: json-file
       options:
@@ -116,13 +129,54 @@ services:
     depends_on:
       loki:
         condition: service_healthy
+    # grafana/alloy:v1.20.1 is root with perl, and has neither wget nor curl.
+    healthcheck:
+      test: ["CMD-SHELL", "perl -e 'use IO::Socket::INET; my $$s = IO::Socket::INET->new(PeerAddr => \"127.0.0.1:12345\",\
+            \ Timeout => 2) or exit 1; print $$s \"GET /-/ready HTTP/1.0\\r\\n\\r\\n\"; my $$l = <$$s>; exit($$l =~ /200/\
+            \ ? 0 : 1);'"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  otel-collector-probe:
+    container_name: otel-collector-probe
+    image: curlimages/curl:8.22.0
+    entrypoint: ["sleep", "infinity"]
+    network_mode: "service:otel-collector"
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    # restart: true makes `docker compose restart` restart the probe after otel-collector;
+    # otherwise it races the shared network namespace and stays exited.
+    depends_on:
+      otel-collector:
+        condition: service_started
+        restart: true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.05"
+          memory: 32M
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:13133/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
+    external: true
+  data_net:
     external: true
 
 volumes:
   grafana_data:
   loki_data:
+  alloy_data:

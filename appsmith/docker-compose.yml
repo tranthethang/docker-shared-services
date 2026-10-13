@@ -2,12 +2,13 @@ services:
   appsmith:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.appsmith.rule=Host(`appsmith.dss.localhost`)"
-      - "traefik.http.routers.appsmith.entrypoints=web,websecure"
+      - "traefik.http.routers.appsmith.entrypoints=websecure"
       - "traefik.http.routers.appsmith.tls=true"
       - "traefik.http.services.appsmith.loadbalancer.server.port=80"
     container_name: appsmith
-    image: appsmith/appsmith-ce:v2.1
+    image: appsmith/appsmith-ce:v2.5.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -17,21 +18,29 @@ services:
     volumes:
       - appsmith_data:/appsmith-stacks
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
+      - data_net
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/api/v1/health || curl -fsS http://127.0.0.1/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 120s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   appsmith_data:
     name: appsmith_data
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
+    external: true
+  data_net:
     external: true

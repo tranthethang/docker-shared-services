@@ -2,8 +2,9 @@ services:
   rabbitmq:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.dss.localhost`)"
-      - "traefik.http.routers.rabbitmq.entrypoints=web,websecure"
+      - "traefik.http.routers.rabbitmq.entrypoints=websecure"
       - "traefik.http.routers.rabbitmq.tls=true"
       - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
     container_name: rabbitmq
@@ -21,12 +22,13 @@ services:
     environment:
       # Align defaults with .env.example (avoid classic guest/guest).
       RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER:-admin}"
-      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:-Password102!}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env — run make setup}"
     ports:
       - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
+      - data_net
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     logging:
@@ -42,9 +44,11 @@ services:
       start_period: 30s
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
+    external: true
+  data_net:
     external: true
 
 volumes:

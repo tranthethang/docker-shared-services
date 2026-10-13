@@ -16,11 +16,10 @@ services:
       GITEA_RUNNER_REGISTRATION_TOKEN: "${GITEA_RUNNER_TOKEN:-}"
       GITEA_RUNNER_NAME: "${GITEA_RUNNER_NAME:-act-runner}"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
       - act_runner_data:/data
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
 
     healthcheck:
       # Verify the runner daemon process is alive (ls /data only proved the volume mount).
@@ -30,11 +29,14 @@ services:
       retries: 3
       start_period: 60s
     command: daemon
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
-    external: true
-  dev_tools:
+  backend_net:
     external: true
 
 volumes:

@@ -41,9 +41,9 @@ services:
       - "zitadel.dss.localhost:host-gateway"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=infra_shared"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.oauth2-proxy.rule=Host(`${OAUTH2_PROXY_HOSTNAME:-auth.dss.localhost}`)"
-      - "traefik.http.routers.oauth2-proxy.entrypoints=web,websecure"
+      - "traefik.http.routers.oauth2-proxy.entrypoints=websecure"
       - "traefik.http.routers.oauth2-proxy.tls=true"
       - "traefik.http.routers.oauth2-proxy.service=oauth2-proxy"
       - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
@@ -58,21 +58,45 @@ services:
       # auth today; replace or chain additional middleware when policies are added.
       - "traefik.http.middlewares.auth-admin.chain.middlewares=auth-forward"
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  oauth2-proxy-probe:
+    container_name: oauth2-proxy-probe
+    image: curlimages/curl:8.22.0
+    entrypoint: ["sleep", "infinity"]
+    network_mode: "service:oauth2-proxy"
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    # restart: true makes `docker compose restart` restart the probe after oauth2-proxy;
+    # otherwise it races the shared network namespace and stays exited.
+    depends_on:
+      oauth2-proxy:
+        condition: service_started
+        restart: true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.05"
+          memory: 32M
     healthcheck:
-      # The official image is distroless and has no curl/wget. Running the
-      # binary's former `healthcheck` subcommand starts a second listener and
-      # fails with "address already in use". This verifies the shipped binary
-      # is runnable; Traefik performs the actual HTTP routing check.
-      test: ["CMD", "/bin/oauth2-proxy", "--version"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:4180/ping"]
       interval: 15s
       timeout: 5s
       retries: 5
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true

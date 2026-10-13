@@ -18,7 +18,7 @@ Check:
 1. `JWT_SECRET` is at least 32 characters; `PG_META_CRYPTO_KEY` likewise.
 1. `SECRET_KEY_BASE` is at least 64 characters; `REALTIME_DB_ENC_KEY` is exactly 16 characters.
 1. Host port `5434` is free (or change `SUPABASE_DB_PORT`).
-1. Shared networks exist: `make setup` (creates `infra_shared` / `dev_tools`).
+1. Shared networks exist: `make setup` (creates `traefik_proxy` / `backend_net` / `data_net`).
 1. Required volume files exist (`volumes/api/kong.yml`, `volumes/db/*.sql`, `volumes/api/kong-entrypoint.sh`).
 1. Docker has enough disk — Postgres and images are large.
 

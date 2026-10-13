@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.portainer.rule=Host(`portainer.dss.localhost`)"
-      - "traefik.http.routers.portainer.entrypoints=web,websecure"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.routers.portainer.tls=true"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
     container_name: portainer
@@ -22,8 +22,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
     logging:
       driver: json-file
       options:
@@ -37,9 +36,7 @@ services:
       start_period: 20s
 
 networks:
-  infra_shared:
-    external: true
-  dev_tools:
+  traefik_proxy:
     external: true
 
 volumes:

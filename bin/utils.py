@@ -11,12 +11,33 @@ def generate_password(length=32):
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
-def generate_secret(method: str, nbytes: int = 32) -> str:
-    """Generate a local secret. method: 'hex' | 'base64'."""
+def generate_secret(method: str, nbytes: int = 32, password: str | None = None) -> str:
+    """Generate a local secret. method: 'hex' | 'base64' | 'htpasswd'."""
     if method == "hex":
         return secrets.token_hex(nbytes)
     if method == "base64":
         return base64.b64encode(secrets.token_bytes(nbytes)).decode("ascii")
+    if method == "htpasswd":
+        password = password or generate_password(nbytes)
+        salt = secrets.token_hex(4)
+        try:
+            import subprocess
+
+            res = subprocess.run(
+                ["openssl", "passwd", "-apr1", "-salt", salt, "-stdin"],
+                input=password + "\n",
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return f"admin:{res.stdout.strip().replace('$', '$$')}"
+        except Exception:
+            import hashlib
+
+            sha1_hash = base64.b64encode(hashlib.sha1(password.encode("utf-8")).digest()).decode(
+                "ascii"
+            )
+            return f"admin:{{SHA}}{sha1_hash}"
     raise ValueError(f"Unsupported secret method: {method}")
 
 

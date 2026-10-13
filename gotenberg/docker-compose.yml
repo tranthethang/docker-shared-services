@@ -1,7 +1,7 @@
 services:
   gotenberg:
     container_name: gotenberg
-    image: gotenberg/gotenberg:8
+    image: gotenberg/gotenberg:8.37.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -14,17 +14,19 @@ services:
     ports:
       - "127.0.0.1:${GOTENBERG_API_PORT:-3030}:3000"
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
-    external: true
-  dev_tools:
+  backend_net:
     external: true

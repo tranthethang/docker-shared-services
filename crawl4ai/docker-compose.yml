@@ -2,8 +2,9 @@ services:
   crawl4ai:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.crawl4ai.rule=Host(`crawl4ai.dss.localhost`)"
-      - "traefik.http.routers.crawl4ai.entrypoints=web,websecure"
+      - "traefik.http.routers.crawl4ai.entrypoints=websecure"
       - "traefik.http.routers.crawl4ai.tls=true"
       - "traefik.http.services.crawl4ai.loadbalancer.server.port=11235"
     container_name: crawl4ai
@@ -30,21 +31,26 @@ services:
     volumes:
       - crawl4ai_data:/var/lib/crawl4ai
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:11235/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   crawl4ai_data:
     name: crawl4ai_data
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true

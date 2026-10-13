@@ -5,7 +5,7 @@ Paths are relative to `supabase/` inside **docker-shared-services**.
 ```
 docker-shared-services/
 ├── Makefile                    # make up service=supabase, …
-├── docker-compose.shared.yml   # external networks infra_shared / dev_tools
+├── docker-compose.shared.yml   # external networks traefik_proxy / backend_net / data_net
 └── supabase/
     ├── docker-compose.yml      # Stack definition (7 services)
     ├── .env.example            # Environment template

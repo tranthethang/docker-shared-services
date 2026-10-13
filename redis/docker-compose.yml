@@ -11,13 +11,23 @@ services:
         reservations:
           cpus: "${REDIS_CPUS_RESERVED:-0.25}"
           memory: "${REDIS_MEMORY_RESERVED:-256M}"
-    # Password comes from compose env at runtime (not committed in redis.conf).
-    command: redis-server /etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-Password102!}
+    # Substitute requirepass in a temp config so the password is not a CLI argument.
+    # Re-exec the image entrypoint so redis-server drops to the redis user.
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        escaped=$$(printf '%s' "$$REDIS_PASSWORD" | sed 's/[&|\\]/\\&/g')
+        sed "s|\$${REDIS_PASSWORD}|$$escaped|g" /etc/redis/redis.conf > /tmp/redis.conf
+        chown redis:redis /tmp/redis.conf
+        chmod 600 /tmp/redis.conf
+        exec docker-entrypoint.sh redis-server /tmp/redis.conf
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
+      - data_net
     volumes:
       - redis_data:/data
       - ./redis.conf:/etc/redis/redis.conf:ro
@@ -34,12 +44,12 @@ services:
       retries: 5
       start_period: 10s
     environment:
-      REDIS_PASSWORD: "${REDIS_PASSWORD:-Password102!}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env — run make setup}"
 
 networks:
-  infra_shared:
+  backend_net:
     external: true
-  dev_tools:
+  data_net:
     external: true
 
 volumes:

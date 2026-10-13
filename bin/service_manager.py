@@ -27,10 +27,11 @@ def has_fzf():
     )
 
 
-# Two bridges cannot share one CIDR; adjacent /16s in 10/8.
+# Bridges cannot share one CIDR; adjacent /16s in 10/8.
 SHARED_NETWORKS = (
-    ("infra_shared", "10.0.0.0/16"),
-    ("dev_tools", "10.1.0.0/16"),
+    ("traefik_proxy", "10.0.0.0/16"),
+    ("backend_net", "10.1.0.0/16"),
+    ("data_net", "10.2.0.0/16"),
 )
 
 
@@ -148,7 +149,7 @@ def validate_all_compose():
 
 
 def get_stack_services(service):
-    """Compose service names in a stack directory (e.g. otel -> grafana, loki, promtail)."""
+    """Compose service names in a stack directory (e.g. otel -> grafana, loki, alloy)."""
     result = subprocess.run(
         get_compose_cmd(service) + ["config", "--services"],
         capture_output=True,
@@ -295,6 +296,12 @@ def apply_manage_changes(selected):
             failed.append(service)
 
     if to_up:
+        from env_manager import check_prerequisites
+
+        invalid = [s for s in to_up if not check_prerequisites(s)]
+        if invalid:
+            error(f"Cannot start services: prerequisite checks failed for {', '.join(invalid)}")
+            sys.exit(1)
         ensure_network()
 
     for service in to_up:
@@ -345,6 +352,11 @@ def execute_action(service, action):
     cmd = get_compose_cmd(service)
 
     if action == "up":
+        from env_manager import check_prerequisites
+
+        if not check_prerequisites(service):
+            error(f"Cannot start {service}: prerequisite checks failed.")
+            sys.exit(1)
         ensure_network()
         success(f"Starting {service}...")
         subprocess.run(cmd + ["up", "-d"])
