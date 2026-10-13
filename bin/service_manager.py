@@ -149,7 +149,7 @@ def validate_all_compose():
 
 
 def get_stack_services(service):
-    """Compose service names in a stack directory (e.g. otel -> grafana, loki, promtail)."""
+    """Compose service names in a stack directory (e.g. otel -> grafana, loki, alloy)."""
     result = subprocess.run(
         get_compose_cmd(service) + ["config", "--services"],
         capture_output=True,

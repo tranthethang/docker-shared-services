@@ -57,7 +57,7 @@ Below is the mapping for all container services in the repository:
 | **otel-collector**      | OpenTelemetry Collector   |       ❌        |      ✅       |     ❌     | Receives OTLP from backend services         |
 | **grafana**             | Observability Dashboard   |       ✅        |      ✅       |     ❌     | Traefik Web UI + Loki/OTel backend          |
 | **loki**                | Log Aggregator            |       ❌        |      ✅       |     ✅     | Internal log ingestion and query API        |
-| **promtail**            | Docker Log Shipper        |       ❌        |      ✅       |     ❌     | Ships logs to Loki over backend_net         |
+| **alloy**               | Docker Log Shipper        |       ❌        |      ✅       |     ❌     | Ships Docker API logs to Loki (backend_net) |
 | **pgvector**            | PostgreSQL 17 + Vector    |       ❌        |      ✅       |     ✅     | Isolated DB tier + Hindsight/consumers      |
 | **pocketbase**          | PocketBase Backend & UI   |       ✅        |      ✅       |     ❌     | Traefik Web UI + backend API                |
 | **postgres**            | PostgreSQL 16 Shared DB   |       ❌        |      ✅       |     ✅     | Isolated DB tier + backend consumers        |

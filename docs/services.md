@@ -56,7 +56,7 @@ ______________________________________________________________________
 - **OTel Collector** - Default OTLP endpoint for apps (`4317` gRPC / `4318` HTTP); logs → Loki
 - **Grafana** - Log exploration UI (Loki datasource provisioned)
 - **Loki** - Log aggregation and storage
-- **Promtail** - Ships Docker container stdout to Loki
+- **Alloy** - Ships Docker container stdout to Loki via the Docker API
 - **Traefik** - Reverse proxy and load balancer
 - **Zitadel** - Central Identity Provider / OIDC & OAuth2 Server
 - **oauth2-proxy** - Opt-in Traefik authentication gateway (`auth.dss.localhost`) backed by Zitadel

@@ -17,7 +17,7 @@ ______________________________________________________________________
 - **Root Level**: Contains global configurations (`.env.example`, `docker-compose.shared.yml`), the orchestrating `Makefile`, and management logic in `bin/`.
 - **Service Directories**: Each service (e.g., `pgvector/`, `redis/`, `gitea/`) contains its own `docker-compose.yml` and `.env.example`.
 - **Infrastructure**: `traefik/` acts as the reverse proxy and load balancer for all services.
-- **Observability**: `otel/` is the logs-first stack (OTel Collector + Grafana + Loki + Promtail). Apps use OTLP on `4317`/`4318`; Docker stdout goes via Promtail. Traces/metrics are accepted then dropped until Tempo/Prometheus are added.
+- **Observability**: `otel/` is the logs-first stack (OTel Collector + Grafana + Loki + Alloy). Apps use OTLP on `4317`/`4318`; Docker stdout goes via Alloy (Docker API). Traces/metrics are accepted then dropped until Tempo/Prometheus are added.
 
 ## Specification & Tools
 
@@ -88,5 +88,5 @@ Web UIs are accessed through Traefik hostnames under `https://*.dss.localhost`; 
 **Integration Points**:
 
 - **Database Backend**: Gitea, SonarQube, Jenkins, and Concourse are configured to connect to the shared PgVector service.
-- **Log Aggregation**: Promtail ships logs from all containers to Loki, visualized in Grafana.
+- **Log Aggregation**: Alloy ships logs from all containers to Loki, visualized in Grafana.
 - **Reverse Proxy**: Traefik handles SSL termination and routing based on container labels.

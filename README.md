@@ -84,7 +84,7 @@ Press `?` inside the TUI for key bindings. Status updates automatically from Doc
 | Auth / apps | Zitadel, oauth2-proxy (`auth.dss.localhost`), Supabase, Gitea, n8n, Appsmith, Hindsight, Hasura |
 | CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                            |
 | Storage     | MinIO, Garage                                                                                   |
-| Edge / obs  | Traefik, OTel (Collector + Loki + Promtail + Grafana)                                           |
+| Edge / obs  | Traefik, OTel (Collector + Loki + Alloy + Grafana )                                             |
 
 Full catalog: [docs/services.md](docs/services.md).
 
