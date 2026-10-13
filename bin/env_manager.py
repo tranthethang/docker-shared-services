@@ -14,11 +14,13 @@ from config import (
     SHARED_PASSWORD_KEYS,
     SHARED_PASSWORD_PLACEHOLDERS,
     SHARED_PASSWORD_TEMPLATES,
+    STRONG_PASSWORD_REQUIRED,
     VALIDATION_RULES,
 )
 from utils import (
     error,
     generate_password,
+    validate_password_strength,
     generate_secret,
     iter_env_assignments,
     print_header,
@@ -181,6 +183,14 @@ def fill_secrets(service_arg):
         print(f"\n✅ Generated {filled} secret value(s).")
 
 
+def _require_strong(password: str, source: str) -> str:
+    problem = validate_password_strength(password)
+    if problem:
+        error(f"{source}: {problem}")
+        raise SystemExit(1)
+    return password
+
+
 def _resolve_shared_password(explicit: str | None) -> str:
     """
     Resolve the single shared password.
@@ -192,13 +202,22 @@ def _resolve_shared_password(explicit: str | None) -> str:
       4. Fresh random password
     """
     if explicit:
-        return explicit
+        return _require_strong(explicit, "--password")
     from_env = os.environ.get("DSS_SHARED_PASSWORD", "").strip()
     if from_env:
-        return from_env
+        return _require_strong(from_env, "DSS_SHARED_PASSWORD env")
     if os.path.exists(".env"):
         root_existing = read_env_value(".env", "DSS_SHARED_PASSWORD")
         if root_existing and root_existing not in INVALID_PASSWORD_VALUES:
+            # Existing installs keep working: data services already store this
+            # password in their volumes, so never rotate it implicitly.
+            problem = validate_password_strength(root_existing)
+            if problem:
+                warning(f"root .env DSS_SHARED_PASSWORD: {problem}")
+                print(
+                    "  Kept as-is. To rotate it, see 'Rotate the shared password' "
+                    "in docs/troubleshooting.md.\n"
+                )
             return root_existing
     return generate_password()
 
@@ -363,6 +382,17 @@ def check_prerequisites(service_arg="all") -> bool:
                 )
                 print(
                     f"  Remediation: Run 'make setup' to generate credentials or configure {var} in {env_path}.\n"
+                )
+                errors += 1
+
+        for var in STRONG_PASSWORD_REQUIRED.get(s, []):
+            val = read_env_value(env_path, var)
+            problem = validate_password_strength(val) if val else None
+            if problem:
+                error(f"{s}: {var} in {env_path} is too weak. {problem}")
+                print(
+                    "  Remediation: rotate the shared password "
+                    "(see 'Rotate the shared password' in docs/troubleshooting.md).\n"
                 )
                 errors += 1
 

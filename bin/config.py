@@ -147,6 +147,12 @@ SHARED_PASSWORD_PLACEHOLDERS = frozenset(
 
 INVALID_PASSWORD_VALUES = frozenset({"Password102!"})
 
+# Service dir -> vars that must pass validate_password_strength before `up`.
+# Zitadel's default password policy rejects the first admin password without a symbol.
+STRONG_PASSWORD_REQUIRED = {
+    "zitadel": ["ZITADEL_ADMIN_PASSWORD"],
+}
+
 # One shared password is written to every key listed here (service dir -> vars).
 # "." is the repo-root .env. ZITADEL_MASTERKEY is intentionally excluded (must
 # be exactly 32 chars; short passwords like Password102! are invalid there).

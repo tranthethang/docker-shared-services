@@ -6,9 +6,43 @@ import string
 _ENV_ASSIGNMENT = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 
 
+# Special characters that are safe in URLs, shell, .env and compose files.
+PASSWORD_SPECIALS = "-_.!*"
+PASSWORD_MIN_LENGTH = 15
+
+
+def validate_password_strength(password: str) -> str | None:
+    """Return an error message if the password is too weak, else None."""
+    if len(password) < PASSWORD_MIN_LENGTH:
+        return f"Password must be at least {PASSWORD_MIN_LENGTH} characters."
+    if not re.search(r"[a-z]", password):
+        return "Password must contain a lowercase letter."
+    if not re.search(r"[A-Z]", password):
+        return "Password must contain an uppercase letter."
+    if not re.search(r"\d", password):
+        return "Password must contain a digit."
+    if not re.search(r"[^A-Za-z0-9]", password):
+        return "Password must contain a special character."
+    return None
+
+
 def generate_password(length=32):
-    alphabet = string.ascii_letters + string.digits
-    return "".join(secrets.choice(alphabet) for _ in range(length))
+    length = max(length, PASSWORD_MIN_LENGTH)
+    pools = [
+        string.ascii_lowercase,
+        string.ascii_uppercase,
+        string.digits,
+        PASSWORD_SPECIALS,
+    ]
+    alphabet = "".join(pools)
+    chars = [secrets.choice(pool) for pool in pools]
+    chars += [secrets.choice(alphabet) for _ in range(length - len(chars))]
+    secrets.SystemRandom().shuffle(chars)
+    # Avoid a leading special char (e.g. "-" parsed as a CLI flag).
+    if chars[0] in PASSWORD_SPECIALS:
+        idx = next(i for i, c in enumerate(chars) if c not in PASSWORD_SPECIALS)
+        chars[0], chars[idx] = chars[idx], chars[0]
+    return "".join(chars)
 
 
 def generate_secret(method: str, nbytes: int = 32, password: str | None = None) -> str:
