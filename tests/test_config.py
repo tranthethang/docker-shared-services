@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-from dss.core.config import (
-    PACKAGE_REQUIRES,
-    dependency_queue,
-    direct_dependencies,
-    startup_queue,
-)
+from dss.core.config import PACKAGE_REQUIRES
+from dss.core.dependencies import dependency_queue, direct_dependencies, startup_queue
 
 
 def test_direct_dependencies_follow_package_requires() -> None:

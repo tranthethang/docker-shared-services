@@ -1,10 +1,1 @@
-{
-  "dss/cli/service.py": 627,
-  "dss/core/config.py": 338,
-  "dss/core/env_manager.py": 438,
-  "dss/package/export.py": 813,
-  "dss/package/wizard.py": 385,
-  "dss/tui/app.py": 317,
-  "supabase/run.sh": 303,
-  "tools/format_repo.py": 332
-}
+{}

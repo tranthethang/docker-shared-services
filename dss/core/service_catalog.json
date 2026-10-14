@@ -5,7 +5,8 @@
     "containers": [
       "act_runner"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": []
   },
   "adminer": {
     "category": "Admin UI",
@@ -15,6 +16,9 @@
     ],
     "web_ui": [
       "https://adminer.dss.localhost"
+    ],
+    "info": [
+      "Adminer - https://adminer.dss.localhost"
     ]
   },
   "appsmith": {
@@ -25,6 +29,9 @@
     ],
     "web_ui": [
       "https://appsmith.dss.localhost"
+    ],
+    "info": [
+      "Appsmith - https://appsmith.dss.localhost"
     ]
   },
   "bugsink": {
@@ -35,6 +42,9 @@
     ],
     "web_ui": [
       "https://bugsink.dss.localhost"
+    ],
+    "info": [
+      "Bugsink - https://bugsink.dss.localhost"
     ]
   },
   "chromadb": {
@@ -43,7 +53,10 @@
     "containers": [
       "chromadb"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "ChromaDB - https://chromadb.dss.localhost"
+    ]
   },
   "chromadb_admin": {
     "category": "Admin UI",
@@ -53,6 +66,9 @@
     ],
     "web_ui": [
       "https://chromadb-admin.dss.localhost"
+    ],
+    "info": [
+      "ChromaDB Admin - https://chromadb-admin.dss.localhost"
     ]
   },
   "concourse": {
@@ -63,6 +79,9 @@
     ],
     "web_ui": [
       "https://concourse.dss.localhost"
+    ],
+    "info": [
+      "Concourse - https://concourse.dss.localhost"
     ]
   },
   "crawl4ai": {
@@ -73,6 +92,9 @@
     ],
     "web_ui": [
       "https://crawl4ai.dss.localhost/playground"
+    ],
+    "info": [
+      "Crawl4AI - https://crawl4ai.dss.localhost"
     ]
   },
   "dockge": {
@@ -83,6 +105,9 @@
     ],
     "web_ui": [
       "https://dockge.dss.localhost"
+    ],
+    "info": [
+      "Dockge - https://dockge.dss.localhost"
     ]
   },
   "centrifugo": {
@@ -91,7 +116,10 @@
     "containers": [
       "centrifugo"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "Centrifugo - http://localhost:8010 (container: centrifugo:8000)"
+    ]
   },
   "dozzle": {
     "category": "Observability",
@@ -101,6 +129,9 @@
     ],
     "web_ui": [
       "https://dozzle.dss.localhost"
+    ],
+    "info": [
+      "Dozzle - https://dozzle.dss.localhost"
     ]
   },
   "garage": {
@@ -109,7 +140,10 @@
     "containers": [
       "garage"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "Garage (S3) - https://s3.garage.dss.localhost (admin: https://admin.garage.dss.localhost)"
+    ]
   },
   "gitea": {
     "category": "CI/CD",
@@ -119,6 +153,9 @@
     ],
     "web_ui": [
       "https://gitea.dss.localhost"
+    ],
+    "info": [
+      "Gitea - https://gitea.dss.localhost (SSH: localhost:2222)"
     ]
   },
   "gotenberg": {
@@ -127,7 +164,10 @@
     "containers": [
       "gotenberg"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "Gotenberg - http://localhost:3030 (container: gotenberg:3000)"
+    ]
   },
   "hasura": {
     "category": "Dev Tools",
@@ -137,6 +177,9 @@
     ],
     "web_ui": [
       "https://hasura.dss.localhost"
+    ],
+    "info": [
+      "Hasura - https://hasura.dss.localhost"
     ]
   },
   "hindsight": {
@@ -147,7 +190,8 @@
     ],
     "web_ui": [
       "https://hindsight-ui.dss.localhost"
-    ]
+    ],
+    "info": []
   },
   "inngest": {
     "category": "Workflow & Automation",
@@ -157,6 +201,9 @@
     ],
     "web_ui": [
       "https://inngest.dss.localhost"
+    ],
+    "info": [
+      "Inngest - https://inngest.dss.localhost"
     ]
   },
   "jenkins": {
@@ -167,6 +214,9 @@
     ],
     "web_ui": [
       "https://jenkins.dss.localhost"
+    ],
+    "info": [
+      "Jenkins - https://jenkins.dss.localhost (agent: localhost:50000)"
     ]
   },
   "kafka": {
@@ -178,6 +228,10 @@
     ],
     "web_ui": [
       "https://kafka-ui.dss.localhost"
+    ],
+    "info": [
+      "Kafka - localhost:9092",
+      "Kafka UI - https://kafka-ui.dss.localhost"
     ]
   },
   "litellm": {
@@ -188,7 +242,8 @@
     ],
     "web_ui": [
       "https://litellm.dss.localhost/ui"
-    ]
+    ],
+    "info": []
   },
   "mailpit": {
     "category": "Dev Tools",
@@ -198,6 +253,9 @@
     ],
     "web_ui": [
       "https://mailpit.dss.localhost"
+    ],
+    "info": [
+      "Mailpit - https://mailpit.dss.localhost (SMTP: localhost:1025)"
     ]
   },
   "mariadb": {
@@ -206,7 +264,10 @@
     "containers": [
       "mariadb"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "MariaDB 11 - localhost:3307"
+    ]
   },
   "memcached": {
     "category": "Cache & Queue",
@@ -214,7 +275,10 @@
     "containers": [
       "memcached"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "Memcached - localhost:11211"
+    ]
   },
   "mermaid-live-editor": {
     "category": "Dev Tools",
@@ -224,6 +288,9 @@
     ],
     "web_ui": [
       "https://mermaid.dss.localhost"
+    ],
+    "info": [
+      "Mermaid Live Editor - https://mermaid.dss.localhost"
     ]
   },
   "minio": {
@@ -234,6 +301,9 @@
     ],
     "web_ui": [
       "https://minio.dss.localhost"
+    ],
+    "info": [
+      "MinIO - https://minio.dss.localhost (S3: localhost:9002)"
     ]
   },
   "mongodb": {
@@ -242,7 +312,10 @@
     "containers": [
       "mongodb"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "MongoDB - localhost:27017"
+    ]
   },
   "mysql8": {
     "category": "Database",
@@ -250,7 +323,10 @@
     "containers": [
       "mysql8"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "MySQL 8 - localhost:3306"
+    ]
   },
   "n8n": {
     "category": "Workflow & Automation",
@@ -260,6 +336,9 @@
     ],
     "web_ui": [
       "https://n8n.dss.localhost"
+    ],
+    "info": [
+      "n8n - https://n8n.dss.localhost"
     ]
   },
   "node-red": {
@@ -270,6 +349,9 @@
     ],
     "web_ui": [
       "https://node-red.dss.localhost"
+    ],
+    "info": [
+      "Node-RED - https://node-red.dss.localhost"
     ]
   },
   "oauth2-proxy": {
@@ -281,6 +363,9 @@
     ],
     "web_ui": [
       "https://auth.dss.localhost"
+    ],
+    "info": [
+      "oauth2-proxy (auth gateway) - https://auth.dss.localhost (Traefik only; needs Zitadel app)"
     ]
   },
   "otel": {
@@ -295,6 +380,11 @@
     ],
     "web_ui": [
       "https://grafana.dss.localhost"
+    ],
+    "info": [
+      "Grafana - https://grafana.dss.localhost [otel stack]",
+      "Loki - http://localhost:3100 [otel stack]",
+      "OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP) [otel stack]"
     ]
   },
   "pgvector": {
@@ -303,7 +393,10 @@
     "containers": [
       "pgvector"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "PgVector (PostgreSQL 17, standalone) - localhost:5433"
+    ]
   },
   "pocketbase": {
     "category": "Database",
@@ -313,6 +406,9 @@
     ],
     "web_ui": [
       "https://pocketbase.dss.localhost/_/"
+    ],
+    "info": [
+      "PocketBase - https://pocketbase.dss.localhost"
     ]
   },
   "postgres": {
@@ -321,7 +417,10 @@
     "containers": [
       "postgres"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "Postgres (PostgreSQL 16, default shared DB) - localhost:5432"
+    ]
   },
   "portainer": {
     "category": "Admin UI",
@@ -331,6 +430,9 @@
     ],
     "web_ui": [
       "https://portainer.dss.localhost"
+    ],
+    "info": [
+      "Portainer - https://portainer.dss.localhost"
     ]
   },
   "qdrant": {
@@ -341,7 +443,8 @@
     ],
     "web_ui": [
       "https://qdrant.dss.localhost/dashboard"
-    ]
+    ],
+    "info": []
   },
   "rabbitmq": {
     "category": "Cache & Queue",
@@ -351,6 +454,9 @@
     ],
     "web_ui": [
       "https://rabbitmq.dss.localhost"
+    ],
+    "info": [
+      "RabbitMQ - https://rabbitmq.dss.localhost (AMQP: localhost:5672)"
     ]
   },
   "redis": {
@@ -359,7 +465,10 @@
     "containers": [
       "redis"
     ],
-    "web_ui": []
+    "web_ui": [],
+    "info": [
+      "Redis - localhost:6379"
+    ]
   },
   "redisinsight": {
     "category": "Admin UI",
@@ -369,6 +478,9 @@
     ],
     "web_ui": [
       "https://redisinsight.dss.localhost"
+    ],
+    "info": [
+      "Redis Insight - https://redisinsight.dss.localhost"
     ]
   },
   "sonarqube": {
@@ -379,6 +491,9 @@
     ],
     "web_ui": [
       "https://sonarqube.dss.localhost"
+    ],
+    "info": [
+      "SonarQube - https://sonarqube.dss.localhost"
     ]
   },
   "supabase": {
@@ -395,6 +510,9 @@
     ],
     "web_ui": [
       "https://studio.dss.localhost"
+    ],
+    "info": [
+      "Supabase - https://studio.dss.localhost (API: https://supabase.dss.localhost, DB: localhost:5434)"
     ]
   },
   "temporal": {
@@ -406,6 +524,9 @@
     ],
     "web_ui": [
       "https://temporal.dss.localhost"
+    ],
+    "info": [
+      "Temporal - localhost:7233 (UI: https://temporal.dss.localhost)"
     ]
   },
   "traefik": {
@@ -416,6 +537,9 @@
     ],
     "web_ui": [
       "https://traefik.dss.localhost/dashboard/"
+    ],
+    "info": [
+      "Traefik (Reverse Proxy) - https://traefik.dss.localhost (BasicAuth)"
     ]
   },
   "verdaccio": {
@@ -426,7 +550,8 @@
     ],
     "web_ui": [
       "https://verdaccio.dss.localhost"
-    ]
+    ],
+    "info": []
   },
   "woodpecker": {
     "category": "CI/CD",
@@ -438,6 +563,9 @@
     ],
     "web_ui": [
       "https://woodpecker.dss.localhost"
+    ],
+    "info": [
+      "Woodpecker CI - https://woodpecker.dss.localhost"
     ]
   },
   "zitadel": {
@@ -449,6 +577,9 @@
     ],
     "web_ui": [
       "https://zitadel.dss.localhost/ui/console"
+    ],
+    "info": [
+      "Zitadel - https://zitadel.dss.localhost"
     ]
   }
 }

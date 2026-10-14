@@ -29,12 +29,12 @@ Every target that runs Python needs `uv`; the Makefile stops with an install hin
 ## Structure
 
 - `dss/` — Python package, one layer per subpackage (enforced by `lint-imports`):
-  - `dss/core/` — `config.py`, `service_catalog.py` + `.json`, `utils.py`, `env_manager.py`. Standard library only.
-  - `dss/cli/` — `service.py` (`make up/down/…`), `env.py` (`make setup`, env commands), `checkbox_menu.py`
-  - `dss/package/` — `export.py` (`export_stack`) and `wizard.py` (`make package`)
+  - `dss/core/` — `config.py` (service lists and maps), `dependencies.py` (backend order), `service_catalog.py` + `.json`, `utils.py`, `env_files.py` (check/create/merge `.env`), `secrets.py` (shared password, generated secrets), `env_report.py` (validate, prerequisites, summary). Standard library only.
+  - `dss/cli/` — `service.py` (`make up/down/…` dispatch), `compose.py` (Compose commands, networks, `make validate`), `readiness.py` (dependency queue wait), `manage.py` (`make manage`), `env.py` (`make setup`, env commands), `info.py` (`make info`), `checkbox_menu.py`
+  - `dss/package/` — `export.py` (`export_stack`) with `env_filter.py`, `config_filter.py`, `copy_tree.py`, `makefile_template.py`, `templates.py`; `wizard.py` + `wizard_screens.py` (`make package` UI) and `wizard_model.py` (selection logic, no Textual)
   - `dss/tui/` — Textual dashboard (`make tui`)
-- `tools/` — dev tooling (`format_repo.py`, `check_file_size.py` + baseline)
-- `scripts/` — shell scripts only
+- `tools/` — dev tooling (`format_repo.py` + `repo_files.py`, `check_file_size.py` + `file_size_baseline.json`, kept empty)
+- `scripts/` — shell scripts only, called by Makefile recipes: `ensure-networks.sh`, `ensure-dozzle-users.sh`, `gen-certs.sh`, `remove-all.sh`, `remove-config.sh`
 - `<service>/` — that service's `docker-compose.yml` and `.env.example`
 - `docker-compose.shared.yml` — external networks `traefik_proxy`, `backend_net`, `data_net`
 - `traefik/` — reverse proxy
@@ -47,6 +47,7 @@ Every target that runs Python needs `uv`; the Makefile stops with an install hin
 - Load a service with `--project-directory <service>` so `<service>/.env` and relative paths resolve.
 - Publish web UIs with Traefik labels. Bind database and protocol ports to `127.0.0.1` only.
 - Record cross-project backends in `PACKAGE_REQUIRES` in `dss/core/config.py` (`postgres` → `zitadel`, `zitadel` → `oauth2-proxy`).
+- `make info` prints each service's `info` lines from `dss/core/service_catalog.json`, sorted. Edit the catalog, not code, to change them.
 - Run Python as modules from the repo root through `uv` (`uv run --frozen --no-dev python -m dss.cli.env …`). Imports are absolute (`from dss.core.config import …`); do not add `sys.path` hacks.
 - `dss.core` imports nothing from `dss.cli`, `dss.package`, or `dss.tui`; `dss.cli` and `dss.package` do not import each other or `dss.tui`.
 

@@ -1,0 +1,62 @@
+
+╔════════════════════════════════════════════════════════════════╗
+║                     Service Information                        ║
+╚════════════════════════════════════════════════════════════════╝
+
+Networks (three-tier topology, 10/8 plan):
+  • traefik_proxy — 10.0.0.0/16 (Traefik ingress + routed web services)
+  • backend_net   — 10.1.0.0/16 (application logic containers & workers)
+  • data_net      — 10.2.0.0/16 (isolated databases, caches, and storage)
+
+Services:
+  • Adminer - https://adminer.dss.localhost
+  • Appsmith - https://appsmith.dss.localhost
+  • Bugsink - https://bugsink.dss.localhost
+  • Centrifugo - http://localhost:8010 (container: centrifugo:8000)
+  • ChromaDB - https://chromadb.dss.localhost
+  • ChromaDB Admin - https://chromadb-admin.dss.localhost
+  • Concourse - https://concourse.dss.localhost
+  • Crawl4AI - https://crawl4ai.dss.localhost
+  • Dockge - https://dockge.dss.localhost
+  • Dozzle - https://dozzle.dss.localhost
+  • Garage (S3) - https://s3.garage.dss.localhost (admin: https://admin.garage.dss.localhost)
+  • Gitea - https://gitea.dss.localhost (SSH: localhost:2222)
+  • Gotenberg - http://localhost:3030 (container: gotenberg:3000)
+  • Grafana - https://grafana.dss.localhost [otel stack]
+  • Hasura - https://hasura.dss.localhost
+  • Inngest - https://inngest.dss.localhost
+  • Jenkins - https://jenkins.dss.localhost (agent: localhost:50000)
+  • Kafka - localhost:9092
+  • Kafka UI - https://kafka-ui.dss.localhost
+  • Loki - http://localhost:3100 [otel stack]
+  • Mailpit - https://mailpit.dss.localhost (SMTP: localhost:1025)
+  • MariaDB 11 - localhost:3307
+  • Memcached - localhost:11211
+  • Mermaid Live Editor - https://mermaid.dss.localhost
+  • MinIO - https://minio.dss.localhost (S3: localhost:9002)
+  • MongoDB - localhost:27017
+  • MySQL 8 - localhost:3306
+  • n8n - https://n8n.dss.localhost
+  • Node-RED - https://node-red.dss.localhost
+  • oauth2-proxy (auth gateway) - https://auth.dss.localhost (Traefik only; needs Zitadel app)
+  • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP) [otel stack]
+  • PgVector (PostgreSQL 17, standalone) - localhost:5433
+  • PocketBase - https://pocketbase.dss.localhost
+  • Portainer - https://portainer.dss.localhost
+  • Postgres (PostgreSQL 16, default shared DB) - localhost:5432
+  • RabbitMQ - https://rabbitmq.dss.localhost (AMQP: localhost:5672)
+  • Redis - localhost:6379
+  • Redis Insight - https://redisinsight.dss.localhost
+  • SonarQube - https://sonarqube.dss.localhost
+  • Supabase - https://studio.dss.localhost (API: https://supabase.dss.localhost, DB: localhost:5434)
+  • Temporal - localhost:7233 (UI: https://temporal.dss.localhost)
+  • Traefik (Reverse Proxy) - https://traefik.dss.localhost (BasicAuth)
+  • Woodpecker CI - https://woodpecker.dss.localhost
+  • Zitadel - https://zitadel.dss.localhost
+
+Opt-in UI auth (oauth2-proxy + Zitadel; OFF by default):
+  • Candidates: mermaid-live-editor, temporal UI, chromadb, qdrant, kafka-ui
+  • Enable: set AUTH_ENABLED=true and AUTH_MIDDLEWARE=auth-default in that service .env, then restart
+  • Status: uv run python -m dss.cli.env summary  (shows AUTH gateway on/off)
+  • Setup: see oauth2-proxy/README.md and docs/configuration.md
+

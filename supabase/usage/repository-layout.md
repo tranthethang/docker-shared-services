@@ -17,7 +17,8 @@ docker-shared-services/
     │   ├── add-new-auth-keys.sh
     │   ├── rotate-new-api-keys.sh
     │   ├── db-passwd.sh
-    │   └── reassign-owner.sh
+    │   ├── reassign-owner.sh
+    │   └── compose-file.sh     # COMPOSE_FILE helpers sourced by run.sh
     ├── volumes/
     │   ├── api/                # Kong config + entrypoint (required)
     │   │   ├── kong.yml

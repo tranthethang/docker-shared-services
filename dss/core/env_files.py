@@ -1,0 +1,114 @@
+"""Check, create, and merge per-service ``.env`` files from ``.env.example``."""
+
+import os
+import shutil
+
+from dss.core.config import (
+    SERVICES,
+)
+from dss.core.utils import (
+    error,
+    iter_env_assignments,
+    read_env_value,
+    success,
+    warning,
+)
+
+
+def get_services(service_arg):
+    if not service_arg or service_arg == "all":
+        return ["."] + SERVICES
+    if service_arg in SERVICES or service_arg == ".":
+        return [service_arg]
+    return []
+
+
+def check_env(service_arg):
+    services = get_services(service_arg)
+    print("Checking .env files...\n")
+    missing = []
+    for s in services:
+        env_path = os.path.join(s, ".env")
+        example_path = os.path.join(s, ".env.example")
+        if os.path.exists(env_path):
+            success(f"{s}/.env exists")
+        elif os.path.exists(example_path):
+            warning(f"{s}/.env missing (only .env.example exists)")
+            missing.append(s)
+        else:
+            error(f"{s}/.env.example not found")
+
+    if missing:
+        print(f"\nFound {len(missing)} services missing .env files")
+        return True
+    return False
+
+
+def create_env(service_arg):
+    services = get_services(service_arg)
+    print("\nCreating .env files from .env.example...\n")
+    created = []
+    for s in services:
+        env_path = os.path.join(s, ".env")
+        example_path = os.path.join(s, ".env.example")
+        if os.path.exists(example_path) and not os.path.exists(env_path):
+            shutil.copy(example_path, env_path)
+            success(f"Created {s}/.env")
+            created.append(s)
+    if created:
+        print("\n✅ .env files created successfully!")
+    else:
+        print("\n✅ No missing .env files to create.")
+    warning("Next: shared password sync (fill-shared-password) + unique secrets (fill-secrets).")
+
+
+def _example_env_assignments(example_path: str) -> list[tuple[str, str]]:
+    """Return (KEY, raw_value) pairs from .env.example in file order (first wins)."""
+    seen: set[str] = set()
+    pairs: list[tuple[str, str]] = []
+    for key, value in iter_env_assignments(example_path):
+        if key in seen:
+            continue
+        seen.add(key)
+        pairs.append((key, value))
+    return pairs
+
+
+def merge_missing_env_keys(service_arg):
+    """Append keys that exist in .env.example but are absent from .env.
+
+    Never overwrites existing keys (including empty values). Safe for repeated
+    `make setup` after .env.example gains new variables (e.g. AUTH_*).
+    """
+    services = get_services(service_arg)
+    print("\nMerging missing keys from .env.example into existing .env files...\n")
+    added_total = 0
+    for s in services:
+        env_path = os.path.join(s, ".env")
+        example_path = os.path.join(s, ".env.example")
+        if not os.path.exists(env_path) or not os.path.exists(example_path):
+            continue
+        missing = [
+            (key, value)
+            for key, value in _example_env_assignments(example_path)
+            if read_env_value(env_path, key) is None
+        ]
+        if not missing:
+            continue
+        with open(env_path) as f:
+            content = f.read()
+        suffix_parts = []
+        if content and not content.endswith("\n"):
+            suffix_parts.append("\n")
+        if content.strip():
+            suffix_parts.append("\n")
+        for key, value in missing:
+            suffix_parts.append(f"{key}={value}\n")
+            success(f"{s}: added {key}")
+            added_total += 1
+        with open(env_path, "a") as f:
+            f.write("".join(suffix_parts))
+    if added_total == 0:
+        print("✅ No missing keys to merge.")
+    else:
+        print(f"\n✅ Added {added_total} missing key(s) from .env.example.")

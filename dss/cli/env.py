@@ -2,16 +2,9 @@
 
 import argparse
 
-from dss.core.env_manager import (
-    check_env,
-    check_prerequisites,
-    create_env,
-    fill_secrets,
-    fill_shared_password,
-    merge_missing_env_keys,
-    show_summary,
-    validate_env,
-)
+from dss.core.env_files import check_env, create_env, merge_missing_env_keys
+from dss.core.env_report import check_prerequisites, show_summary, validate_env
+from dss.core.secrets import fill_secrets, fill_shared_password
 
 
 def main():

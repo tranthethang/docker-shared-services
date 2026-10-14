@@ -49,10 +49,10 @@ def test_baselined_file_may_not_grow(repo_root: Path, tmp_path: Path) -> None:
     assert "grew" in problems[0]
 
 
-def test_repo_baseline_matches_current_tree(repo_root: Path) -> None:
+def test_repo_tree_is_within_limit_without_baseline(repo_root: Path) -> None:
     checker = _load(repo_root)
     baseline = checker.load_baseline(repo_root / "tools" / "file_size_baseline.json")
-    assert baseline
+    assert baseline == {}
     assert checker.check_files(repo_root, baseline) == []
 
 

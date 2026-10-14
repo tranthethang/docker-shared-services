@@ -1,4 +1,4 @@
-"""Service catalog: what each service is, for the package wizard and README.
+"""Service catalog: what each service is, for the package wizard, README, and ``make info``.
 
 Standard library only. The data lives in ``service_catalog.json`` next to this file.
 """
@@ -26,7 +26,7 @@ CATEGORIES = [
     "Dev Tools",
 ]
 
-_FIELDS = {"category", "description", "containers", "web_ui"}
+_FIELDS = {"category", "description", "containers", "web_ui", "info"}
 
 
 def load_catalog(path: Path | None = None) -> dict[str, dict]:
@@ -92,4 +92,6 @@ def catalog_problems(catalog: dict, compose_services: dict[str, list[str]]) -> l
             for url in web_ui:
                 if not url.startswith("https://"):
                     problems.append(f"{name}: web_ui URL {url!r} must start with https://")
+        if not _is_str_list(entry.get("info")):
+            problems.append(f"{name}: info must be a list of strings")
     return problems

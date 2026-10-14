@@ -29,7 +29,9 @@ PACKAGED_DSS_FILES = [
     "dss/cli/env.py",
     "dss/core/__init__.py",
     "dss/core/config.py",
-    "dss/core/env_manager.py",
+    "dss/core/env_files.py",
+    "dss/core/env_report.py",
+    "dss/core/secrets.py",
     "dss/core/utils.py",
 ]
 

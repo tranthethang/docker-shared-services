@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from dss.core.config import LEGACY_PLACEHOLDER_PASSWORD, SHARED_PASSWORD_PLACEHOLDERS
-from dss.core.env_manager import _should_overwrite, fill_shared_password, merge_missing_env_keys
+from dss.core.env_files import merge_missing_env_keys
+from dss.core.secrets import _should_overwrite, fill_shared_password
 from dss.core.utils import iter_env_assignments
 
 
@@ -52,7 +53,7 @@ def test_legacy_password_is_rejected(
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("DSS_SHARED_PASSWORD", raising=False)
     monkeypatch.setattr(
-        "dss.core.env_manager._resolve_shared_password",
+        "dss.core.secrets._resolve_shared_password",
         lambda _explicit: LEGACY_PLACEHOLDER_PASSWORD,
     )
 

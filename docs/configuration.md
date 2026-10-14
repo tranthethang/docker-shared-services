@@ -172,7 +172,7 @@ Traefik requires SSL/TLS certificates for HTTPS support. The easiest way is usin
 
 Public Traefik hostnames use the `*.dss.localhost` pattern (for example `https://mailpit.dss.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `dss.localhost`.
 
-Nested app hosts (one extra label) need an extra wildcard SAN — `make cert` also issues `*.tts.dss.localhost` (for `api.tts.dss.localhost`, `proxy.tts.dss.localhost`), plus `*.minio.dss.localhost` and `*.garage.dss.localhost`. Re-run `make cert` and restart Traefik after changing SANs.
+Nested app hosts (one extra label) need an extra wildcard SAN — `make cert` (`scripts/gen-certs.sh`) also issues `*.tts.dss.localhost` (for `api.tts.dss.localhost`, `proxy.tts.dss.localhost`), plus `*.minio.dss.localhost` and `*.garage.dss.localhost`. Re-run `make cert` and restart Traefik after changing SANs.
 
 ### Option 1: Using Makefile (Recommended)
 
@@ -200,7 +200,7 @@ openssl req -x509 -newkey rsa:4096 -keyout traefik/certs/server.key \
 - **Certificate files are in `.gitignore`** - They are NOT committed to the repository.
 - **Generate fresh certificates** for each environment (development, staging, production).
 - Certificates are located in: `traefik/certs/server.crt` and `traefik/certs/server.key`.
-- Update certificate validity period in the mkcert command as needed (default: 2 years).
+- Update certificate validity period in the mkcert command in `scripts/gen-certs.sh` as needed (default: 2 years).
 
 ### Verify Certificates
 

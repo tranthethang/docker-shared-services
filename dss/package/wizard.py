@@ -7,49 +7,24 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, VerticalScroll
 from textual.screen import Screen
-from textual.widgets import Button, DataTable, Footer, Header, Input, OptionList, Static
+from textual.widgets import Footer, Header, Input, OptionList, Static
 from textual.widgets.option_list import Option
 
-from dss.core.config import (
-    PACKAGE_DEFAULT_SERVICES,
-    PACKAGE_REQUIRES,
-    SERVICES,
-    direct_dependencies,
+from dss.package.export import export_stack, partition_selection
+from dss.package.wizard_model import (
+    CATALOG,
+    DEFAULTS,
+    MARKS,
+    STATE_LABELS,
+    added_dependencies,
+    grouped_matches,
+    ordered_selection,
+    required_by,
+    requires,
+    selection_state,
+    toggle,
 )
-from dss.core.service_catalog import CATEGORIES, load_catalog
-from dss.package.export import (
-    export_stack,
-    partition_selection,
-    repo_root,
-    service_requires_traefik,
-    validate_stack_name,
-)
-
-_DEFAULTS = set(PACKAGE_DEFAULT_SERVICES)
-_CATALOG = load_catalog()
-_TRAEFIK_USERS = [name for name in SERVICES if name != "traefik" and service_requires_traefik(name)]
-
-
-def _requires(service: str) -> list[str]:
-    needs = direct_dependencies(service)
-    if service != "traefik" and service in _TRAEFIK_USERS:
-        needs = ["traefik", *needs]
-    return [name for name in SERVICES if name in needs]
-
-
-def _required_by(service: str) -> list[str]:
-    users = set(PACKAGE_REQUIRES.get(service, []))
-    if service == "traefik":
-        users.update(_TRAEFIK_USERS)
-    return [name for name in SERVICES if name in users]
-
-
-def _matches(service: str, query: str) -> bool:
-    if not query:
-        return True
-    entry = _CATALOG[service]
-    haystack = f"{service} {entry['category']} {entry['description']}".lower()
-    return query.lower() in haystack
+from dss.package.wizard_screens import ConfirmScreen, ErrorScreen, NameScreen
 
 
 class SelectScreen(Screen[list[str] | None]):
@@ -67,7 +42,7 @@ class SelectScreen(Screen[list[str] | None]):
 
     def __init__(self, initial: set[str] | None = None) -> None:
         super().__init__()
-        self._checked = set(_DEFAULTS if initial is None else initial)
+        self._checked = set(DEFAULTS if initial is None else initial)
         self._added: set[str] = set()
         self._query = ""
 
@@ -87,20 +62,11 @@ class SelectScreen(Screen[list[str] | None]):
         self.query_one("#service-list", OptionList).focus()
 
     def _recompute(self) -> None:
-        if self._checked:
-            _checked, added = partition_selection(sorted(self._checked))
-            self._added = set(added)
-        else:
-            self._added = set()
+        self._added = added_dependencies(self._checked)
 
     def _prompt(self, service: str) -> str:
-        if service in self._checked:
-            mark = "[x]"
-        elif service in self._added:
-            mark = "[+]"
-        else:
-            mark = "[ ]"
-        web = " 🌐" if _CATALOG[service]["web_ui"] else ""
+        mark = MARKS[selection_state(service, self._checked, self._added)]
+        web = " 🌐" if CATALOG[service]["web_ui"] else ""
         auto = "  [dim]auto[/dim]" if service in self._added else ""
         return f"{escape(mark)} {service}{web}{auto}"
 
@@ -108,14 +74,7 @@ class SelectScreen(Screen[list[str] | None]):
         option_list = self.query_one("#service-list", OptionList)
         highlighted = self._highlighted_service()
         options: list[Option] = []
-        for category in CATEGORIES:
-            members = [
-                name
-                for name in SERVICES
-                if _CATALOG[name]["category"] == category and _matches(name, self._query)
-            ]
-            if not members:
-                continue
+        for category, members in grouped_matches(self._query):
             options.append(Option(f"[b]{escape(category)}[/b]", disabled=True))
             options.extend(Option(self._prompt(name), id=name) for name in members)
         option_list.set_options(options)
@@ -155,23 +114,18 @@ class SelectScreen(Screen[list[str] | None]):
         if service is None:
             detail.update("No service matches the filter.")
             return
-        entry = _CATALOG[service]
-        requires = ", ".join(_requires(service)) or "—"
-        required_by = ", ".join(_required_by(service)) or "—"
+        entry = CATALOG[service]
+        needs = ", ".join(requires(service)) or "—"
+        users = ", ".join(required_by(service)) or "—"
         web_ui = "\n".join(f"  {escape(url)}" for url in entry["web_ui"]) or "  —"
-        if service in self._checked:
-            state = "checked"
-        elif service in self._added:
-            state = "added as a dependency"
-        else:
-            state = "not selected"
+        state = STATE_LABELS[selection_state(service, self._checked, self._added)]
         detail.update(
             f"[b]{escape(service)}[/b]  [dim]{escape(entry['category'])}[/dim]\n"
             f"{escape(entry['description'])}\n\n"
             f"[b]Status[/b]       {state}\n"
             f"[b]Containers[/b]   {escape(', '.join(entry['containers']))}\n"
-            f"[b]Requires[/b]     {escape(requires)}\n"
-            f"[b]Required by[/b]  {escape(required_by)}\n"
+            f"[b]Requires[/b]     {escape(needs)}\n"
+            f"[b]Required by[/b]  {escape(users)}\n"
             f"[b]Web UI[/b]\n{web_ui}"
         )
 
@@ -197,11 +151,7 @@ class SelectScreen(Screen[list[str] | None]):
             self._toggle(service)
 
     def _toggle(self, service: str) -> None:
-        if service in self._checked:
-            self._checked.discard(service)
-        else:
-            # Toggling an auto-added dependency makes it an explicit choice.
-            self._checked.add(service)
+        self._checked = toggle(self._checked, service)
         self._recompute()
         self._refresh_prompts()
         self._show_detail(service)
@@ -210,127 +160,13 @@ class SelectScreen(Screen[list[str] | None]):
         self.dismiss(None)
 
     def action_confirm(self) -> None:
-        selected = [service for service in SERVICES if service in self._checked]
+        selected = ordered_selection(self._checked)
         if not selected:
             self.query_one("#select-status", Static).update(
                 "[b red]Select at least one service.[/b red]"
             )
             return
         self.dismiss(selected)
-
-
-class NameScreen(Screen[str | None]):
-    """Accept a stack name, or stay put when it is invalid or already exported."""
-
-    BINDINGS = [Binding("escape", "back", "Back")]
-
-    def compose(self) -> ComposeResult:
-        yield Header()
-        yield Static("Stack name: lowercase letters, digits, and hyphens, 1-48 characters.")
-        yield Input(placeholder="my-stack", id="stack-name")
-        yield Static("", id="name-error")
-        with Horizontal(id="name-actions"):
-            yield Button("Back", id="name-back")
-            yield Button("Continue", id="name-continue", variant="primary")
-        yield Footer()
-
-    def on_mount(self) -> None:
-        self.query_one("#stack-name", Input).focus()
-
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        self._submit(event.value)
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "name-back":
-            self.dismiss(None)
-            return
-        self._submit(self.query_one("#stack-name", Input).value)
-
-    def action_back(self) -> None:
-        self.dismiss(None)
-
-    def _submit(self, raw: str) -> None:
-        name = raw.strip()
-        try:
-            validate_stack_name(name)
-        except ValueError as exc:
-            self.query_one("#name-error", Static).update(str(exc))
-            return
-        destination = repo_root() / "dist" / name
-        if destination.exists():
-            self.query_one("#name-error", Static).update(f"dist/{name}/ already exists")
-            return
-        self.dismiss(name)
-
-
-class ConfirmScreen(Screen[bool]):
-    """Yes writes the tree. No returns to the service list."""
-
-    BINDINGS = [
-        Binding("y", "yes", "Yes"),
-        Binding("n", "no", "No", priority=True),
-        Binding("enter", "yes", "Yes", priority=True),
-    ]
-
-    def __init__(self, name: str, checked: list[str], added: list[str]) -> None:
-        super().__init__()
-        self._name = name
-        self._checked = checked
-        self._added = added
-
-    def compose(self) -> ComposeResult:
-        yield Header()
-        yield Static(
-            f"Write dist/{escape(self._name)}/ with {len(self._checked) + len(self._added)} "
-            f"services ({len(self._checked)} checked, {len(self._added)} added as dependencies).",
-            id="confirm-title",
-        )
-        yield DataTable(id="confirm-table", cursor_type="none", zebra_stripes=True)
-        with Horizontal(id="confirm-actions"):
-            yield Button("No", id="confirm-no")
-            yield Button("Yes", id="confirm-yes", variant="primary")
-        yield Footer()
-
-    def on_mount(self) -> None:
-        table = self.query_one("#confirm-table", DataTable)
-        table.add_columns("Service", "Category", "Web UI", "Reason")
-        checked = set(self._checked)
-        for service in SERVICES:
-            if service not in checked and service not in self._added:
-                continue
-            entry = _CATALOG[service]
-            web_ui = entry["web_ui"][0] if entry["web_ui"] else "—"
-            reason = "checked" if service in checked else "dependency"
-            table.add_row(service, entry["category"], web_ui, reason)
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        self.dismiss(event.button.id == "confirm-yes")
-
-    def action_yes(self) -> None:
-        self.dismiss(True)
-
-    def action_no(self) -> None:
-        self.dismiss(False)
-
-
-class ErrorScreen(Screen[None]):
-    BINDINGS = [Binding("enter", "close", "Close", priority=True)]
-
-    def __init__(self, message: str) -> None:
-        super().__init__()
-        self._message = message
-
-    def compose(self) -> ComposeResult:
-        yield Header()
-        yield Static(self._message)
-        yield Button("Close", id="error-close")
-        yield Footer()
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        self.dismiss(None)
-
-    def action_close(self) -> None:
-        self.dismiss(None)
 
 
 class PackageWizard(App[None]):

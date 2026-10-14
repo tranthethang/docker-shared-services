@@ -96,6 +96,7 @@ docker-compose.shared.yml   # networks: traefik_proxy, backend_net, data_net
 Makefile                    # day-to-day commands
 dss/                        # Python: core logic, CLIs, packager, TUI
 tools/                      # dev tooling (formatter, file-size check)
+scripts/                    # shell called by Makefile recipes (networks, certs, Dozzle users, cleanup)
 <service>/                  # docker-compose.yml + .env.example
 docs/                       # deeper guides
 ```
