@@ -3,8 +3,8 @@
 
 Respects .gitignore and .ignore (gitwildmatch). Run via:
 
-    uv run python scripts/format_repo.py
-    uv run python scripts/format_repo.py --check
+    uv run python tools/format_repo.py
+    uv run python tools/format_repo.py --check
 """
 
 from __future__ import annotations

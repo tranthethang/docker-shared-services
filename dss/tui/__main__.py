@@ -47,7 +47,7 @@ def _require_tui_deps() -> None:
 def main() -> None:
     _require_tty()
     _require_tui_deps()
-    from tui.app import run_app
+    from dss.tui.app import run_app
 
     run_app()
 

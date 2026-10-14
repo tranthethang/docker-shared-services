@@ -8,8 +8,8 @@ from collections import deque
 from collections.abc import Callable
 from typing import Any
 
-from config import SERVICES
-from tui.models import ContainerInfo, ServiceStatus
+from dss.core.config import SERVICES
+from dss.tui.models import ContainerInfo, ServiceStatus
 
 COMPOSE_PROJECT_LABEL = "com.docker.compose.project"
 COMPOSE_SERVICE_LABEL = "com.docker.compose.service"

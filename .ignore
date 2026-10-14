@@ -1,4 +1,4 @@
-# Extra ignore patterns (ripgrep, fd, and scripts/format_repo.py).
+# Extra ignore patterns (ripgrep, fd, and tools/format_repo.py).
 # Merged with .gitignore by the formatter.
 
 # Python / uv

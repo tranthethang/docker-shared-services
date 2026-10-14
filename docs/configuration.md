@@ -156,7 +156,7 @@ Middleware names: `auth-none` (public default), `auth-default` (any authenticate
 
 ```bash
 make info                              # Lists gateway URL + opt-in guidance
-python bin/env_manager.py summary      # Per-UI AUTH gateway on/off
+uv run python -m dss.cli.env summary   # Per-UI AUTH gateway on/off
 make up service=oauth2-proxy
 make logs service=oauth2-proxy
 make restart service=mermaid-live-editor

@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from package_export import export_stack
+from dss.package.export import export_stack
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 

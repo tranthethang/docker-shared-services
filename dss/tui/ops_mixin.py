@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from functools import partial
 
-from tui.compose_ops import OpResult, apply_manage, plan_manage_changes, run_action
-from tui.docker_state import (
+from dss.tui.compose_ops import OpResult, apply_manage, plan_manage_changes, run_action
+from dss.tui.docker_state import (
     DockerStateError,
     LogFollower,
     connect_client,
     list_service_statuses,
 )
-from tui.screens import ConfirmScreen
+from dss.tui.screens import ConfirmScreen
 
 LOG_TAIL = 200
 

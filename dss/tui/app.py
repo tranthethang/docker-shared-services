@@ -7,16 +7,17 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import DataTable, Footer, Header, Input, RichLog, Static
-from tui.docker_state import (
+
+from dss.tui.docker_state import (
     DockerStateError,
     EventWatcher,
     LogFollower,
     connect_client,
     list_service_statuses,
 )
-from tui.models import ServiceStatus
-from tui.ops_mixin import OpsMixin
-from tui.screens import HelpScreen
+from dss.tui.models import ServiceStatus
+from dss.tui.ops_mixin import OpsMixin
+from dss.tui.screens import HelpScreen
 
 LOG_MAX_LINES = 2000
 EVENT_DEBOUNCE_SECONDS = 0.3

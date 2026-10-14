@@ -2,22 +2,28 @@
 
 from __future__ import annotations
 
-from config import PACKAGE_DEFAULT_SERVICES, PACKAGE_REQUIRES, SERVICES, direct_dependencies
-from package_export import (
-    export_stack,
-    partition_selection,
-    repo_root,
-    service_requires_traefik,
-    validate_stack_name,
-)
 from rich.markup import escape
-from service_catalog import CATEGORIES, load_catalog
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Button, DataTable, Footer, Header, Input, OptionList, Static
 from textual.widgets.option_list import Option
+
+from dss.core.config import (
+    PACKAGE_DEFAULT_SERVICES,
+    PACKAGE_REQUIRES,
+    SERVICES,
+    direct_dependencies,
+)
+from dss.core.service_catalog import CATEGORIES, load_catalog
+from dss.package.export import (
+    export_stack,
+    partition_selection,
+    repo_root,
+    service_requires_traefik,
+    validate_stack_name,
+)
 
 _DEFAULTS = set(PACKAGE_DEFAULT_SERVICES)
 _CATALOG = load_catalog()

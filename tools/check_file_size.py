@@ -1,6 +1,6 @@
 """Fail when a source file exceeds the line limit or grows past its baseline.
 
-Scans ``*.py`` under bin/, scripts/, tools/, and tests/, plus every ``*.sh``
+Scans ``*.py`` under dss/, tools/, and tests/, plus every ``*.sh``
 outside ``.venv``, ``dist``, ``.git``, and ``**/data``. Baselined files may
 shrink but must not grow. Every other file must stay at or under the limit.
 """
@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 LIMIT = 300
-PY_ROOTS = ("bin", "scripts", "tools", "tests")
+PY_ROOTS = ("dss", "tools", "tests")
 SKIP_DIR_NAMES = {".venv", "dist", ".git", "data", "__pycache__"}
 BASELINE_NAME = "file_size_baseline.json"
 

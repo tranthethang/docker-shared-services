@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from config import (
+from dss.core.config import (
     PACKAGE_REQUIRES,
     dependency_queue,
     direct_dependencies,

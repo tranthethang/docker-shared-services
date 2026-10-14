@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from package_export import export_stack
+from dss.package.export import export_stack
 
 STACKS = {
     "memcached": ["memcached"],
@@ -17,10 +17,21 @@ STACKS = {
 SNAPSHOTS = (
     "Makefile",
     ".env.example",
-    "bin/config.py",
+    "dss/core/config.py",
     "pyproject.toml",
+    "uv.lock",
     ".gitignore",
 )
+# The packaged Makefile only runs env management, so only that slice of dss/ ships.
+PACKAGED_DSS_FILES = [
+    "dss/__init__.py",
+    "dss/cli/__init__.py",
+    "dss/cli/env.py",
+    "dss/core/__init__.py",
+    "dss/core/config.py",
+    "dss/core/env_manager.py",
+    "dss/core/utils.py",
+]
 
 
 def test_export_stack_matches_golden(repo_root: Path, tmp_path: Path) -> None:
@@ -37,3 +48,15 @@ def test_export_stack_matches_golden(repo_root: Path, tmp_path: Path) -> None:
                 continue
             assert golden.is_file(), f"missing golden {golden}; run make test-update"
             assert golden.read_text(encoding="utf-8") == actual
+
+
+def test_export_ships_only_the_env_slice_of_dss(repo_root: Path, tmp_path: Path) -> None:
+    destination = tmp_path / "memcached"
+    export_stack(["memcached"], "memcached", root=repo_root, destination=destination)
+    shipped = sorted(
+        path.relative_to(destination).as_posix()
+        for path in (destination / "dss").rglob("*")
+        if path.is_file()
+    )
+    assert shipped == PACKAGED_DSS_FILES
+    assert not (destination / "bin").exists()

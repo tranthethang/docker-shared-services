@@ -3,10 +3,16 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-# Python managers
-PYTHON_ENV_MGR := python3 bin/env_manager.py
-PYTHON_SVC_MGR := python3 bin/service_manager.py
+# Python runs through uv on the locked Python 3.12 environment (without dev tools).
 UV ?= uv
+UV_MISSING := $(if $(shell command -v $(UV) 2>/dev/null),,1)
+UV_RUN = $(if $(UV_MISSING),$(error uv is required. Install: https://docs.astral.sh/uv/),$(UV) run --frozen --no-dev)
+PY = $(UV_RUN) python
+PY_TUI = $(UV_RUN) --group tui python
+
+# Python managers
+PYTHON_ENV_MGR = $(PY) -m dss.cli.env
+PYTHON_SVC_MGR = $(PY) -m dss.cli.service
 
 # Optional shared password for setup/passwords targets:
 #   make setup password='your-secure-password'
@@ -141,30 +147,19 @@ manage: ## Interactive multi-select service manager (up selected, down unselecte
 	@$(PYTHON_SVC_MGR) manage
 
 tui: ## Optional Textual dashboard (requires uv + interactive terminal)
-	@if ! command -v $(UV) >/dev/null 2>&1; then \
-		echo "❌ uv is required for make tui."; \
-		echo "   Install: https://docs.astral.sh/uv/"; \
-		echo "   Non-TUI workflows still work: make manage, make up, make ps, make logs, …"; \
-		exit 1; \
-	fi
 	@if [ ! -t 0 ] || [ ! -t 1 ]; then \
 		echo "❌ make tui needs an interactive terminal (TTY)."; \
 		echo "   Use make manage / make up / make ps / make logs instead."; \
 		exit 1; \
 	fi
-	@PYTHONPATH=bin $(UV) run --group tui python -m tui
+	@$(PY_TUI) -m dss.tui
 
 package: ## Package a selected stack into dist/ (requires uv + interactive terminal)
-	@if ! command -v $(UV) >/dev/null 2>&1; then \
-		echo "❌ uv is required for make package."; \
-		echo "   Install: https://docs.astral.sh/uv/"; \
-		exit 1; \
-	fi
 	@if [ ! -t 0 ] || [ ! -t 1 ]; then \
 		echo "❌ make package needs an interactive terminal (TTY)."; \
 		exit 1; \
 	fi
-	@PYTHONPATH=bin $(UV) run --group tui python -m package_wizard
+	@$(PY_TUI) -m dss.package.wizard
 
 logs: ## Show logs (usage: make logs [service=pgvector])
 	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
@@ -289,7 +284,7 @@ info: ## Show service information and access URLs
 	@echo "Opt-in UI auth (oauth2-proxy + Zitadel; OFF by default):"
 	@echo "  • Candidates: mermaid-live-editor, temporal UI, chromadb, qdrant, kafka-ui"
 	@echo "  • Enable: set AUTH_ENABLED=true and AUTH_MIDDLEWARE=auth-default in that service .env, then restart"
-	@echo "  • Status: python bin/env_manager.py summary  (shows AUTH gateway on/off)"
+	@echo "  • Status: uv run python -m dss.cli.env summary  (shows AUTH gateway on/off)"
 	@echo "  • Setup: see oauth2-proxy/README.md and docs/configuration.md"
 	@echo ""
 
@@ -302,28 +297,29 @@ sync: ## Install Python tooling deps with uv (ruff, yamlfix, mdformat, …)
 
 format: ## Format YAML, JSON, Markdown, Python, and .env.example files
 	@$(UV) sync --group dev --quiet
-	@PYTHONUNBUFFERED=1 $(UV) run python scripts/format_repo.py
+	@PYTHONUNBUFFERED=1 $(UV) run python tools/format_repo.py
 
 format-check: ## Check formatting without writing changes
 	@$(UV) sync --group dev --quiet
-	@PYTHONUNBUFFERED=1 $(UV) run python scripts/format_repo.py --check
+	@PYTHONUNBUFFERED=1 $(UV) run python tools/format_repo.py --check
 
 SHELL_SCRIPTS = $(shell find . -name '*.sh' -not -path './.venv/*' -not -path './dist/*' -not -path './.git/*' -not -path '*/data/*')
 
-lint: ## Run ruff, the file-size check, shellcheck, and shfmt
+lint: ## Run ruff, import-linter, the file-size check, shellcheck, and shfmt
 	@$(UV) sync --group dev --quiet
-	@$(UV) run ruff check bin scripts tools tests
+	@$(UV) run ruff check dss tools tests
+	@$(UV) run lint-imports
 	@$(UV) run python tools/check_file_size.py
 	@$(UV) run shellcheck -x $(SHELL_SCRIPTS)
 	@$(UV) run shfmt -d -i 2 -ci $(SHELL_SCRIPTS)
 
-typecheck: ## Run mypy on bin/ and scripts/
+typecheck: ## Run mypy on dss/ and tools/
 	@$(UV) sync --group dev --quiet
-	@$(UV) run mypy bin scripts
+	@$(UV) run mypy dss tools
 
-test: ## Run pytest with a coverage report for bin/
+test: ## Run pytest with a coverage report for dss/
 	@$(UV) sync --group dev --quiet
-	@$(UV) run pytest --cov=bin --cov-report=term-missing
+	@$(UV) run pytest --cov=dss --cov-report=term-missing
 
 test-update: ## Regenerate tests/golden snapshots
 	@$(UV) sync --group dev --quiet

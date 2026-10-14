@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from config import SERVICES
+from dss.core.config import SERVICES
 
 CATALOG_PATH = Path(__file__).resolve().parent / "service_catalog.json"
 

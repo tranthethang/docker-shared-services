@@ -12,7 +12,7 @@ import re
 import shutil
 from pathlib import Path
 
-from config import (
+from dss.core.config import (
     AUTH_OPT_IN_UI_SERVICES,
     AUTO_GENERATED_SECRETS,
     PACKAGE_REQUIRES,
@@ -26,7 +26,7 @@ from config import (
     direct_dependencies,
     startup_queue,
 )
-from service_catalog import CATEGORIES, load_catalog
+from dss.core.service_catalog import CATEGORIES, load_catalog
 
 _NAME_RE = re.compile(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
 _BANNER_SEP = re.compile(r"^# ={10,}\s*$")
@@ -71,7 +71,17 @@ _BANNER_TO_SERVICE = {
 _BANNER_KEYS = sorted(_BANNER_TO_SERVICE, key=len, reverse=True)
 
 _SKIP_DIR_NAMES = {"data", "volumes", "__pycache__", ".venv"}
-_MAKE_TARGETS = ("help", "setup", "passwords", "cert", "up", "down", "restart", "recreate")
+_MAKE_TARGETS = (
+    "help",
+    "setup",
+    "passwords",
+    "cert",
+    "validate",
+    "up",
+    "down",
+    "restart",
+    "recreate",
+)
 _PACKAGE_PYPROJECT = """[project]
 name = "docker-shared-services"
 version = "0.1.0"
@@ -82,6 +92,25 @@ dependencies = []
 [tool.uv]
 package = false
 """
+# The stack has no dependencies, so its lock is fixed. `uv run --frozen` needs it.
+_PACKAGE_UV_LOCK = """version = 1
+revision = 3
+requires-python = ">=3.12"
+
+[[package]]
+name = "docker-shared-services"
+version = "0.1.0"
+source = { virtual = "." }
+"""
+# dss/ files the packaged Makefile needs: env management only.
+_PACKAGE_DSS_FILES = (
+    "dss/__init__.py",
+    "dss/core/__init__.py",
+    "dss/core/utils.py",
+    "dss/core/env_manager.py",
+    "dss/cli/__init__.py",
+    "dss/cli/env.py",
+)
 _PACKAGE_GITIGNORE = """# Environment & secrets
 .env
 .env.local
@@ -121,7 +150,7 @@ Thumbs.db
 
 
 def repo_root() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parents[2]
 
 
 def validate_stack_name(name: str) -> str:
@@ -482,7 +511,7 @@ def _make_lines(text: str) -> str:
 
 
 def _startup_order(services: list[str]) -> list[str]:
-    """Same ordering as ``service_manager.sort_for_startup``."""
+    """Same ordering as ``dss.cli.service.sort_for_startup``."""
     return startup_queue(services)
 
 
@@ -582,10 +611,10 @@ def _makefile(services: list[str]) -> str:
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-PYTHON_ENV_MGR := python3 bin/env_manager.py
+PYTHON_ENV_MGR := uv run --frozen --no-dev python -m dss.cli.env
 password ?=
 
-# One compose project per service, like bin/service_manager.py: --project-directory
+# One compose project per service, like dss/cli/service.py: --project-directory
 # loads <service>/.env for interpolation and resolves ./ paths inside <service>/.
 STARTUP_SERVICES := {" ".join(startup)}
 SHUTDOWN_SERVICES := {" ".join(reversed(startup))}
@@ -670,6 +699,11 @@ cert: ## Generate SSL certificates for Traefik
 >echo "Error: mkcert is not installed. Please install it first."; \
 >exit 1; \
 >fi
+
+validate: ## Validate every packaged Compose project
+>@set -e; for s in $(STARTUP_SERVICES); do \
+>echo "Validating $$s..."; $(COMPOSE) config -q; \
+>done
 
 up: ## Validate compose, then start the packaged stack in dependency order
 >@set -e; for s in $(STARTUP_SERVICES); do \
@@ -759,18 +793,18 @@ def export_stack(
         shutil.copy2(root / "docker-compose.shared.yml", dest / "docker-compose.shared.yml")
         example = (root / ".env.example").read_text(encoding="utf-8")
         (dest / ".env.example").write_text(filter_env_example(example, services), encoding="utf-8")
-        bin_dir = dest / "bin"
-        bin_dir.mkdir()
-        shutil.copy2(root / "bin" / "utils.py", bin_dir / "utils.py")
-        shutil.copy2(root / "bin" / "env_manager.py", bin_dir / "env_manager.py")
-        config_source = (root / "bin" / "config.py").read_text(encoding="utf-8")
-        (bin_dir / "config.py").write_text(
+        for relative in _PACKAGE_DSS_FILES:
+            (dest / relative).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(root / relative, dest / relative)
+        config_source = (root / "dss" / "core" / "config.py").read_text(encoding="utf-8")
+        (dest / "dss" / "core" / "config.py").write_text(
             filter_config_source(config_source, services), encoding="utf-8"
         )
         (dest / "Makefile").write_text(_makefile(services), encoding="utf-8")
         (dest / "README.md").write_text(render_readme(name, services), encoding="utf-8")
         shutil.copy2(root / ".python-version", dest / ".python-version")
         (dest / "pyproject.toml").write_text(_PACKAGE_PYPROJECT, encoding="utf-8")
+        (dest / "uv.lock").write_text(_PACKAGE_UV_LOCK, encoding="utf-8")
         (dest / ".gitignore").write_text(_PACKAGE_GITIGNORE, encoding="utf-8")
     except Exception:
         if created and dest.exists():

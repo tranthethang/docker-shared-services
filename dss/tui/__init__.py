@@ -4,6 +4,6 @@ __all__ = ["main"]
 
 
 def main() -> None:
-    from tui.__main__ import main as _main
+    from dss.tui.__main__ import main as _main
 
     _main()

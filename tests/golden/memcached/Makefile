@@ -1,12 +1,12 @@
-.PHONY: help setup passwords cert up down restart recreate
+.PHONY: help setup passwords cert validate up down restart recreate
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-PYTHON_ENV_MGR := python3 bin/env_manager.py
+PYTHON_ENV_MGR := uv run --frozen --no-dev python -m dss.cli.env
 password ?=
 
-# One compose project per service, like bin/service_manager.py: --project-directory
+# One compose project per service, like dss/cli/service.py: --project-directory
 # loads <service>/.env for interpolation and resolves ./ paths inside <service>/.
 STARTUP_SERVICES := memcached
 SHUTDOWN_SERVICES := memcached
@@ -85,6 +85,11 @@ cert: ## Generate SSL certificates for Traefik
 	echo "Error: mkcert is not installed. Please install it first."; \
 	exit 1; \
 	fi
+
+validate: ## Validate every packaged Compose project
+	@set -e; for s in $(STARTUP_SERVICES); do \
+	echo "Validating $$s..."; $(COMPOSE) config -q; \
+	done
 
 up: ## Validate compose, then start the packaged stack in dependency order
 	@set -e; for s in $(STARTUP_SERVICES); do \

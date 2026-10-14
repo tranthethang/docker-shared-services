@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from config import SERVICES
-from service_catalog import catalog_problems, load_catalog
+from dss.core.config import SERVICES
+from dss.core.service_catalog import catalog_problems, load_catalog
 
 
 def test_catalog_problems_are_empty() -> None:

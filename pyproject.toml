@@ -7,6 +7,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "import-linter>=2.1.0",
     "mdformat>=1.0.0",
     "mdformat-gfm>=1.0.0",
     "mypy>=1.13.0",
@@ -47,8 +48,8 @@ select = ["E", "F", "I", "UP", "W"]
 
 [tool.ruff.lint.per-file-ignores]
 # Existing long lines. The file-size baseline owns these modules until P2 splits them.
-"bin/env_manager.py" = ["E501"]
-"bin/package_export.py" = ["E501"]
+"dss/core/env_manager.py" = ["E501"]
+"dss/package/export.py" = ["E501"]
 
 [tool.yamlfix]
 explicit_start = false
@@ -69,27 +70,49 @@ end_of_line = "lf"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Run from the repo root so `dss` imports without an installed package.
+pythonpath = ["."]
 
 [tool.mypy]
 python_version = "3.12"
-files = ["bin", "scripts"]
+files = ["dss", "tools"]
 warn_unused_configs = true
 # Non-strict baseline. Per-module ignore_errors stays until P3 removes it.
 
 [[tool.mypy.overrides]]
 module = [
-  "bin.env_manager",
-  "bin.package_export",
-  "bin.package_wizard",
-  "bin.service_catalog",
-  "bin.service_manager",
-  "bin.tui",
-  "bin.tui.__main__",
-  "bin.tui.app",
-  "bin.tui.compose_ops",
-  "bin.tui.docker_state",
-  "bin.tui.ops_mixin",
-  "bin.tui.screens",
+  "dss.cli.service",
+  "dss.core.env_manager",
+  "dss.core.service_catalog",
+  "dss.package.export",
+  "dss.package.wizard",
+  "dss.tui",
+  "dss.tui.__main__",
+  "dss.tui.app",
+  "dss.tui.compose_ops",
+  "dss.tui.docker_state",
+  "dss.tui.ops_mixin",
+  "dss.tui.screens",
   "format_repo",
 ]
 ignore_errors = true
+
+[tool.importlinter]
+root_package = "dss"
+
+[[tool.importlinter.contracts]]
+name = "core imports no higher layer"
+type = "forbidden"
+source_modules = ["dss.core"]
+forbidden_modules = ["dss.cli", "dss.package", "dss.tui"]
+
+[[tool.importlinter.contracts]]
+name = "cli and package do not import tui"
+type = "forbidden"
+source_modules = ["dss.cli", "dss.package"]
+forbidden_modules = ["dss.tui"]
+
+[[tool.importlinter.contracts]]
+name = "cli and package are independent"
+type = "independence"
+modules = ["dss.cli", "dss.package"]

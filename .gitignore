@@ -52,6 +52,7 @@ Thumbs.db
 .ruff_cache/
 .mypy_cache/
 .pytest_cache/
+.import_linter_cache/
 .coverage
 **/__pycache__/
 *.py[cod]
@@ -94,8 +95,8 @@ docker-compose.lock
 !*.md
 !LICENSE
 
-# Keep Python sources in bin/
-!bin/*.py
+# Keep Python sources in dss/
+!dss/**/*.py
 
 # Supabase: track Kong + init SQL (not runtime data/storage)
 # Overrides **/volumes/ and *.sql above

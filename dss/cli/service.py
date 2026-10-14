@@ -4,10 +4,10 @@ import subprocess
 import sys
 import time
 
-from checkbox_menu import show_checkbox_menu
-from config import ACTIONS, SERVICES, START_ORDER, dependency_queue, startup_queue
-from service_catalog import catalog_problems, load_catalog
-from utils import error, print_header, success, warning
+from dss.cli.checkbox_menu import show_checkbox_menu
+from dss.core.config import ACTIONS, SERVICES, START_ORDER, dependency_queue, startup_queue
+from dss.core.service_catalog import catalog_problems, load_catalog
+from dss.core.utils import error, print_header, success, warning
 
 # A database can spend its start_period plus several probe retries before it accepts clients.
 READY_TIMEOUT_SECONDS = 300
@@ -158,7 +158,7 @@ def validate_all_compose():
                     line.strip() for line in listed.stdout.splitlines() if line.strip()
                 ]
 
-    print("Validating service catalog (bin/service_catalog.json)...")
+    print("Validating service catalog (dss/core/service_catalog.json)...")
     problems = catalog_problems(load_catalog(), compose_services)
     for problem in problems:
         error(problem)
@@ -277,7 +277,7 @@ def ensure_dependencies_ready(service, announce=None):
         else:
             print(message)
 
-    from env_manager import check_prerequisites
+    from dss.core.env_manager import check_prerequisites
 
     for dependency in dependency_queue(service):
         if _service_is_ready(dependency):
@@ -412,7 +412,7 @@ def apply_manage_changes(selected):
             failed.append(service)
 
     if to_up:
-        from env_manager import check_prerequisites
+        from dss.core.env_manager import check_prerequisites
 
         invalid = [s for s in to_up if not check_prerequisites(s)]
         if invalid:
@@ -471,7 +471,7 @@ def execute_action(service, action):
     cmd = get_compose_cmd(service)
 
     if action == "up":
-        from env_manager import check_prerequisites
+        from dss.core.env_manager import check_prerequisites
 
         if not check_prerequisites(service):
             error(f"Cannot start {service}: prerequisite checks failed.")

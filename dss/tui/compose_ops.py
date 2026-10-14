@@ -9,14 +9,14 @@ import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
-from config import SERVICES
-from service_manager import (
+from dss.cli.service import (
     ensure_dependencies_ready,
     get_compose_cmd,
     sort_for_shutdown,
     sort_for_startup,
 )
-from utils import iter_env_assignments
+from dss.core.config import SERVICES
+from dss.core.utils import iter_env_assignments
 
 ProgressCb = Callable[[str], None]
 
@@ -49,7 +49,7 @@ def plan_manage_changes(
 def _ensure_network() -> bool:
     """Reuse the CLI network setup in a child process without redirecting TUI stdout."""
     result = subprocess.run(
-        [sys.executable, "-c", "from service_manager import ensure_network; ensure_network()"],
+        [sys.executable, "-c", "from dss.cli.service import ensure_network; ensure_network()"],
         capture_output=True,
         text=True,
     )
