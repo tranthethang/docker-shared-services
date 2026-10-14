@@ -13,9 +13,9 @@ litellm_settings:
   request_timeout: 120
 
 router_settings:
-  # v1.90.2 applies only these counters. 5xx, not-found, and other errors use
-  # the proxy default (OpenAI DEFAULT_MAX_RETRIES, which is 2). The image
-  # accepts InternalServerErrorRetries but never reads it.
+  # v1.90.2 applies only the counters below. 5xx, not-found, and other errors
+  # use num_retries. The image accepts InternalServerErrorRetries but never reads it.
+  num_retries: 1
   retry_policy:
     RateLimitErrorRetries: 3
     TimeoutErrorRetries: 3
