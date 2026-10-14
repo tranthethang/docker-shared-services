@@ -180,6 +180,16 @@
       "https://kafka-ui.dss.localhost"
     ]
   },
+  "litellm": {
+    "category": "AI & Search",
+    "description": "OpenAI-compatible LLM proxy with an admin UI. Models and virtual keys are stored in Postgres.",
+    "containers": [
+      "litellm"
+    ],
+    "web_ui": [
+      "https://litellm.dss.localhost/ui"
+    ]
+  },
   "mailpit": {
     "category": "Dev Tools",
     "description": "SMTP catcher with a web inbox for testing outgoing email.",

@@ -51,6 +51,10 @@ ______________________________________________________________________
 
 - **Crawl4AI** - LLM-friendly web crawler and scraping service
 
+### LLM proxy
+
+- **LiteLLM** - OpenAI-compatible proxy and admin UI at `https://litellm.dss.localhost` (`/ui`, `/v1`). Uses shared Postgres 16 database `litellm`. On an existing Postgres volume, create the database once: `docker exec postgres psql -U postgres -c "CREATE DATABASE litellm;"`
+
 ### Observability & Management
 
 - **OTel Collector** - Default OTLP endpoint for apps (`4317` gRPC / `4318` HTTP); logs → Loki
@@ -83,6 +87,7 @@ ______________________________________________________________________
 | Hindsight API  | `https://hindsight.dss.localhost` (Traefik only; MCP `/mcp/<bank>/`) | Set `HINDSIGHT_API_LLM_API_KEY` in `hindsight/.env`                   |
 | Hindsight UI   | `https://hindsight-ui.dss.localhost` (Traefik only)                  | -                                                                     |
 | Hasura         | `https://hasura.dss.localhost`                                       | Admin secret: `DSS_SHARED_PASSWORD`                                   |
+| LiteLLM        | `https://litellm.dss.localhost` (`/ui`, `/v1`)                       | UI user `admin` / `LITELLM_MASTER_KEY` from `litellm/.env`            |
 | Inngest        | `https://inngest.dss.localhost`                                      | -                                                                     |
 | Node-RED       | `https://node-red.dss.localhost`                                     | -                                                                     |
 | SonarQube      | `https://sonarqube.dss.localhost`                                    | `admin` / `admin`                                                     |

@@ -45,6 +45,7 @@ Below is the mapping for all container services in the repository:
 | **jenkins**             | Automation Server         |       ✅        |      ✅       |     ❌     | Traefik Web UI + PostgreSQL backend         |
 | **kafka** (broker)      | Event Streaming Broker    |       ❌        |      ✅       |     ✅     | Broker persistence + backend consumers      |
 | **kafka-ui**            | Kafka Management UI       |       ✅        |      ✅       |     ❌     | Traefik Web UI + Kafka broker               |
+| **litellm**             | OpenAI-compatible proxy   |       ✅        |      ✅       |     ❌     | Traefik UI/API + Postgres 16 backend        |
 | **mailpit**             | SMTP Testing & Web UI     |       ✅        |      ✅       |     ❌     | Traefik Web UI + backend SMTP clients       |
 | **mariadb**             | Relational Database       |       ❌        |      ✅       |     ✅     | Isolated DB tier + backend consumers        |
 | **memcached**           | In-Memory Cache           |       ❌        |      ✅       |     ✅     | Isolated cache tier + backend consumers     |

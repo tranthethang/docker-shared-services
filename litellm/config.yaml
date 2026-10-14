@@ -1,0 +1,23 @@
+# LiteLLM proxy. Add models and virtual keys in the admin UI (stored in Postgres).
+# Provider API keys are not stored in this file. The UI encrypts them with LITELLM_SALT_KEY.
+# Prompt and response bodies are not logged.
+
+model_list: []
+
+general_settings:
+  store_model_in_db: true
+  database_connection_pool_limit: 5
+
+litellm_settings:
+  turn_off_message_logging: true
+  request_timeout: 120
+
+router_settings:
+  # v1.90.2 applies only these counters. 5xx, not-found, and other errors use
+  # the proxy default (OpenAI DEFAULT_MAX_RETRIES, which is 2). The image
+  # accepts InternalServerErrorRetries but never reads it.
+  retry_policy:
+    RateLimitErrorRetries: 3
+    TimeoutErrorRetries: 3
+    AuthenticationErrorRetries: 0
+    ContentPolicyViolationErrorRetries: 0

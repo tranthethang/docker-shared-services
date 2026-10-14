@@ -1,0 +1,53 @@
+services:
+  litellm:
+    container_name: litellm
+    image: ${LITELLM_IMAGE:-ghcr.io/berriai/litellm:v1.90.2}
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - >-
+        /app/docker/entrypoint.sh &&
+        exec /app/docker/prod_entrypoint.sh --config /app/config.yaml --port 4000
+    deploy:
+      resources:
+        limits:
+          cpus: "${LITELLM_CPUS_LIMIT:-1.0}"
+          memory: "${LITELLM_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${LITELLM_CPUS_RESERVED:-0.1}"
+          memory: "${LITELLM_MEMORY_RESERVED:-256M}"
+    environment:
+      DATABASE_URL: "postgresql://postgres:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in litellm/.env - run make setup}@postgres:5432/litellm"
+      LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY:?Set LITELLM_MASTER_KEY in litellm/.env - run make setup}"
+      LITELLM_SALT_KEY: "${LITELLM_SALT_KEY:?Set LITELLM_SALT_KEY in litellm/.env - run make setup}"
+      SERVER_ROOT_PATH: ""
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.http.routers.litellm.rule=Host(`${LITELLM_HOSTNAME:-litellm.dss.localhost}`)"
+      - "traefik.http.routers.litellm.entrypoints=websecure"
+      - "traefik.http.routers.litellm.tls=true"
+      - "traefik.http.services.litellm.loadbalancer.server.port=4000"
+    networks:
+      - traefik_proxy
+      - backend_net
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness')"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 120s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  traefik_proxy:
+    external: true
+  backend_net:
+    external: true

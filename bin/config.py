@@ -18,6 +18,7 @@ SERVICES = [
     "inngest",
     "jenkins",
     "kafka",
+    "litellm",
     "mailpit",
     "mariadb",
     "memcached",
@@ -73,6 +74,7 @@ START_ORDER = [
     "supabase",
     "hindsight",
     "hasura",
+    "litellm",
 ]
 
 VALIDATION_RULES = {
@@ -80,6 +82,7 @@ VALIDATION_RULES = {
     "hasura": ["HASURA_GRAPHQL_ADMIN_SECRET"],
     "hindsight": ["HINDSIGHT_API_LLM_API_KEY"],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
+    "litellm": ["LITELLM_MASTER_KEY", "LITELLM_SALT_KEY", "POSTGRES16_PASSWORD"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["MONGO_ROOT_PASSWORD"],
     "mysql8": ["MYSQL_ROOT_PASSWORD"],
@@ -107,6 +110,10 @@ AUTO_GENERATED_SECRETS = {
     "garage": {
         "GARAGE_RPC_SECRET": ("hex", 32),
         "GARAGE_ADMIN_TOKEN": ("base64", 32),
+    },
+    "litellm": {
+        "LITELLM_MASTER_KEY": ("hex", 32),
+        "LITELLM_SALT_KEY": ("hex", 32),
     },
     # Cookie encryption only — Zitadel CLIENT_ID / CLIENT_SECRET stay manual.
     "oauth2-proxy": {
@@ -185,6 +192,7 @@ SHARED_PASSWORD_KEYS: dict[str, list[str]] = {
     "hindsight": ["PGVECTOR_PASSWORD"],
     "inngest": ["POSTGRES16_PASSWORD", "REDIS_PASSWORD"],
     "jenkins": ["POSTGRES16_PASSWORD"],
+    "litellm": ["POSTGRES16_PASSWORD"],
     "mariadb": ["MARIADB_PASSWORD", "MARIADB_ROOT_PASSWORD"],
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["MONGO_ROOT_PASSWORD"],
@@ -221,6 +229,7 @@ SERVICE_INFO_VARS = {
         "HINDSIGHT_PUBLIC_URL",
         "HINDSIGHT_UI_PUBLIC_URL",
     ],
+    "litellm": ["LITELLM_HOSTNAME"],
     "mongodb": ["MONGO_PORT"],
     "mysql8": ["MYSQL_PORT", "MYSQL_DATABASE"],
     "oauth2-proxy": ["OAUTH2_PROXY_HOSTNAME", "OAUTH2_PROXY_OIDC_ISSUER_URL"],
@@ -264,6 +273,7 @@ PACKAGE_REQUIRES: dict[str, list[str]] = {
         "hasura",
         "inngest",
         "jenkins",
+        "litellm",
         "sonarqube",
         "temporal",
         "zitadel",

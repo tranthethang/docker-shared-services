@@ -4,7 +4,7 @@ set -e
 # Idempotent: CREATE DATABASE has no "IF NOT EXISTS" in Postgres, so guard each
 # one with a catalog check. The official entrypoint runs this script only while
 # initializing an empty data directory. An existing volume does not re-run it.
-DATABASES=(temporal sonarqube jenkins gitea inngest zitadel concourse hasura)
+DATABASES=(temporal sonarqube jenkins gitea inngest zitadel concourse hasura litellm)
 
 for db in "${DATABASES[@]}"; do
     exists=$(psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" -tAc \
