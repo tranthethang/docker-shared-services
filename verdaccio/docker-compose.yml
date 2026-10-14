@@ -1,0 +1,65 @@
+services:
+  verdaccio:
+    container_name: verdaccio
+    image: verdaccio/verdaccio:6.10.5
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${VERDACCIO_CPUS_LIMIT:-0.5}"
+          memory: "${VERDACCIO_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${VERDACCIO_CPUS_RESERVED:-0.1}"
+          memory: "${VERDACCIO_MEMORY_RESERVED:-128M}"
+    ports:
+      - "127.0.0.1:${VERDACCIO_PORT:-4873}:4873"
+    environment:
+      VERDACCIO_USER: "${VERDACCIO_USER:-admin}"
+      VERDACCIO_PASSWORD: "${VERDACCIO_PASSWORD:?Set VERDACCIO_PASSWORD in verdaccio/.env - run make setup}"
+      VERDACCIO_GITHUB_TOKEN: "${VERDACCIO_GITHUB_TOKEN:-}"
+      VERDACCIO_GITLAB_URL: "${VERDACCIO_GITLAB_URL:-https://gitlab.com/api/v4/packages/npm/}"
+      VERDACCIO_GITLAB_TOKEN: "${VERDACCIO_GITLAB_TOKEN:-}"
+      VERDACCIO_INTERNAL_URL: "${VERDACCIO_INTERNAL_URL:-}"
+      VERDACCIO_INTERNAL_TOKEN: "${VERDACCIO_INTERNAL_TOKEN:-}"
+      VERDACCIO_GITHUB_SCOPES: "${VERDACCIO_GITHUB_SCOPES:-}"
+      VERDACCIO_GITLAB_SCOPES: "${VERDACCIO_GITLAB_SCOPES:-}"
+      VERDACCIO_INTERNAL_SCOPES: "${VERDACCIO_INTERNAL_SCOPES:-}"
+    networks:
+      - traefik_proxy
+      - backend_net
+    volumes:
+      - verdaccio_storage:/verdaccio/storage
+      - verdaccio_conf:/verdaccio/conf
+      - ./bin/render-config.mjs:/opt/verdaccio/render-config.mjs:ro
+    command:
+      - sh
+      - -c
+      - node /opt/verdaccio/render-config.mjs && exec verdaccio --config /verdaccio/conf/config.yaml
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.http.routers.verdaccio.rule=Host(`${VERDACCIO_HOSTNAME:-verdaccio.dss.localhost}`)"
+      - "traefik.http.routers.verdaccio.entrypoints=websecure"
+      - "traefik.http.routers.verdaccio.tls=true"
+      - "traefik.http.services.verdaccio.loadbalancer.server.port=4873"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:4873/-/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  traefik_proxy:
+    external: true
+  backend_net:
+    external: true
+
+volumes:
+  verdaccio_storage:
+  verdaccio_conf:
