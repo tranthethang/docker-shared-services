@@ -42,6 +42,7 @@ SERVICES = [
     "supabase",
     "temporal",
     "traefik",
+    "verdaccio",
     "woodpecker",
     "zitadel",
 ]
@@ -95,6 +96,7 @@ VALIDATION_RULES = {
     "postgres": ["POSTGRES16_PASSWORD"],
     "rabbitmq": ["RABBITMQ_PASSWORD"],
     "traefik": ["TRAEFIK_DASHBOARD_AUTH"],
+    "verdaccio": ["VERDACCIO_PASSWORD"],
     "woodpecker": ["WOODPECKER_AGENT_SECRET"],
     "zitadel": ["ZITADEL_MASTERKEY"],
 }
@@ -206,6 +208,7 @@ SHARED_PASSWORD_KEYS: dict[str, list[str]] = {
     "sonarqube": ["POSTGRES16_PASSWORD"],
     "supabase": ["POSTGRES_PASSWORD", "DASHBOARD_PASSWORD"],
     "temporal": ["POSTGRES16_PASSWORD", "TEMPORAL_S3_SECRET_KEY"],
+    "verdaccio": ["VERDACCIO_PASSWORD"],
     "zitadel": ["ZITADEL_ADMIN_PASSWORD", "POSTGRES16_PASSWORD"],
 }
 
@@ -246,6 +249,7 @@ SERVICE_INFO_VARS = {
         "SUPABASE_STUDIO_HOSTNAME",
     ],
     "temporal": ["TEMPORAL_GRPC_PORT"],
+    "verdaccio": ["VERDACCIO_PORT", "VERDACCIO_HOSTNAME"],
     "zitadel": ["ZITADEL_HOSTNAME"],
 }
 

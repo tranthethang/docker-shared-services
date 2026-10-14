@@ -26,7 +26,7 @@ make info                      # URLs / ports
 ```
 
 Access via Traefik: `https://<service>.dss.localhost` (needs `make cert` / mkcert once).
-Browser UIs are available only through their domain names; UI ports are not published to the host.
+Use the domain names for browser UIs. Verdaccio also exposes `http://127.0.0.1:4873/` for host package managers.
 Run `make setup` before any direct `docker compose up`; Compose requires the generated `.env` files and credentials.
 The Traefik dashboard is at `https://traefik.dss.localhost/dashboard/` with username `admin` and the shared password in the root `.env`.
 
@@ -84,6 +84,7 @@ Press `?` inside the TUI for key bindings. Status updates automatically from Doc
 | Auth / apps | Zitadel, oauth2-proxy (`auth.dss.localhost`), Supabase, Gitea, n8n, Appsmith, Hindsight, Hasura |
 | CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                            |
 | Storage     | MinIO, Garage                                                                                   |
+| Dev tools   | Verdaccio npm registry                                                                          |
 | Edge / obs  | Traefik, OTel (Collector + Loki + Alloy + Grafana )                                             |
 
 Full catalog: [docs/services.md](docs/services.md).

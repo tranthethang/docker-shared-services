@@ -418,6 +418,16 @@
       "https://traefik.dss.localhost/dashboard/"
     ]
   },
+  "verdaccio": {
+    "category": "Dev Tools",
+    "description": "Private npm registry that caches npmjs and can proxy GitHub Packages, GitLab, and an internal registry.",
+    "containers": [
+      "verdaccio"
+    ],
+    "web_ui": [
+      "https://verdaccio.dss.localhost"
+    ]
+  },
   "woodpecker": {
     "category": "CI/CD",
     "description": "Woodpecker CI server and agent, integrated with Gitea.",
