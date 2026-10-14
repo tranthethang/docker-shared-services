@@ -34,8 +34,8 @@ else
   echo -e "${RED}DOWN${NC}"
 fi
 
-echo -n "Checking Grafana health (3001)... "
-if curl -sf http://localhost:3001/api/health >/dev/null; then
+echo -n "Checking Grafana health (grafana.dss.localhost)... "
+if curl -skf https://grafana.dss.localhost/api/health >/dev/null; then
   echo -e "${GREEN}UP${NC}"
 else
   echo -e "${RED}DOWN${NC}"

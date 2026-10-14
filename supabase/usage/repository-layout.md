@@ -5,7 +5,7 @@ Paths are relative to `supabase/` inside **docker-shared-services**.
 ```
 docker-shared-services/
 ├── Makefile                    # make up service=supabase, …
-├── docker-compose.shared.yml   # external networks infra_shared / dev_tools
+├── docker-compose.shared.yml   # external networks traefik_proxy / backend_net / data_net
 └── supabase/
     ├── docker-compose.yml      # Stack definition (7 services)
     ├── .env.example            # Environment template
@@ -57,6 +57,6 @@ Root `.gitignore` ignores `**/volumes/` and `*.sql` globally, with explicit keep
 | Piece           | Role                                                         |
 | --------------- | ------------------------------------------------------------ |
 | `bin/config.py` | Lists `supabase` in `SERVICES` / `START_ORDER`               |
-| `make info`     | Prints host port `8002`, Traefik host, DB `5434`             |
+| `make info`     | Prints Supabase domains and DB port `5434`                   |
 | Traefik         | APIs `supabase.dss.localhost`; Studio `studio.dss.localhost` |
 | Mailpit         | Default SMTP for GoTrue (`mailpit:1025`)                     |

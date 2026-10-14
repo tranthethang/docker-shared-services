@@ -1,0 +1,454 @@
+{
+  "act_runner": {
+    "category": "CI/CD",
+    "description": "Gitea Actions runner that executes workflow jobs in Docker.",
+    "containers": [
+      "act_runner"
+    ],
+    "web_ui": []
+  },
+  "adminer": {
+    "category": "Admin UI",
+    "description": "Web database admin for Postgres, MySQL, MariaDB, and more.",
+    "containers": [
+      "adminer"
+    ],
+    "web_ui": [
+      "https://adminer.dss.localhost"
+    ]
+  },
+  "appsmith": {
+    "category": "Dev Tools",
+    "description": "Low-code builder for internal tools and admin panels.",
+    "containers": [
+      "appsmith"
+    ],
+    "web_ui": [
+      "https://appsmith.dss.localhost"
+    ]
+  },
+  "bugsink": {
+    "category": "Observability",
+    "description": "Self-hosted, Sentry-compatible error tracking.",
+    "containers": [
+      "bugsink"
+    ],
+    "web_ui": [
+      "https://bugsink.dss.localhost"
+    ]
+  },
+  "chromadb": {
+    "category": "Database",
+    "description": "Chroma vector database for embeddings (HTTP API).",
+    "containers": [
+      "chromadb"
+    ],
+    "web_ui": []
+  },
+  "chromadb_admin": {
+    "category": "Admin UI",
+    "description": "Web admin UI for browsing ChromaDB collections.",
+    "containers": [
+      "chromadb-admin"
+    ],
+    "web_ui": [
+      "https://chromadb-admin.dss.localhost"
+    ]
+  },
+  "concourse": {
+    "category": "CI/CD",
+    "description": "Container-native CI/CD pipelines (web + worker).",
+    "containers": [
+      "concourse"
+    ],
+    "web_ui": [
+      "https://concourse.dss.localhost"
+    ]
+  },
+  "crawl4ai": {
+    "category": "AI & Search",
+    "description": "LLM-friendly web crawler and scraping API with a playground.",
+    "containers": [
+      "crawl4ai"
+    ],
+    "web_ui": [
+      "https://crawl4ai.dss.localhost/playground"
+    ]
+  },
+  "dockge": {
+    "category": "Admin UI",
+    "description": "Web UI for managing Docker Compose stacks.",
+    "containers": [
+      "dockge"
+    ],
+    "web_ui": [
+      "https://dockge.dss.localhost"
+    ]
+  },
+  "centrifugo": {
+    "category": "Cache & Queue",
+    "description": "Real-time messaging server (WebSocket, SSE, pub/sub).",
+    "containers": [
+      "centrifugo"
+    ],
+    "web_ui": []
+  },
+  "dozzle": {
+    "category": "Observability",
+    "description": "Live web viewer for Docker container logs.",
+    "containers": [
+      "dozzle"
+    ],
+    "web_ui": [
+      "https://dozzle.dss.localhost"
+    ]
+  },
+  "garage": {
+    "category": "Storage",
+    "description": "Lightweight S3-compatible object storage.",
+    "containers": [
+      "garage"
+    ],
+    "web_ui": []
+  },
+  "gitea": {
+    "category": "CI/CD",
+    "description": "Self-hosted Git service with issues, pull requests, and Actions.",
+    "containers": [
+      "gitea"
+    ],
+    "web_ui": [
+      "https://gitea.dss.localhost"
+    ]
+  },
+  "gotenberg": {
+    "category": "Dev Tools",
+    "description": "API for converting HTML, Markdown, and Office files to PDF.",
+    "containers": [
+      "gotenberg"
+    ],
+    "web_ui": []
+  },
+  "hasura": {
+    "category": "Dev Tools",
+    "description": "Instant GraphQL API over the shared Postgres, with a web console.",
+    "containers": [
+      "hasura"
+    ],
+    "web_ui": [
+      "https://hasura.dss.localhost"
+    ]
+  },
+  "hindsight": {
+    "category": "AI & Search",
+    "description": "MCP agent memory service (API plus control-plane UI) on PgVector.",
+    "containers": [
+      "hindsight"
+    ],
+    "web_ui": [
+      "https://hindsight-ui.dss.localhost"
+    ]
+  },
+  "inngest": {
+    "category": "Workflow & Automation",
+    "description": "Event-driven background jobs and durable workflows (dev server UI).",
+    "containers": [
+      "inngest"
+    ],
+    "web_ui": [
+      "https://inngest.dss.localhost"
+    ]
+  },
+  "jenkins": {
+    "category": "CI/CD",
+    "description": "Jenkins automation server for CI/CD pipelines.",
+    "containers": [
+      "jenkins"
+    ],
+    "web_ui": [
+      "https://jenkins.dss.localhost"
+    ]
+  },
+  "kafka": {
+    "category": "Cache & Queue",
+    "description": "Apache Kafka event streaming broker with Kafka UI.",
+    "containers": [
+      "kafka",
+      "kafka-ui"
+    ],
+    "web_ui": [
+      "https://kafka-ui.dss.localhost"
+    ]
+  },
+  "litellm": {
+    "category": "AI & Search",
+    "description": "OpenAI-compatible LLM proxy with an admin UI. Models and virtual keys are stored in Postgres.",
+    "containers": [
+      "litellm"
+    ],
+    "web_ui": [
+      "https://litellm.dss.localhost/ui"
+    ]
+  },
+  "mailpit": {
+    "category": "Dev Tools",
+    "description": "SMTP catcher with a web inbox for testing outgoing email.",
+    "containers": [
+      "mailpit"
+    ],
+    "web_ui": [
+      "https://mailpit.dss.localhost"
+    ]
+  },
+  "mariadb": {
+    "category": "Database",
+    "description": "MariaDB relational database.",
+    "containers": [
+      "mariadb"
+    ],
+    "web_ui": []
+  },
+  "memcached": {
+    "category": "Cache & Queue",
+    "description": "Memcached in-memory key-value cache.",
+    "containers": [
+      "memcached"
+    ],
+    "web_ui": []
+  },
+  "mermaid-live-editor": {
+    "category": "Dev Tools",
+    "description": "Browser editor for Mermaid diagrams.",
+    "containers": [
+      "mermaid-live-editor"
+    ],
+    "web_ui": [
+      "https://mermaid.dss.localhost"
+    ]
+  },
+  "minio": {
+    "category": "Storage",
+    "description": "MinIO S3-compatible object storage with a web console.",
+    "containers": [
+      "minio"
+    ],
+    "web_ui": [
+      "https://minio.dss.localhost"
+    ]
+  },
+  "mongodb": {
+    "category": "Database",
+    "description": "MongoDB document database.",
+    "containers": [
+      "mongodb"
+    ],
+    "web_ui": []
+  },
+  "mysql8": {
+    "category": "Database",
+    "description": "MySQL 8 relational database.",
+    "containers": [
+      "mysql8"
+    ],
+    "web_ui": []
+  },
+  "n8n": {
+    "category": "Workflow & Automation",
+    "description": "Visual workflow automation with hundreds of integrations.",
+    "containers": [
+      "n8n"
+    ],
+    "web_ui": [
+      "https://n8n.dss.localhost"
+    ]
+  },
+  "node-red": {
+    "category": "Workflow & Automation",
+    "description": "Flow-based programming for event-driven integrations.",
+    "containers": [
+      "node-red"
+    ],
+    "web_ui": [
+      "https://node-red.dss.localhost"
+    ]
+  },
+  "oauth2-proxy": {
+    "category": "Auth & Gateway",
+    "description": "Opt-in Traefik login gateway backed by Zitadel OIDC.",
+    "containers": [
+      "oauth2-proxy",
+      "oauth2-proxy-probe"
+    ],
+    "web_ui": [
+      "https://auth.dss.localhost"
+    ]
+  },
+  "otel": {
+    "category": "Observability",
+    "description": "Logs pipeline: OTel Collector, Alloy, Loki, and Grafana.",
+    "containers": [
+      "otel-collector",
+      "grafana",
+      "loki",
+      "alloy",
+      "otel-collector-probe"
+    ],
+    "web_ui": [
+      "https://grafana.dss.localhost"
+    ]
+  },
+  "pgvector": {
+    "category": "Database",
+    "description": "PostgreSQL 17 with the pgvector extension; backend for Hindsight.",
+    "containers": [
+      "pgvector"
+    ],
+    "web_ui": []
+  },
+  "pocketbase": {
+    "category": "Database",
+    "description": "PocketBase backend in one file: SQLite, auth, and admin UI.",
+    "containers": [
+      "pocketbase"
+    ],
+    "web_ui": [
+      "https://pocketbase.dss.localhost/_/"
+    ]
+  },
+  "postgres": {
+    "category": "Database",
+    "description": "PostgreSQL 16, the default shared relational backend.",
+    "containers": [
+      "postgres"
+    ],
+    "web_ui": []
+  },
+  "portainer": {
+    "category": "Admin UI",
+    "description": "Web UI for managing Docker containers, images, and volumes.",
+    "containers": [
+      "portainer"
+    ],
+    "web_ui": [
+      "https://portainer.dss.localhost"
+    ]
+  },
+  "qdrant": {
+    "category": "Database",
+    "description": "Qdrant vector database with a web dashboard.",
+    "containers": [
+      "qdrant"
+    ],
+    "web_ui": [
+      "https://qdrant.dss.localhost/dashboard"
+    ]
+  },
+  "rabbitmq": {
+    "category": "Cache & Queue",
+    "description": "RabbitMQ message broker with the management UI.",
+    "containers": [
+      "rabbitmq"
+    ],
+    "web_ui": [
+      "https://rabbitmq.dss.localhost"
+    ]
+  },
+  "redis": {
+    "category": "Cache & Queue",
+    "description": "Redis in-memory data store with password auth.",
+    "containers": [
+      "redis"
+    ],
+    "web_ui": []
+  },
+  "redisinsight": {
+    "category": "Admin UI",
+    "description": "Redis Insight GUI for browsing and debugging Redis.",
+    "containers": [
+      "redisinsight"
+    ],
+    "web_ui": [
+      "https://redisinsight.dss.localhost"
+    ]
+  },
+  "sonarqube": {
+    "category": "CI/CD",
+    "description": "SonarQube static code quality and security analysis.",
+    "containers": [
+      "sonarqube"
+    ],
+    "web_ui": [
+      "https://sonarqube.dss.localhost"
+    ]
+  },
+  "supabase": {
+    "category": "Database",
+    "description": "Supabase backend: Postgres, Auth, Storage, Realtime, and Studio.",
+    "containers": [
+      "supabase-studio",
+      "supabase-kong",
+      "supabase-auth",
+      "supabase-storage",
+      "realtime",
+      "supabase-meta",
+      "supabase-db"
+    ],
+    "web_ui": [
+      "https://studio.dss.localhost"
+    ]
+  },
+  "temporal": {
+    "category": "Workflow & Automation",
+    "description": "Temporal durable workflow engine with its web UI.",
+    "containers": [
+      "temporal",
+      "temporal-ui"
+    ],
+    "web_ui": [
+      "https://temporal.dss.localhost"
+    ]
+  },
+  "traefik": {
+    "category": "Auth & Gateway",
+    "description": "Reverse proxy and TLS termination for every *.dss.localhost UI.",
+    "containers": [
+      "traefik"
+    ],
+    "web_ui": [
+      "https://traefik.dss.localhost/dashboard/"
+    ]
+  },
+  "verdaccio": {
+    "category": "Dev Tools",
+    "description": "Private npm registry that caches npmjs and can proxy GitHub Packages, GitLab, and an internal registry.",
+    "containers": [
+      "verdaccio"
+    ],
+    "web_ui": [
+      "https://verdaccio.dss.localhost"
+    ]
+  },
+  "woodpecker": {
+    "category": "CI/CD",
+    "description": "Woodpecker CI server and agent, integrated with Gitea.",
+    "containers": [
+      "woodpecker-server",
+      "socket-proxy",
+      "woodpecker-agent"
+    ],
+    "web_ui": [
+      "https://woodpecker.dss.localhost"
+    ]
+  },
+  "zitadel": {
+    "category": "Auth & Gateway",
+    "description": "Zitadel identity provider (OIDC / OAuth2) and console.",
+    "containers": [
+      "zitadel",
+      "zitadel-login"
+    ],
+    "web_ui": [
+      "https://zitadel.dss.localhost/ui/console"
+    ]
+  }
+}

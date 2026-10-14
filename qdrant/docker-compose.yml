@@ -2,10 +2,11 @@ services:
   qdrant:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=infra_shared"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.qdrant.rule=Host(`qdrant.dss.localhost`)"
-      - "traefik.http.routers.qdrant.entrypoints=web,websecure"
+      - "traefik.http.routers.qdrant.entrypoints=websecure"
       - "traefik.http.routers.qdrant.tls=true"
+      - "traefik.http.routers.qdrant.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     container_name: qdrant
     image: qdrant/qdrant:v1.18.3
@@ -18,19 +19,17 @@ services:
         reservations:
           cpus: "${QDRANT_CPUS_RESERVED:-0.1}"
           memory: "${QDRANT_MEMORY_RESERVED:-256M}"
-    ports:
-      - "127.0.0.1:${QDRANT_HTTP_PORT:-6333}:6333" # REST API
-      - "127.0.0.1:${QDRANT_GRPC_PORT:-6334}:6334" # gRPC
     environment:
-      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-Password102!}
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:?Set QDRANT_API_KEY in .env — run make setup}
       - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-INFO}
       - QDRANT__TELEMETRY_DISABLED=${QDRANT_TELEMETRY_DISABLED:-true}
     volumes:
       - qdrant_data:/qdrant/storage
       - qdrant_snapshots:/qdrant/snapshots
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
+      - data_net
     ulimits:
       nofile:
         soft: 65535
@@ -44,11 +43,18 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
+    external: true
+  data_net:
     external: true
 
 volumes:

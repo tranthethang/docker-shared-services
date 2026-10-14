@@ -1,4 +1,4 @@
-.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage sync format format-check
+.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage tui package sync format format-check
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -9,10 +9,10 @@ PYTHON_SVC_MGR := python3 bin/service_manager.py
 UV ?= uv
 
 # Optional shared password for setup/passwords targets:
-#   make setup password='Password102!'
-#   DSS_SHARED_PASSWORD='Password102!' make setup
-#   make passwords password='Password102!'
-# When omitted, setup generates ONE random password and applies it to all services.
+#   make setup password='your-secure-password'
+#   DSS_SHARED_PASSWORD='your-secure-password' make setup
+#   make passwords password='your-secure-password'
+# When omitted, setup generates a shared password on first use.
 password ?=
 
 # Dynamic DOCKER_COMPOSE command that includes all services
@@ -34,10 +34,10 @@ help: ## Show this help message
 		awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
-setup: ## Setup env files, networks, certs (optional: password='Password102!')
-	@echo "Checking shared Docker networks (infra_shared, dev_tools)..."
-	@# Two bridges cannot share one CIDR; prefer adjacent /16s in 10/8. Fall back if pool overlaps (OrbStack/Docker Desktop).
-	@for pair in "infra_shared:10.0.0.0/16" "dev_tools:10.1.0.0/16"; do \
+setup: ## Setup env files, networks, certs (optional: password='your-secure-password')
+	@echo "Checking shared Docker networks (traefik_proxy, backend_net, data_net)..."
+	@# Bridges cannot share one CIDR; prefer adjacent /16s in 10/8. Fall back if pool overlaps (OrbStack/Docker Desktop).
+	@for pair in "traefik_proxy:10.0.0.0/16" "backend_net:10.1.0.0/16" "data_net:10.2.0.0/16"; do \
 		name=$${pair%%:*}; subnet=$${pair#*:}; \
 		if docker network inspect $$name >/dev/null 2>&1; then \
 			echo "  $$name: already exists"; \
@@ -57,8 +57,10 @@ setup: ## Setup env files, networks, certs (optional: password='Password102!')
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
 		$(PYTHON_ENV_MGR) create all; \
 	fi
-	@# ONE shared password for all Password102! placeholders (DB/Redis/MinIO/…).
-	@# Override: make setup password='Password102!'  OR  DSS_SHARED_PASSWORD='…' make setup
+	@# Append keys newly added to .env.example without overwriting existing values.
+	@$(PYTHON_ENV_MGR) merge-missing all
+	@# ONE shared password for every placeholder password (DB/Redis/MinIO/…).
+	@# Override: make setup password='your-secure-password'  OR  DSS_SHARED_PASSWORD='…' make setup
 	@# Unique secrets (Garage, Woodpecker agent) are filled next and stay distinct.
 	@$(PYTHON_ENV_MGR) fill-shared-password $(if $(password),--password "$(password)",)
 	@$(PYTHON_ENV_MGR) fill-secrets all
@@ -73,7 +75,10 @@ setup: ## Setup env files, networks, certs (optional: password='Password102!')
 		if [[ -z "$$DOZZLE_PW" && -f .env ]]; then \
 			DOZZLE_PW=$$(grep -E '^DSS_SHARED_PASSWORD=' .env | head -1 | cut -d= -f2-); \
 		fi; \
-		DOZZLE_PW="$${DOZZLE_PW:-Password102!}"; \
+		if [[ -z "$$DOZZLE_PW" || "$$DOZZLE_PW" == "Password102!" ]]; then \
+			echo "  ERROR: DSS_SHARED_PASSWORD is missing or still Password102!. Run make setup before generating Dozzle users." >&2; \
+			exit 1; \
+		fi; \
 		echo "  dozzle/data/users.yml not found -> generating admin (shared password)..."; \
 		docker run --rm -i amir20/dozzle generate admin \
 		  --password "$$DOZZLE_PW" \
@@ -134,6 +139,32 @@ restart: ## Restart services (usage: make restart [service=pgvector])
 
 manage: ## Interactive multi-select service manager (up selected, down unselected)
 	@$(PYTHON_SVC_MGR) manage
+
+tui: ## Optional Textual dashboard (requires uv + interactive terminal)
+	@if ! command -v $(UV) >/dev/null 2>&1; then \
+		echo "❌ uv is required for make tui."; \
+		echo "   Install: https://docs.astral.sh/uv/"; \
+		echo "   Non-TUI workflows still work: make manage, make up, make ps, make logs, …"; \
+		exit 1; \
+	fi
+	@if [ ! -t 0 ] || [ ! -t 1 ]; then \
+		echo "❌ make tui needs an interactive terminal (TTY)."; \
+		echo "   Use make manage / make up / make ps / make logs instead."; \
+		exit 1; \
+	fi
+	@PYTHONPATH=bin $(UV) run --group tui python -m tui
+
+package: ## Package a selected stack into dist/ (requires uv + interactive terminal)
+	@if ! command -v $(UV) >/dev/null 2>&1; then \
+		echo "❌ uv is required for make package."; \
+		echo "   Install: https://docs.astral.sh/uv/"; \
+		exit 1; \
+	fi
+	@if [ ! -t 0 ] || [ ! -t 1 ]; then \
+		echo "❌ make package needs an interactive terminal (TTY)."; \
+		exit 1; \
+	fi
+	@PYTHONPATH=bin $(UV) run --group tui python -m package_wizard
 
 logs: ## Show logs (usage: make logs [service=pgvector])
 	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
@@ -204,53 +235,62 @@ info: ## Show service information and access URLs
 	@echo "║                     Service Information                        ║"
 	@echo "╚════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "Networks (10/8 plan, two non-overlapping /16s):"
-	@echo "  • infra_shared — 10.0.0.0/16 (Traefik + main stack)"
-	@echo "  • dev_tools — 10.1.0.0/16 (legacy / external compose)"
+	@echo "Networks (three-tier topology, 10/8 plan):"
+	@echo "  • traefik_proxy — 10.0.0.0/16 (Traefik ingress + routed web services)"
+	@echo "  • backend_net   — 10.1.0.0/16 (application logic containers & workers)"
+	@echo "  • data_net      — 10.2.0.0/16 (isolated databases, caches, and storage)"
 	@echo ""
 	@echo "Services:"
-	@echo "  • Adminer - http://localhost:8081"
-	@echo "  • Appsmith - http://localhost:8091 (Host: appsmith.dss.localhost)"
-	@echo "  • Bugsink - http://localhost:8150 (Host: bugsink.dss.localhost)"
-	@echo "  • ChromaDB - http://localhost:8000 (Host: chromadb.dss.localhost)"
-	@echo "  • ChromaDB Admin - http://localhost:8001 (Host: chromadb-admin.dss.localhost)"
+	@echo "  • Adminer - https://adminer.dss.localhost"
+	@echo "  • Appsmith - https://appsmith.dss.localhost"
+	@echo "  • Bugsink - https://bugsink.dss.localhost"
+	@echo "  • ChromaDB - https://chromadb.dss.localhost"
+	@echo "  • ChromaDB Admin - https://chromadb-admin.dss.localhost"
 	@echo "  • Centrifugo - http://localhost:8010 (container: centrifugo:8000)"
-	@echo "  • Concourse - http://localhost:8070"
-	@echo "  • Crawl4AI - http://localhost:11235 (Host: crawl4ai.dss.localhost)"
-	@echo "  • Dockge - http://localhost:5001"
-	@echo "  • Dozzle - http://localhost:8888 (Host: dozzle.dss.localhost)"
+	@echo "  • Concourse - https://concourse.dss.localhost"
+	@echo "  • Crawl4AI - https://crawl4ai.dss.localhost"
+	@echo "  • Dockge - https://dockge.dss.localhost"
+	@echo "  • Dozzle - https://dozzle.dss.localhost"
 	@echo "  • Garage (S3) - https://s3.garage.dss.localhost (admin: https://admin.garage.dss.localhost)"
-	@echo "  • Gitea - http://localhost:3000"
+	@echo "  • Gitea - https://gitea.dss.localhost (SSH: localhost:2222)"
 	@echo "  • Gotenberg - http://localhost:3030 (container: gotenberg:3000)"
-	@echo "  • Grafana - http://localhost:3001 (Host: grafana.dss.localhost) [otel stack]"
-	@echo "  • Inngest - http://localhost:8288 (Host: inngest.dss.localhost)"
-	@echo "  • Jenkins - http://localhost:8090"
+	@echo "  • Grafana - https://grafana.dss.localhost [otel stack]"
+	@echo "  • Hasura - https://hasura.dss.localhost"
+	@echo "  • Inngest - https://inngest.dss.localhost"
+	@echo "  • Jenkins - https://jenkins.dss.localhost (agent: localhost:50000)"
 	@echo "  • Kafka - localhost:9092"
-	@echo "  • Kafka UI - http://localhost:8082 (Host: kafka-ui.dss.localhost)"
+	@echo "  • Kafka UI - https://kafka-ui.dss.localhost"
 	@echo "  • Loki - http://localhost:3100 [otel stack]"
-	@echo "  • Mailpit - localhost:8025 (SMTP: 1025)"
+	@echo "  • Mailpit - https://mailpit.dss.localhost (SMTP: localhost:1025)"
 	@echo "  • MariaDB 11 - localhost:3307"
 	@echo "  • Memcached - localhost:11211"
-	@echo "  • Mermaid Live Editor - http://localhost:8160 (Host: mermaid.dss.localhost)"
-	@echo "  • MinIO - http://localhost:9002"
+	@echo "  • Mermaid Live Editor - https://mermaid.dss.localhost"
+	@echo "  • MinIO - https://minio.dss.localhost (S3: localhost:9002)"
 	@echo "  • MongoDB - localhost:27017"
 	@echo "  • MySQL 8 - localhost:3306"
-	@echo "  • n8n - http://localhost:5678 (Host: n8n.dss.localhost)"
-	@echo "  • Node-RED - http://localhost:1880 (Host: node-red.dss.localhost)"
+	@echo "  • n8n - https://n8n.dss.localhost"
+	@echo "  • Node-RED - https://node-red.dss.localhost"
+	@echo "  • oauth2-proxy (auth gateway) - https://auth.dss.localhost (Traefik only; needs Zitadel app)"
 	@echo "  • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP) [otel stack]"
-	@echo "  • PocketBase - http://localhost:8140 (Host: pocketbase.dss.localhost)"
+	@echo "  • PocketBase - https://pocketbase.dss.localhost"
 	@echo "  • PgVector (PostgreSQL 17, standalone) - localhost:5433"
-	@echo "  • Portainer - http://localhost:9007 (HTTPS: 9443)"
+	@echo "  • Portainer - https://portainer.dss.localhost"
 	@echo "  • Postgres (PostgreSQL 16, default shared DB) - localhost:5432"
-	@echo "  • RabbitMQ - localhost:5672 (management: 15672)"
+	@echo "  • RabbitMQ - https://rabbitmq.dss.localhost (AMQP: localhost:5672)"
 	@echo "  • Redis - localhost:6379"
-	@echo "  • Redis Insight - http://localhost:5540"
-	@echo "  • SonarQube - http://localhost:9000"
-	@echo "  • Supabase - http://localhost:8002 (Host: supabase.dss.localhost, DB: 5434)"
-	@echo "  • Temporal - localhost:7233 (UI: http://localhost:8083 or temporal.dss.localhost)"
-	@echo "  • Traefik (Reverse Proxy) - http://localhost:8080"
-	@echo "  • Woodpecker CI - http://localhost:8012 (Host: woodpecker.dss.localhost)"
-	@echo "  • Zitadel - https://zitadel.dss.localhost (Host port: 8180)"
+	@echo "  • Redis Insight - https://redisinsight.dss.localhost"
+	@echo "  • SonarQube - https://sonarqube.dss.localhost"
+	@echo "  • Supabase - https://studio.dss.localhost (API: https://supabase.dss.localhost, DB: localhost:5434)"
+	@echo "  • Temporal - localhost:7233 (UI: https://temporal.dss.localhost)"
+	@echo "  • Traefik (Reverse Proxy) - https://traefik.dss.localhost (BasicAuth)"
+	@echo "  • Woodpecker CI - https://woodpecker.dss.localhost"
+	@echo "  • Zitadel - https://zitadel.dss.localhost"
+	@echo ""
+	@echo "Opt-in UI auth (oauth2-proxy + Zitadel; OFF by default):"
+	@echo "  • Candidates: mermaid-live-editor, temporal UI, chromadb, qdrant, kafka-ui"
+	@echo "  • Enable: set AUTH_ENABLED=true and AUTH_MIDDLEWARE=auth-default in that service .env, then restart"
+	@echo "  • Status: python bin/env_manager.py summary  (shows AUTH gateway on/off)"
+	@echo "  • Setup: see oauth2-proxy/README.md and docs/configuration.md"
 	@echo ""
 
 validate: ## Validate all Docker Compose files

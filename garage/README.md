@@ -4,7 +4,7 @@ Replacement for the retired MinIO service. [Garage](https://garagehq.deuxfleurs.
 S3-compatible object store; deployed here in single-node mode (`replication_factor = 1`).
 
 - Image: `dxflrs/garage:v2.4.1` (latest stable, pinned — never `:latest`)
-- Ports: `3900` S3 API · `3901` RPC · `3902` static website hosting · `3903` admin API/metrics
+- Ports (internal to network): `3900` S3 API · `3901` RPC · `3902` static website hosting · `3903` admin API/metrics (no host ports exposed)
 - Traefik: `https://s3.garage.dss.localhost` (S3 API), `https://admin.garage.dss.localhost` (admin API)
 - Config: directory mount `./config` → `/etc/garage` (`GARAGE_CONFIG_FILE=/etc/garage/garage.toml`)
 

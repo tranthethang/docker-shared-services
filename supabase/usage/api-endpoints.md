@@ -1,11 +1,11 @@
 # API Endpoints
 
-Kong listens on container ports `8000` / `8443`, published as `SUPABASE_KONG_HTTP_PORT` / `SUPABASE_KONG_HTTPS_PORT` (defaults **8002** / **8445**). Traefik routes:
+Kong listens on container ports `8000` / `8443` and is not published to host ports. Traefik routes:
 
 - APIs → `https://supabase.dss.localhost`
 - Studio → `https://studio.dss.localhost`
 
-Preferred API base URL: `https://supabase.dss.localhost` (`SUPABASE_PUBLIC_URL`). Direct host access: `http://localhost:8002`.
+API base URL: `https://supabase.dss.localhost` (`SUPABASE_PUBLIC_URL`).
 
 Declarative routes live in [`volumes/api/kong.yml`](../volumes/api/kong.yml).
 

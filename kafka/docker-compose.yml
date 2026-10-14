@@ -33,8 +33,8 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
+      - data_net
     restart: "${RESTART_POLICY:-unless-stopped}"
     stop_grace_period: 60s
     logging:
@@ -59,8 +59,6 @@ services:
         reservations:
           cpus: "${KAFKA_UI_CPUS_RESERVED:-0.25}"
           memory: "${KAFKA_UI_MEMORY_RESERVED:-256M}"
-    ports:
-      - "127.0.0.1:8082:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: "local-kraft"
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:29092"
@@ -69,13 +67,15 @@ services:
       kafka:
         condition: service_healthy
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.dss.localhost`)"
-      - "traefik.http.routers.kafka-ui.entrypoints=web,websecure"
+      - "traefik.http.routers.kafka-ui.entrypoints=websecure"
       - "traefik.http.routers.kafka-ui.tls=true"
+      - "traefik.http.routers.kafka-ui.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"
     restart: "${RESTART_POLICY:-unless-stopped}"
     healthcheck:
@@ -84,13 +84,20 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   kafka_data:
     name: kafka_data
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
+    external: true
+  data_net:
     external: true

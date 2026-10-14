@@ -1,6 +1,6 @@
 services:
   woodpecker-server:
-    image: woodpeckerci/woodpecker-server:v3
+    image: woodpeckerci/woodpecker-server:v3.19.0
     container_name: woodpecker-server
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -11,8 +11,6 @@ services:
         reservations:
           cpus: "${WOODPECKER_CPUS_RESERVED:-0.5}"
           memory: "${WOODPECKER_MEMORY_RESERVED:-512M}"
-    ports:
-      - "127.0.0.1:${WOODPECKER_HTTP_PORT:-8012}:8000"
     env_file:
       - ./.env
     environment:
@@ -32,12 +30,13 @@ services:
     volumes:
       - woodpecker_data:/var/lib/woodpecker
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.woodpecker.rule=Host(`${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-dss.localhost}`)"
-      - "traefik.http.routers.woodpecker.entrypoints=web,websecure"
+      - "traefik.http.routers.woodpecker.entrypoints=websecure"
       - "traefik.http.routers.woodpecker.tls=true"
       - "traefik.http.services.woodpecker.loadbalancer.server.port=8000"
     healthcheck:
@@ -47,9 +46,45 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    container_name: woodpecker-socket-proxy
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${WOODPECKER_SOCKET_PROXY_CPUS_LIMIT:-0.25}"
+          memory: "${WOODPECKER_SOCKET_PROXY_MEMORY_LIMIT:-128M}"
+        reservations:
+          cpus: "${WOODPECKER_SOCKET_PROXY_CPUS_RESERVED:-0.05}"
+          memory: "${WOODPECKER_SOCKET_PROXY_MEMORY_RESERVED:-32M}"
+    environment:
+      # INFO is denied by default; the agent calls Docker Info before it can run.
+      - INFO=1
+      - CONTAINERS=1
+      - POST=1
+      - EXEC=0
+      - IMAGES=1
+      - NETWORKS=1
+      - VOLUMES=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - woodpecker_docker
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   woodpecker-agent:
-    image: woodpeckerci/woodpecker-agent:v3
+    image: woodpeckerci/woodpecker-agent:v3.19.0
     container_name: woodpecker-agent
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -63,6 +98,8 @@ services:
     depends_on:
       woodpecker-server:
         condition: service_healthy
+      socket-proxy:
+        condition: service_started
     env_file:
       - ./.env
     environment:
@@ -72,19 +109,26 @@ services:
         32)}
       - WOODPECKER_MAX_WORKFLOWS=${WOODPECKER_MAX_WORKFLOWS:-2}
       - WOODPECKER_BACKEND_DOCKER=true
-    volumes:
-      # RW required for Docker pipeline backend (SEC-01 intentionally not :ro).
-      - /var/run/docker.sock:/var/run/docker.sock
+      - DOCKER_HOST=tcp://socket-proxy:2375
     networks:
-      - infra_shared
-      - dev_tools
+      - backend_net
+      - woodpecker_docker
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   woodpecker_data:
     name: woodpecker_data
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true
+  # Only the agent may reach the socket proxy. Do not attach this network elsewhere.
+  woodpecker_docker:
+    name: woodpecker_docker
+    internal: true

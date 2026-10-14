@@ -1,24 +1,33 @@
 import argparse
 import os
+import re
 import shutil
 
 from config import (
+    AUTH_GATEWAY_MIDDLEWARE_OFF,
+    AUTH_GATEWAY_MIDDLEWARES_ON,
+    AUTH_OPT_IN_UI_SERVICES,
     AUTO_GENERATED_SECRETS,
+    INVALID_PASSWORD_VALUES,
+    LEGACY_PLACEHOLDER_PASSWORD,
     SERVICE_INFO_VARS,
     SERVICES,
     SHARED_PASSWORD_KEYS,
     SHARED_PASSWORD_PLACEHOLDERS,
     SHARED_PASSWORD_TEMPLATES,
+    STRONG_PASSWORD_REQUIRED,
     VALIDATION_RULES,
 )
 from utils import (
     error,
     generate_password,
     generate_secret,
+    iter_env_assignments,
     print_header,
     read_env_value,
     set_env_value,
     success,
+    validate_password_strength,
     warning,
 )
 
@@ -70,24 +79,101 @@ def create_env(service_arg):
     warning("Next: shared password sync (fill-shared-password) + unique secrets (fill-secrets).")
 
 
+def _example_env_assignments(example_path: str) -> list[tuple[str, str]]:
+    """Return (KEY, raw_value) pairs from .env.example in file order (first wins)."""
+    seen: set[str] = set()
+    pairs: list[tuple[str, str]] = []
+    for key, value in iter_env_assignments(example_path):
+        if key in seen:
+            continue
+        seen.add(key)
+        pairs.append((key, value))
+    return pairs
+
+
+def merge_missing_env_keys(service_arg):
+    """Append keys that exist in .env.example but are absent from .env.
+
+    Never overwrites existing keys (including empty values). Safe for repeated
+    `make setup` after .env.example gains new variables (e.g. AUTH_*).
+    """
+    services = get_services(service_arg)
+    print("\nMerging missing keys from .env.example into existing .env files...\n")
+    added_total = 0
+    for s in services:
+        env_path = os.path.join(s, ".env")
+        example_path = os.path.join(s, ".env.example")
+        if not os.path.exists(env_path) or not os.path.exists(example_path):
+            continue
+        missing = [
+            (key, value)
+            for key, value in _example_env_assignments(example_path)
+            if read_env_value(env_path, key) is None
+        ]
+        if not missing:
+            continue
+        with open(env_path) as f:
+            content = f.read()
+        suffix_parts = []
+        if content and not content.endswith("\n"):
+            suffix_parts.append("\n")
+        if content.strip():
+            suffix_parts.append("\n")
+        for key, value in missing:
+            suffix_parts.append(f"{key}={value}\n")
+            success(f"{s}: added {key}")
+            added_total += 1
+        with open(env_path, "a") as f:
+            f.write("".join(suffix_parts))
+    if added_total == 0:
+        print("✅ No missing keys to merge.")
+    else:
+        print(f"\n✅ Added {added_total} missing key(s) from .env.example.")
+
+
 def fill_secrets(service_arg):
-    """Fill empty AUTO_GENERATED_SECRETS values; leave existing non-empty values alone."""
+    """Fill empty secrets and replace the former default dashboard hash."""
     services = get_services(service_arg)
     print("\nFilling empty auto-generated secrets...\n")
     filled = 0
+    legacy_dashboard_hash = "admin:$apr1$dsslocal$d6fWuAuh2eC9xV6eu7kMP."
     for s in services:
-        if s == ".":
-            continue
-        env_path = os.path.join(s, ".env")
+        env_path = ".env" if s == "." else os.path.join(s, ".env")
         specs = AUTO_GENERATED_SECRETS.get(s)
         if not specs or not os.path.exists(env_path):
             continue
         for var, (method, nbytes) in specs.items():
             current = read_env_value(env_path, var)
-            if current:
+            if (
+                var == "TRAEFIK_DASHBOARD_AUTH"
+                and current
+                and current
+                not in (
+                    legacy_dashboard_hash,
+                    legacy_dashboard_hash.replace("$", "$$"),
+                )
+            ):
+                escaped = re.sub(r"(?<!\$)\$(?!\$)", "$$", current)
+                if escaped != current:
+                    set_env_value(env_path, var, escaped)
+                    success(f"{s}: escaped {var} for Docker Compose")
+                else:
+                    success(f"{s}: {var} already set (left unchanged)")
+                continue
+            if current and not (
+                var == "TRAEFIK_DASHBOARD_AUTH"
+                and current in (legacy_dashboard_hash, legacy_dashboard_hash.replace("$", "$$"))
+            ):
                 success(f"{s}: {var} already set (left unchanged)")
                 continue
-            value = generate_secret(method, nbytes)
+            if method == "htpasswd":
+                shared_password = read_env_value(".env", "DSS_SHARED_PASSWORD")
+                if not shared_password or shared_password in INVALID_PASSWORD_VALUES:
+                    error("Set a secure DSS_SHARED_PASSWORD first (run make setup).")
+                    raise SystemExit(1)
+                value = generate_secret(method, nbytes, password=shared_password)
+            else:
+                value = generate_secret(method, nbytes)
             set_env_value(env_path, var, value)
             success(f"{s}: generated {var}")
             filled += 1
@@ -98,6 +184,14 @@ def fill_secrets(service_arg):
         print(f"\n✅ Generated {filled} secret value(s).")
 
 
+def _require_strong(password: str, source: str) -> str:
+    problem = validate_password_strength(password)
+    if problem:
+        error(f"{source}: {problem}")
+        raise SystemExit(1)
+    return password
+
+
 def _resolve_shared_password(explicit: str | None) -> str:
     """
     Resolve the single shared password.
@@ -105,18 +199,26 @@ def _resolve_shared_password(explicit: str | None) -> str:
     Priority:
       1. explicit --password
       2. DSS_SHARED_PASSWORD environment variable (non-empty)
-      3. Existing non-empty DSS_SHARED_PASSWORD in root .env (including Password102!
-         if the user chose it previously)
+      3. Existing non-placeholder DSS_SHARED_PASSWORD in root .env
       4. Fresh random password
     """
     if explicit:
-        return explicit
+        return _require_strong(explicit, "--password")
     from_env = os.environ.get("DSS_SHARED_PASSWORD", "").strip()
     if from_env:
-        return from_env
+        return _require_strong(from_env, "DSS_SHARED_PASSWORD env")
     if os.path.exists(".env"):
         root_existing = read_env_value(".env", "DSS_SHARED_PASSWORD")
-        if root_existing:
+        if root_existing and root_existing not in INVALID_PASSWORD_VALUES:
+            # Existing installs keep working: data services already store this
+            # password in their volumes, so never rotate it implicitly.
+            problem = validate_password_strength(root_existing)
+            if problem:
+                warning(f"root .env DSS_SHARED_PASSWORD: {problem}")
+                print(
+                    "  Kept as-is. To rotate it, see 'Rotate the shared password' "
+                    "in docs/troubleshooting.md.\n"
+                )
             return root_existing
     return generate_password()
 
@@ -128,8 +230,8 @@ def _should_overwrite(current: str | None, force: bool) -> bool:
         return True
     if current in SHARED_PASSWORD_PLACEHOLDERS:
         return True
-    # Compound defaults that still embed the repo placeholder.
-    if "Password102!" in current:
+    # Compound values from old .env files that still embed the legacy placeholder.
+    if LEGACY_PLACEHOLDER_PASSWORD in current:
         return True
     return False
 
@@ -148,10 +250,15 @@ def fill_shared_password(
       3. Existing non-placeholder DSS_SHARED_PASSWORD in root .env
       4. Fresh random password (generate_password)
 
-    By default only placeholders (Password102!, empty, known change-me values)
+    By default only placeholders (empty, known change-me values, legacy default)
     are overwritten. Use force=True to rewrite all listed keys.
     """
     resolved = _resolve_shared_password(password)
+    if resolved in INVALID_PASSWORD_VALUES:
+        error(
+            f"{LEGACY_PLACEHOLDER_PASSWORD} is an insecure placeholder; choose a secure password."
+        )
+        raise SystemExit(1)
     print("\nApplying shared password across services...\n")
     if password:
         success("Using password from --password")
@@ -212,11 +319,7 @@ def fill_shared_password(
             "Unique secrets (Garage, Woodpecker agent, Zitadel masterkey) "
             "are handled separately by fill-secrets."
         )
-        print(
-            "\nTo keep using Password102! next time:\n"
-            "  make setup password='Password102!'\n"
-            "  # or: DSS_SHARED_PASSWORD='Password102!' make setup\n"
-        )
+        print("\nTraefik dashboard login: admin + DSS_SHARED_PASSWORD from root .env.\n")
     return resolved
 
 
@@ -237,6 +340,11 @@ def validate_env(service_arg):
             elif not value:
                 error(f"{s}: {var} is empty (set a value in {s}/.env)")
                 errors += 1
+            elif value in INVALID_PASSWORD_VALUES:
+                error(
+                    f"{s}: {var} has placeholder/insecure value '{value}' (run make setup or set a secure value)"
+                )
+                errors += 1
             else:
                 success(f"{s}: {var} configured")
 
@@ -245,6 +353,53 @@ def validate_env(service_arg):
         return False
     print("\n✅ All environment variables validated!")
     return True
+
+
+def check_prerequisites(service_arg="all") -> bool:
+    """
+    Check if environment files exist and mandatory variables are set before starting services.
+    Returns True if valid, False if errors found.
+    """
+    if not os.path.exists(".env"):
+        error("Root environment file (.env) not found.")
+        print("  Remediation: Run 'make setup' to initialize .env from .env.example.\n")
+        return False
+
+    services = get_services(service_arg)
+    errors = 0
+    for s in services:
+        if s == ".":
+            continue
+        env_path = os.path.join(s, ".env")
+        if not os.path.exists(env_path):
+            error(f"{s}: Environment file not found ({env_path}).")
+            print(f"  Remediation: Run 'make setup' or copy {s}/.env.example to {env_path}.\n")
+            errors += 1
+            continue
+
+        for var in VALIDATION_RULES.get(s, []):
+            val = read_env_value(env_path, var)
+            if not val or val in INVALID_PASSWORD_VALUES:
+                error(
+                    f"{s}: Mandatory variable {var} is unset or contains placeholder in {env_path}."
+                )
+                print(
+                    f"  Remediation: Run 'make setup' to generate credentials or configure {var} in {env_path}.\n"
+                )
+                errors += 1
+
+        for var in STRONG_PASSWORD_REQUIRED.get(s, []):
+            val = read_env_value(env_path, var)
+            problem = validate_password_strength(val) if val else None
+            if problem:
+                error(f"{s}: {var} in {env_path} is too weak. {problem}")
+                print(
+                    "  Remediation: rotate the shared password "
+                    "(see 'Rotate the shared password' in docs/troubleshooting.md).\n"
+                )
+                errors += 1
+
+    return errors == 0
 
 
 def show_summary(service_arg):
@@ -259,7 +414,7 @@ def show_summary(service_arg):
         print(f"Service: {s}")
         vars_to_check = SERVICE_INFO_VARS.get(s, [])
         if not vars_to_check and s == "traefik":
-            print("  Ports: 80, 443, 8080")
+            print("  Ports: 80, 443")
         elif not vars_to_check:
             print("  (configured)")
         else:
@@ -272,6 +427,15 @@ def show_summary(service_arg):
                             found = True
             if not found:
                 print("  (no specific ports configured in .env)")
+        if s in AUTH_OPT_IN_UI_SERVICES:
+            enabled = (read_env_value(env_path, "AUTH_ENABLED") or "false").lower()
+            middleware = (read_env_value(env_path, "AUTH_MIDDLEWARE") or "").strip()
+            effective = middleware or AUTH_GATEWAY_MIDDLEWARE_OFF
+            state = "on" if effective in AUTH_GATEWAY_MIDDLEWARES_ON else "off"
+            print(
+                f"  AUTH gateway: {state} "
+                f"(AUTH_ENABLED={enabled}, AUTH_MIDDLEWARE={middleware or AUTH_GATEWAY_MIDDLEWARE_OFF})"
+            )
         print("")
 
 
@@ -282,11 +446,13 @@ def main():
         choices=[
             "check",
             "create",
+            "merge-missing",
             "fill-secrets",
             "fill-shared-password",
             "validate",
             "summary",
             "passwords",
+            "check-prerequisites",
         ],
     )
     parser.add_argument("service", nargs="?", default="all")
@@ -313,6 +479,8 @@ def main():
         check_env(args.service)
     elif args.command == "create":
         create_env(args.service)
+    elif args.command == "merge-missing":
+        merge_missing_env_keys(args.service)
     elif args.command == "fill-secrets":
         fill_secrets(args.service)
     elif args.command in ("fill-shared-password", "passwords"):
@@ -323,6 +491,9 @@ def main():
         )
     elif args.command == "validate":
         if not validate_env(args.service):
+            exit(1)
+    elif args.command == "check-prerequisites":
+        if not check_prerequisites(args.service):
             exit(1)
     elif args.command == "summary":
         show_summary(args.service)

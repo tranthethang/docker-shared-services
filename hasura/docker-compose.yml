@@ -1,0 +1,52 @@
+services:
+  hasura:
+    container_name: hasura
+    image: hasura/graphql-engine:${HASURA_VERSION:-v2.50.3}
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${HASURA_CPUS_LIMIT:-0.5}"
+          memory: "${HASURA_MEMORY_LIMIT:-512M}"
+        reservations:
+          cpus: "${HASURA_CPUS_RESERVED:-0.1}"
+          memory: "${HASURA_MEMORY_RESERVED:-128M}"
+    environment:
+      # Shared PostgreSQL 16 (postgres/docker-compose.yml) on backend_net
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: "postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD\
+        \ in .env — run make setup}@${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-hasura}"
+      PG_DATABASE_URL: "postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run\
+        \ make setup}@${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-hasura}"
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "${HASURA_GRAPHQL_ENABLE_CONSOLE:-true}"
+      HASURA_GRAPHQL_DEV_MODE: "${HASURA_GRAPHQL_DEV_MODE:-true}"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: "${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup, http-log, webhook-log, websocket-log,\
+        \ query-log}"
+      HASURA_GRAPHQL_ADMIN_SECRET: "${HASURA_GRAPHQL_ADMIN_SECRET:?Set HASURA_GRAPHQL_ADMIN_SECRET in .env — run make setup}"
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "${HASURA_GRAPHQL_UNAUTHORIZED_ROLE:-anonymous}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.http.routers.hasura.rule=Host(`${HASURA_HOSTNAME:-hasura.dss.localhost}`)"
+      - "traefik.http.routers.hasura.entrypoints=websecure"
+      - "traefik.http.routers.hasura.tls=true"
+      - "traefik.http.services.hasura.loadbalancer.server.port=8080"
+    networks:
+      - traefik_proxy
+      - backend_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  traefik_proxy:
+    external: true
+  backend_net:
+    external: true

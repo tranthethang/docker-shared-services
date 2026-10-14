@@ -2,8 +2,9 @@ services:
   gitea:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.gitea.rule=Host(`gitea.dss.localhost`)"
-      - "traefik.http.routers.gitea.entrypoints=web,websecure"
+      - "traefik.http.routers.gitea.entrypoints=websecure"
       - "traefik.http.routers.gitea.tls=true"
       - "traefik.http.services.gitea.loadbalancer.server.port=3000"
     image: gitea/gitea:1.25.2
@@ -19,31 +20,37 @@ services:
           memory: "${GITEA_MEMORY_RESERVED:-512M}"
     ports:
       - "127.0.0.1:${GITEA_SSH_PORT:-2222}:22"
-      - "127.0.0.1:${GITEA_HTTP_PORT:-3000}:3000"
     environment:
       - USER_UID=1000
       - USER_GID=1000
+      - GITEA__server__DOMAIN=gitea.dss.localhost
+      - GITEA__server__ROOT_URL=${GITEA_ROOT_URL:-https://gitea.dss.localhost/}
       - GITEA__database__DB_TYPE=postgres
-      - GITEA__database__HOST=${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}
+      - GITEA__database__HOST=${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}
       - GITEA__database__NAME=${GITEA_DB_NAME:-gitea}
-      - GITEA__database__USER=${POSTGRES_USER:-postgres}
-      - GITEA__database__PASSWD=${POSTGRES_PASSWORD:-Password102!}
+      - GITEA__database__USER=${POSTGRES16_USER:-postgres}
+      - GITEA__database__PASSWD=${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}
     volumes:
       - gitea_data:/data
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
     external: true
 
 volumes:

@@ -68,31 +68,32 @@ dozzle/data/
 !dozzle/data/.gitkeep
 
 # --- Docker Build Artifacts ---
+/dist/
 docker-compose.override.yml
 docker-compose.prod.yml
 docker-compose.lock
 
 # ==========================================
-# KEEP RULES (Đảm bảo không mất file quan trọng)
+# KEEP RULES (do not drop important files)
 # ==========================================
 
-# Giữ lại các file ví dụ
+# Keep example env files
 !.env.example
 !**/.env.example
 
-# Giữ lại toàn bộ cấu hình Docker Compose
+# Keep Docker Compose configuration
 !docker-compose*.yml
 !**/docker-compose.yml
 !docker-compose.shared.yml
 
-# Giữ lại Scripts và Documentation
+# Keep scripts and documentation
 !start-services.sh
 !setup-env.sh
 !Makefile
 !*.md
 !LICENSE
 
-# Giữ lại mã nguồn Python trong bin/
+# Keep Python sources in bin/
 !bin/*.py
 
 # Supabase: track Kong + init SQL (not runtime data/storage)

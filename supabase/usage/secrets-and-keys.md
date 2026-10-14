@@ -110,4 +110,4 @@ sh run.sh recreate supabase-kong
 - Treat `SERVICE_ROLE_KEY` / `SUPABASE_SECRET_KEY` as root — never ship them to browsers.
 - Replace every default in `.env.example` before exposing ports beyond localhost.
 - Prefer `ENABLE_EMAIL_AUTOCONFIRM=false` and a real SMTP relay in production.
-- Restrict host firewall / bind addresses if Postgres (`SUPABASE_DB_PORT`, default `5434`) and Kong (`SUPABASE_KONG_HTTP_PORT`, default `8002`) are reachable from untrusted networks.
+- Restrict host firewall / bind addresses for Postgres (`SUPABASE_DB_PORT`, default `5434`) if it is reachable from untrusted networks. Kong is accessed through Traefik.

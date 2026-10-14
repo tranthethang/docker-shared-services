@@ -74,7 +74,7 @@ Realtime stores its tenant metadata in the `_realtime` schema (created/seeded on
 
 ## Networks
 
-All services join external networks `infra_shared` and `dev_tools` (same as other stacks in this repo). Kong registers the alias `api-gw` on `infra_shared` so other containers can reach the gateway by that name.
+Kong joins `traefik_proxy` for ingress and `backend_net` for internal services. The other application containers join `backend_net`; the database also joins `data_net`. Kong registers the alias `api-gw` on `backend_net` so other containers can reach the gateway by that name.
 
 Traefik labels on `supabase-kong`:
 

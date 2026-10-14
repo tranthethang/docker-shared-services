@@ -1,90 +1,72 @@
-______________________________________________________________________
+# AGENTS.md
 
-## description: Repository Information Overview alwaysApply: true
+## Project
 
-## Language Policy
+Local Docker Compose infrastructure for development (databases, cache, auth, CI, observability). Each service is its own Compose project, started from the root Makefile via `bin/service_manager.py`. Web UIs are reached through Traefik at `https://*.dss.localhost`.
 
-**All content in this repository MUST be written in English** — this includes README files, documentation in `docs/`, code comments, commit messages, `.env.example` files, and any other text files. Do not add or merge content written in other languages (e.g. Vietnamese). If a contribution arrives in another language, translate it to English before committing.
+## Commands
 
-# Docker Shared Services Information
+```bash
+make setup                              # networks + .env (interactive; needs a TTY)
+make up service=zitadel                 # one service; queues its backends first
+make down service=zitadel               # stop and remove that service's containers
+make ps                                 # status of running services
+make health service=postgres            # health for one service
+make logs service=zitadel               # logs for one service
+make validate                           # every service Compose file
+make format-check                       # YAML, JSON, Markdown, Python, .env.example
+```
 
-## Summary
+Validate one Compose file:
 
-**Docker Shared Services** is a comprehensive Docker Compose orchestration repository containing 16+ pre-configured containerized services for development environments. It provides integrated infrastructure for databases, caching, messaging, storage, CI/CD pipelines, and monitoring tools, all managed through a centralized **Makefile** and Python-based management logic.
+```bash
+docker compose --project-directory zitadel \
+  -f docker-compose.shared.yml -f zitadel/docker-compose.yml config -q
+```
+
+`make tui` and `make package` need `uv` plus a TTY. The commands above do not.
 
 ## Structure
 
-- **Root Level**: Contains global configurations (`.env.example`, `docker-compose.shared.yml`), the orchestrating `Makefile`, and management logic in `bin/`.
-- **Service Directories**: Each service (e.g., `pgvector/`, `redis/`, `gitea/`) contains its own `docker-compose.yml` and `.env.example`.
-- **Infrastructure**: `traefik/` acts as the reverse proxy and load balancer for all services.
-- **Observability**: `otel/` is the logs-first stack (OTel Collector + Grafana + Loki + Promtail). Apps use OTLP on `4317`/`4318`; Docker stdout goes via Promtail. Traces/metrics are accepted then dropped until Tempo/Prometheus are added.
+- `bin/` — orchestration (`service_manager.py`, `env_manager.py`, `config.py`)
+- `<service>/` — that service's `docker-compose.yml` and `.env.example`
+- `docker-compose.shared.yml` — external networks `traefik_proxy`, `backend_net`, `data_net`
+- `traefik/` — reverse proxy
+- `docs/` — usage, configuration, networking, troubleshooting
+- `dist/` — export from `make package`; gitignored
 
-## Specification & Tools
+## Conventions
 
-**Type**: Docker Compose Configuration Repository\
-**Build System**: Docker Compose (orchestrated via **Makefile**)\
-**Required Tools**:
+- Write files in this repo in English (README, `docs/`, comments, commits, `.env.example`).
+- Load a service with `--project-directory <service>` so `<service>/.env` and relative paths resolve.
+- Publish web UIs with Traefik labels. Bind database and protocol ports to `127.0.0.1` only.
+- Record cross-project backends in `PACKAGE_REQUIRES` in `bin/config.py` (`postgres` → `zitadel`, `zitadel` → `oauth2-proxy`).
+- Use `uv` for `make sync`, `make format`, `make tui`, and `make package` only.
 
-- **Docker Engine**: 20.10+
-- **Docker Compose**: v2.0+
-- **Make**: For command orchestration
-- **Python 3**: Used by internal management scripts in `bin/`
-- **mkcert**: (Optional) For local SSL/TLS certificate generation
+## Gotchas
 
-## Key Resources
+- `depends_on` does not cross Compose projects. `make up service=<name>` must start that service's `dependency_queue` and wait until each backend container is `running` and, when a healthcheck exists, `healthy`. A created container is not ready.
+- `make up` without `service=` opens a menu. Pass `service=<name>`.
+- `make setup` prompts before writing `.env` files and certificates. Skip it when there is no TTY.
+- Root `.env` must exist before `make up`. Create it with `make setup`.
+- Setup rejects the legacy password `Password102!`.
 
-**Main Components**:
+## Workflow
 
-- **Databases**: PgVector (PostgreSQL 17; used by Hindsight), MySQL 8, MariaDB, MongoDB, ChromaDB, Qdrant, Supabase (Auth/DB/Storage/Realtime/Studio)
-- **Caching & Messaging**: Redis, RabbitMQ, Memcached
-- **DevOps & CI/CD**: Gitea, Jenkins, Concourse, SonarQube, Act Runner
-- **Management UIs**: Adminer, Dockge, Portainer, Redis Insight, Dozzle
-- **Auth / SSO**: Zitadel (Central IdP at `https://zitadel.dss.localhost`; protected apps use `*.dss.localhost`)
-- **Automation & Tools**: n8n, Appsmith, MinIO, Mailpit, PocketBase, Hindsight (MCP memory at `https://hindsight.dss.localhost`)
+- After Compose or `bin/` edits, run `make validate`. After formatter-covered edits, run `make format-check`.
+- Ask before adding dependencies, committing, or pushing.
+- Create a commit only when the user asks.
 
-**Configuration Structure**:
+## Limits
 
-- **Global `.env`**: Created from root `.env.example`, contains shared variables and resource limits.
-- **Service `.env`**: Each directory has its own `.env` (copy from `.env.example`) for service-specific overrides.
-- **Shared networks**: External bridge networks `infra_shared` (10.0.0.0/16) and `dev_tools` (10.1.0.0/16), declared in `docker-compose.shared.yml`. Docker cannot assign the same CIDR to two networks; adjacent `/16` blocks keep addressing under `10.0.0.0/8`. Most services attach to both so Traefik (on `infra_shared`) and legacy compose stacks (on `dev_tools`) can reach them by container name on the appropriate network.
+- **NEVER** edit or test under `dist/`. Change the origin tree (`Makefile`, `bin/`, service directories). Leave `dist/` empty unless the user asks for a new export.
+- Do not commit `.env` files or `traefik/certs/*.{crt,key}`.
+- Do not run `make remove-all`, `make prune`, or `make remove-config` unless the user asks. They delete data or env files.
 
-## Usage & Operations
+## More docs
 
-**Key Commands**:
-
-```bash
-make setup          # Initialize environment files, shared networks, and certificates
-make up             # Start services (interactive or specific)
-make ps             # Show status of all services
-make logs           # View aggregated logs
-make down           # Stop and remove services
-make stop           # Stop services but keep containers
-make remove-all     # Remove containers and volumes (WIPE DATA)
-make health         # Check service health status
-make cert           # Generate SSL certificates using mkcert
-```
-
-**Service Access**:
-Services are accessible via `localhost` on specific ports or through Traefik routing (e.g., `http://appsmith.dss.localhost`). Default credentials (e.g., `admin/Password102!`) are provided in `README.md` for development.
-
-## Docker Configuration
-
-**Common Patterns**:
-
-- **Base Images**: Official Docker Hub images.
-- **Resource Limits**: CPU and Memory limits/reservations defined via environment variables.
-- **Persistence**: Named Docker volumes (e.g., `pgvector_data`, `gitea_data`) for data durability.
-- **Networking**: `docker-compose.shared.yml` defines external networks `infra_shared` and `dev_tools`. Traefik is configured to use `infra_shared` for Docker provider routing.
-
-## Validation
-
-**Quality Checks**:
-
-- `make validate`: Validates all Docker Compose files for syntax and configuration errors.
-- **Health Checks**: Integrated Docker healthchecks for critical services (PgVector, Gitea, etc.).
-
-**Integration Points**:
-
-- **Database Backend**: Gitea, SonarQube, Jenkins, and Concourse are configured to connect to the shared PgVector service.
-- **Log Aggregation**: Promtail ships logs from all containers to Loki, visualized in Grafana.
-- **Reverse Proxy**: Traefik handles SSL termination and routing based on container labels.
+- Commands: `docs/usage.md`
+- Configuration: `docs/configuration.md`
+- Networks: `docs/network-segmentation.md`
+- Service URLs: `make info` and `docs/services.md`
+- Troubleshooting: `docs/troubleshooting.md`

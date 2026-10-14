@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
+        with:
+          version: "0.10.6"
+
+      - name: Check dependency lockfile
+        run: uv lock --check
+
+      - name: Check formatting
+        run: make format-check
+
+      - name: Create disposable Compose environment
+        run: |
+          python3 bin/env_manager.py create all
+          python3 bin/env_manager.py fill-shared-password
+          python3 bin/env_manager.py fill-secrets all
+
+      - name: Validate Compose projects and service catalog
+        run: make validate

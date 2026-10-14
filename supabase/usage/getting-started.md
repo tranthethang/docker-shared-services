@@ -5,7 +5,7 @@ Spin up the **minimal Supabase** stack (Auth, dedicated Postgres, Storage, Realt
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) with Compose v2 (`docker compose`)
-- Shared networks from repo root: `make setup` (creates `infra_shared` and `dev_tools`)
+- Shared networks from repo root: `make setup` (creates `traefik_proxy`, `backend_net`, and `data_net`)
 - `openssl` (used by key-generation scripts)
 - Optional: `make up service=traefik` for TLS hosts
 - Optional: `make up service=mailpit` for auth confirmation emails
@@ -37,15 +37,14 @@ sh run.sh start
 
 Wait until containers are healthy, then open Studio:
 
-| Resource                | URL                                        |
-| ----------------------- | ------------------------------------------ |
-| Studio (Traefik)        | https://studio.dss.localhost               |
-| API gateway (Traefik)   | https://supabase.dss.localhost             |
-| Studio / gateway (host) | http://localhost:8002                      |
-| Auth API                | https://supabase.dss.localhost/auth/v1     |
-| Storage API             | https://supabase.dss.localhost/storage/v1  |
-| Realtime                | https://supabase.dss.localhost/realtime/v1 |
-| Postgres                | `localhost:5434`                           |
+| Resource              | URL                                        |
+| --------------------- | ------------------------------------------ |
+| Studio (Traefik)      | https://studio.dss.localhost               |
+| API gateway (Traefik) | https://supabase.dss.localhost             |
+| Auth API              | https://supabase.dss.localhost/auth/v1     |
+| Storage API           | https://supabase.dss.localhost/storage/v1  |
+| Realtime              | https://supabase.dss.localhost/realtime/v1 |
+| Postgres              | `localhost:5434`                           |
 
 Studio UI is open directly for local development at https://studio.dss.localhost. API routes on `supabase.dss.localhost` stay public (key-auth). Kong dashboard basic-auth is disabled.
 

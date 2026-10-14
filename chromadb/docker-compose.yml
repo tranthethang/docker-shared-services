@@ -2,9 +2,11 @@ services:
   chromadb:
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.chromadb.rule=Host(`chromadb.dss.localhost`)"
-      - "traefik.http.routers.chromadb.entrypoints=web,websecure"
+      - "traefik.http.routers.chromadb.entrypoints=websecure"
       - "traefik.http.routers.chromadb.tls=true"
+      - "traefik.http.routers.chromadb.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.chromadb.loadbalancer.server.port=8000"
     container_name: chromadb
     image: chromadb/chroma:0.5.23
@@ -16,14 +18,13 @@ services:
           memory: "${CHROMADB_MEMORY_LIMIT:-2G}"
     volumes:
       - chromadb_data:/chroma/data
-    ports:
-      - "127.0.0.1:${CHROMADB_PORT:-8000}:8000"
     environment:
       - IS_PERSISTENT=TRUE
       - PERSIST_DIRECTORY=/chroma/data
     networks:
-      - infra_shared
-      - dev_tools
+      - traefik_proxy
+      - backend_net
+      - data_net
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/heartbeat',\
             \ timeout=5)\""]
@@ -31,13 +32,20 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   chromadb_data:
     name: chromadb_data
 
 networks:
-  infra_shared:
+  traefik_proxy:
     external: true
-  dev_tools:
+  backend_net:
+    external: true
+  data_net:
     external: true
