@@ -25,6 +25,17 @@ make remove-all     # Remove containers & volumes
 make restart        # Restart services
 ```
 
+### Quality gate
+
+`make check` is the post-change gate. It runs formatting, lint (ruff, file size, shellcheck, shfmt), mypy, pytest, and Compose validation. Compose validation needs env files; CI creates a disposable env before `make check`.
+
+```bash
+make check          # format-check, lint, typecheck, test, validate
+make test-update    # rewrite tests/golden from export_stack (GOLDEN_UPDATE=1)
+```
+
+A normal `make test` compares golden files and does not write them.
+
 ### Optional Textual dashboard (`make tui`)
 
 Keyboard-driven status/health/logs UI that reuses the same Compose conventions as the Makefile. Does **not** replace `make manage` or other CLI targets.

@@ -6,25 +6,25 @@
 
 set -e
 
-if ! docker compose version > /dev/null 2>&1; then
-    echo "Docker Compose not found."
-    exit 1
+if ! docker compose version >/dev/null 2>&1; then
+  echo "Docker Compose not found."
+  exit 1
 fi
 
 if [ ! -f .env ]; then
-    echo "Missing .env file. Exiting."
-    exit 1
+  echo "Missing .env file. Exiting."
+  exit 1
 fi
 
 new_passwd="$(openssl rand -hex 16)"
 
 compose_output=$(docker compose ps \
-  --format '{{.Image}}\t{{.Service}}\t{{.Status}}' 2>/dev/null | \
+  --format '{{.Image}}\t{{.Service}}\t{{.Status}}' 2>/dev/null |
   grep -m1 '^supabase/postgres:' || true)
 
 if [ -z "$compose_output" ]; then
-    echo "Postgres container not found. Exiting."
-    exit 1
+  echo "Postgres container not found. Exiting."
+  exit 1
 fi
 
 db_image=$(echo "$compose_output" | cut -f1)
@@ -32,12 +32,12 @@ db_srv_name=$(echo "$compose_output" | cut -f2)
 db_srv_status=$(echo "$compose_output" | cut -f3)
 
 case "$db_srv_status" in
-    Up*) ;;
-    *)
-        echo "Postgres container status: $db_srv_status"
-        echo "Exiting."
-        exit 1
-        ;;
+  Up*) ;;
+  *)
+    echo "Postgres container status: $db_srv_status"
+    echo "Exiting."
+    exit 1
+    ;;
 esac
 
 db_admin_user="supabase_admin"
@@ -50,8 +50,8 @@ echo "Admin:   $db_admin_user"
 echo ""
 
 if ! test -t 0; then
-    echo "Running non-interactively. Not updating passwords."
-    exit 0
+  echo "Running non-interactively. Not updating passwords."
+  exit 0
 fi
 
 echo "New database password: $new_passwd"
@@ -59,11 +59,11 @@ echo ""
 printf "Update database passwords? (y/N) "
 read -r REPLY
 case "$REPLY" in
-    [Yy]) ;;
-    *)
-        echo "Canceled."
-        exit 0
-        ;;
+  [Yy]) ;;
+  *)
+    echo "Canceled."
+    exit 0
+    ;;
 esac
 
 echo "Updating passwords..."

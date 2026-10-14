@@ -9,8 +9,13 @@ dependencies = []
 dev = [
     "mdformat>=1.0.0",
     "mdformat-gfm>=1.0.0",
+    "mypy>=1.13.0",
     "pathspec>=1.1.1",
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
     "ruff>=0.16.1",
+    "shellcheck-py>=0.10.0",
+    "shfmt-py>=3.8.0",
     "yamlfix>=1.19.1",
 ]
 tui = [
@@ -28,6 +33,7 @@ extend-exclude = [
     ".venv",
     "**/data",
     "**/volumes",
+    "tests/golden",
 ]
 
 [tool.ruff.format]
@@ -38,6 +44,11 @@ docstring-code-format = true
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+# Existing long lines. The file-size baseline owns these modules until P2 splits them.
+"bin/env_manager.py" = ["E501"]
+"bin/package_export.py" = ["E501"]
 
 [tool.yamlfix]
 explicit_start = false
@@ -55,3 +66,30 @@ comments_whitelines = 1
 wrap = "keep"
 number = false
 end_of_line = "lf"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["bin", "scripts"]
+warn_unused_configs = true
+# Non-strict baseline. Per-module ignore_errors stays until P3 removes it.
+
+[[tool.mypy.overrides]]
+module = [
+  "bin.env_manager",
+  "bin.package_export",
+  "bin.package_wizard",
+  "bin.service_catalog",
+  "bin.service_manager",
+  "bin.tui",
+  "bin.tui.__main__",
+  "bin.tui.app",
+  "bin.tui.compose_ops",
+  "bin.tui.docker_state",
+  "bin.tui.ops_mixin",
+  "bin.tui.screens",
+  "format_repo",
+]
+ignore_errors = true

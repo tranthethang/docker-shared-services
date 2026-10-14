@@ -1,4 +1,4 @@
-.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage tui package sync format format-check
+.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage tui package sync format format-check lint typecheck test test-update check
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -307,3 +307,26 @@ format: ## Format YAML, JSON, Markdown, Python, and .env.example files
 format-check: ## Check formatting without writing changes
 	@$(UV) sync --group dev --quiet
 	@PYTHONUNBUFFERED=1 $(UV) run python scripts/format_repo.py --check
+
+SHELL_SCRIPTS = $(shell find . -name '*.sh' -not -path './.venv/*' -not -path './dist/*' -not -path './.git/*' -not -path '*/data/*')
+
+lint: ## Run ruff, the file-size check, shellcheck, and shfmt
+	@$(UV) sync --group dev --quiet
+	@$(UV) run ruff check bin scripts tools tests
+	@$(UV) run python tools/check_file_size.py
+	@$(UV) run shellcheck -x $(SHELL_SCRIPTS)
+	@$(UV) run shfmt -d -i 2 -ci $(SHELL_SCRIPTS)
+
+typecheck: ## Run mypy on bin/ and scripts/
+	@$(UV) sync --group dev --quiet
+	@$(UV) run mypy bin scripts
+
+test: ## Run pytest with a coverage report for bin/
+	@$(UV) sync --group dev --quiet
+	@$(UV) run pytest --cov=bin --cov-report=term-missing
+
+test-update: ## Regenerate tests/golden snapshots
+	@$(UV) sync --group dev --quiet
+	@GOLDEN_UPDATE=1 $(UV) run pytest
+
+check: format-check lint typecheck test validate ## Run format-check, lint, typecheck, test, and validate

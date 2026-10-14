@@ -1,0 +1,10 @@
+{
+  "bin/config.py": 338,
+  "bin/env_manager.py": 503,
+  "bin/package_export.py": 779,
+  "bin/package_wizard.py": 379,
+  "bin/service_manager.py": 627,
+  "bin/tui/app.py": 316,
+  "scripts/format_repo.py": 332,
+  "supabase/run.sh": 303
+}

@@ -10,6 +10,12 @@ __pycache__/
 *.py[cod]
 uv.lock
 
+# Local agent-relay runs are gitignored globally and are not source.
+.agent-relay/
+
+# Exporter snapshots must match export_stack byte for byte.
+tests/golden/
+
 # Generated / runtime data
 **/data/
 **/volumes/

@@ -13,8 +13,8 @@ make down service=zitadel               # stop and remove that service's contain
 make ps                                 # status of running services
 make health service=postgres            # health for one service
 make logs service=zitadel               # logs for one service
-make validate                           # every service Compose file
-make format-check                       # YAML, JSON, Markdown, Python, .env.example
+make check                              # format, lint, typecheck, test, and Compose validate
+make test-update                        # regenerate tests/golden (GOLDEN_UPDATE=1)
 ```
 
 Validate one Compose file:
@@ -41,7 +41,7 @@ docker compose --project-directory zitadel \
 - Load a service with `--project-directory <service>` so `<service>/.env` and relative paths resolve.
 - Publish web UIs with Traefik labels. Bind database and protocol ports to `127.0.0.1` only.
 - Record cross-project backends in `PACKAGE_REQUIRES` in `bin/config.py` (`postgres` → `zitadel`, `zitadel` → `oauth2-proxy`).
-- Use `uv` for `make sync`, `make format`, `make tui`, and `make package` only.
+- Use `uv` for `make sync`, `make format`, `make check`, `make tui`, and `make package`. `make up` and `make down` still call `python3 bin/...`.
 
 ## Gotchas
 
@@ -53,7 +53,7 @@ docker compose --project-directory zitadel \
 
 ## Workflow
 
-- After Compose or `bin/` edits, run `make validate`. After formatter-covered edits, run `make format-check`.
+- After Compose, shell, or `bin/` edits, run `make check`. It runs `format-check`, `lint`, `typecheck`, `test`, and `validate`. Regenerate exporter snapshots with `make test-update` when `export_stack` output changes on purpose.
 - Ask before adding dependencies, committing, or pushing.
 - Create a commit only when the user asks.
 
