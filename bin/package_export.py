@@ -72,6 +72,52 @@ _BANNER_KEYS = sorted(_BANNER_TO_SERVICE, key=len, reverse=True)
 
 _SKIP_DIR_NAMES = {"data", "volumes", "__pycache__", ".venv"}
 _MAKE_TARGETS = ("help", "setup", "passwords", "cert", "up", "down", "restart", "recreate")
+_PACKAGE_PYPROJECT = """[project]
+name = "docker-shared-services"
+version = "0.1.0"
+description = "Packaged Docker Shared Services stack"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false
+"""
+_PACKAGE_GITIGNORE = """# Environment & secrets
+.env
+.env.local
+.env.production
+.env.*.local
+.env.test
+!.env.example
+!**/.env.example
+
+# Runtime data
+**/data/
+**/*_data/
+dozzle/data/
+supabase/volumes/db/data/
+supabase/volumes/storage/
+
+# Certificates
+traefik/certs/*.crt
+traefik/certs/*.key
+**/server.crt
+**/server.key
+
+# Logs, temp, OS
+*.log
+logs/
+*.tmp
+tmp/
+temp/
+.DS_Store
+Thumbs.db
+
+# Python
+.venv/
+**/__pycache__/
+*.py[cod]
+"""
 
 
 def repo_root() -> Path:
@@ -723,6 +769,9 @@ def export_stack(
         )
         (dest / "Makefile").write_text(_makefile(services), encoding="utf-8")
         (dest / "README.md").write_text(render_readme(name, services), encoding="utf-8")
+        shutil.copy2(root / ".python-version", dest / ".python-version")
+        (dest / "pyproject.toml").write_text(_PACKAGE_PYPROJECT, encoding="utf-8")
+        (dest / ".gitignore").write_text(_PACKAGE_GITIGNORE, encoding="utf-8")
     except Exception:
         if created and dest.exists():
             shutil.rmtree(dest)
