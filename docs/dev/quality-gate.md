@@ -1,6 +1,6 @@
 # Quality gate
 
-`make check` is the single quality gate. CI (`.github/workflows/ci.yml`) and the git hooks run the same make targets, so a green local `make check` means a green CI job.
+`make check` is the single quality gate. CI (`.github/workflows/ci.yml`) runs it on every push and pull request, after `uv lock --check` and a disposable Compose env. The git hooks call the same targets except `make validate`.
 
 ## `make check`
 
@@ -18,7 +18,7 @@ Runs these targets in order and stops at the first failure:
 
 Rules:
 
-- Run `make check` after any change to Compose files, shell scripts, `dss/`, `tools/`, or `tests/`. **Enforced by** CI (`make check` on every push and pull request) and the git hooks (below).
+- Run `make check` after any change to Compose files, shell scripts, `dss/`, `tools/`, or `tests/`. **Enforced by** CI. Git hooks run `format-check`, `lint`, `typecheck`, and `test`; `make validate` is CI-only (see below).
 - Do not lower a limit (line length, complexity, coverage floor, file size) to make a check pass. **Review only.**
 
 ## Limits

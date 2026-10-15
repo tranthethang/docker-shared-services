@@ -5,7 +5,7 @@ Rules for `*.sh` files. Each rule names the tool that enforces it. "Review only"
 ## Where scripts live
 
 - Makefile helpers live in `scripts/`. Service-specific scripts live in their service directory (for example `supabase/run.sh`). **Review only.**
-- A Makefile recipe calls a script or a `dss` module. It does not embed multi-line bash. **Review only.**
+- Put non-trivial recipe logic in a script or a `dss` module. **Review only.** `setup`, `tui`, `package`, and `health` still inline a short shell conditional.
 
 ## Script rules
 
