@@ -153,26 +153,3 @@ def run_action(
     if _run_compose(service, args, on_progress) == 0:
         return OpResult(True, done.format(service=service), [])
     return OpResult(False, failure.format(service=service), [service])
-
-
-def apply_manage(
-    to_up: Sequence[str],
-    to_down: Sequence[str],
-    on_progress: ProgressCb | None = None,
-) -> OpResult:
-    if not to_up and not to_down:
-        return OpResult(True, "No changes needed", [])
-
-    failed: list[str] = []
-    for service in to_down:
-        result = run_action(service, "down", on_progress)
-        if not result.ok:
-            failed.append(service)
-    for service in to_up:
-        result = run_action(service, "up", on_progress)
-        if not result.ok:
-            failed.append(service)
-
-    if failed:
-        return OpResult(False, f"Completed with errors: {', '.join(failed)}", failed)
-    return OpResult(True, "All changes applied successfully", [])

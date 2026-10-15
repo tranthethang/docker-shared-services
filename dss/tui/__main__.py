@@ -49,7 +49,16 @@ def main() -> None:
     _require_tui_deps()
     from dss.tui.app import run_app
 
-    run_app()
+    plan = run_app()
+    if plan is None:
+        return
+    from dss.cli.manage import run_manage_plan
+
+    to_up, to_down = plan
+    print("")
+    print("Dashboard closed. Applying manage changes (Docker output follows).")
+    print("")
+    run_manage_plan(to_up, to_down)
 
 
 if __name__ == "__main__":

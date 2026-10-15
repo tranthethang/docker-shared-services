@@ -73,7 +73,7 @@ uv sync --group tui   # once: install optional Textual + Docker SDK deps
 make tui              # interactive terminal required
 ```
 
-Press `?` inside the TUI for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `make logs`); press `l` again to stop. Without a TTY, the command prints how to use `make manage` / `make up` / `make ps` instead.
+Press `?` inside the TUI for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `make logs`); press `l` again to stop. Press `m` and confirm to leave the dashboard and apply the manage plan in the terminal, so large image pulls show Docker progress. Without a TTY, the command prints how to use `make manage` / `make up` / `make ps` instead.
 
 ## What’s included
 

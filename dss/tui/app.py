@@ -71,6 +71,7 @@ class ServiceManagerApp(OpsMixin, TableMixin, App[None]):
         self._manage_initialized = False
         self._manage_dirty = False
         self._busy = False
+        self._handoff_manage: tuple[list[str], list[str]] | None = None
         self._status_refreshing = False
         self._log_target: str | None = None
         self._log_follower: LogFollower | None = None
@@ -233,5 +234,8 @@ class ServiceManagerApp(OpsMixin, TableMixin, App[None]):
             self._render_detail(name)
 
 
-def run_app() -> None:
-    ServiceManagerApp().run()
+def run_app() -> tuple[list[str], list[str]] | None:
+    """Run the dashboard. A manage confirmation returns the start/stop plan."""
+    app = ServiceManagerApp()
+    app.run()
+    return app._handoff_manage

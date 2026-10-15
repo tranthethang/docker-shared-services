@@ -109,6 +109,11 @@ def apply_manage_changes(selected: list[str]) -> None:
         print("Operation cancelled")
         return
 
+    run_manage_plan(to_up, to_down)
+
+
+def run_manage_plan(to_up: list[str], to_down: list[str]) -> None:
+    """Start ``to_up`` and stop ``to_down`` with Compose output on the terminal."""
     failed: list[str] = []
 
     for service in to_down:

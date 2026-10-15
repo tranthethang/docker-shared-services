@@ -18,6 +18,7 @@ class ServiceManagerBase(App[None]):
     _manage: set[str]
     _manage_dirty: bool
     _busy: bool
+    _handoff_manage: tuple[list[str], list[str]] | None
     _log_target: str | None
     _log_follower: LogFollower | None
     _log_resume_since: int | None

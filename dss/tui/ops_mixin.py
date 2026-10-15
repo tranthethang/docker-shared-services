@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import partial
 from typing import TYPE_CHECKING
 
-from dss.tui.compose_ops import OpResult, apply_manage, plan_manage_changes, run_action
+from dss.tui.compose_ops import OpResult, plan_manage_changes, run_action
 from dss.tui.docker_state import (
     DockerStateError,
     LogFollower,
@@ -168,6 +168,8 @@ class OpsMixin(_AppBase):
             lines.append("Will start: " + ", ".join(to_up))
         if to_down:
             lines.append("Will stop:  " + ", ".join(to_down))
+        lines.append("")
+        lines.append("The dashboard will close so Docker pull and start logs stay visible.")
         self.push_screen(
             ConfirmScreen("Confirm manage changes", "\n".join(lines)),
             lambda ok: self._confirm_manage(ok, to_up, to_down),
@@ -178,7 +180,8 @@ class OpsMixin(_AppBase):
             self._busy = False
             self._set_status("Manage cancelled")
             return
-        self._run_manage_async(to_up, to_down)
+        self._handoff_manage = (list(to_up), list(to_down))
+        self.exit()
 
     def _run_op_async(self, service: str, action: str) -> None:
         self._busy = True
@@ -196,32 +199,10 @@ class OpsMixin(_AppBase):
             result = run_action(service, action, on_progress=progress)
         except Exception as exc:
             result = OpResult(False, f"{action} failed ({type(exc).__name__})", [service])
-        self.call_from_thread(self._finish_op, result, False)
+        self.call_from_thread(self._finish_op, result)
 
-    def _run_manage_async(self, to_up: list[str], to_down: list[str]) -> None:
-        self._busy = True
-        self._set_status("Applying manage changes…")
-        self.run_worker(
-            partial(self._manage_worker, to_up, to_down),
-            exclusive=True,
-            thread=True,
-            group="compose",
-        )
-
-    def _manage_worker(self, to_up: list[str], to_down: list[str]) -> None:
-        def progress(msg: str) -> None:
-            self.call_from_thread(self._ops_log, msg)
-
-        try:
-            result = apply_manage(to_up, to_down, on_progress=progress)
-        except Exception as exc:
-            result = OpResult(False, f"Manage failed ({type(exc).__name__})", [])
-        self.call_from_thread(self._finish_op, result, True)
-
-    def _finish_op(self, result: OpResult, was_manage: bool) -> None:
+    def _finish_op(self, result: OpResult) -> None:
         self._busy = False
-        if was_manage:
-            self._manage_dirty = False
         self._ops_log(("OK: " if result.ok else "ERR: ") + result.message)
         self._set_status(result.message)
         self._start_refresh()

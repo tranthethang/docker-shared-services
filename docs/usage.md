@@ -55,13 +55,14 @@ make tui
 | `u` / `s` / `Shift+R` | Up / stop / restart selected stack                           |
 | `d`                   | Down selected stack (confirm)                                |
 | `Space`               | Toggle manage selection                                      |
-| `m`                   | Apply manage plan (confirm; start/stop order preserved)      |
+| `m`                   | Confirm manage plan, then quit and show Docker progress      |
 | `?`                   | Help                                                         |
 | `q`                   | Quit                                                         |
 
 Notes:
 
 - Status refreshes automatically on Docker container events (start, stop, health changes); `r` forces a refresh.
+- `m` closes the dashboard after confirmation and runs the same start/stop commands as `make manage`, so image pulls print in the terminal.
 - Logs are streamed **unredacted**, exactly like `make logs` / `docker logs`, and only when you press `l`. Application logs can contain credentials; treat the screen accordingly.
 - When a Compose action fails, the operations panel shows the last lines of Compose's error output with values from the root and service `.env` files masked as `***`. Run the matching `make` target for the full output.
 
