@@ -6,9 +6,9 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 ENV_FILE="${ROOT}/.env"
 
 if [[ -f "${ENV_FILE}" ]]; then
-  # shellcheck disable=SC1090
   set -a
-  # shellcheck disable=SC1091
+  # Dynamic path; the file is optional local config, not a library.
+  # shellcheck disable=SC1090,SC1091
   source "${ENV_FILE}"
   set +a
 fi
@@ -45,10 +45,6 @@ need_key() {
     echo "ERROR: set HINDSIGHT_API_LLM_API_KEY in ${ENV_FILE} or GW_KEY=..."
     exit 1
   fi
-}
-
-json_field() {
-  python3 -c "import sys,json; d=json.load(sys.stdin); print($1)" 2>/dev/null || true
 }
 
 echo "== Hindsight / openai-quota-gateway smoke =="
@@ -149,7 +145,8 @@ else
 fi
 
 echo "-- 7) Hindsight retain + recall (${BANK_ID})"
-retain_body=$(cat <<EOF
+retain_body=$(
+  cat <<EOF
 {"items":[{"content":"Smoke test fact: openai-quota-gateway powers Hindsight LLM, embeddings, and rerank. Timestamp $(date -u +%Y-%m-%dT%H:%M:%SZ)."}],"async":false}
 EOF
 )

@@ -20,47 +20,47 @@
 set -e
 
 node_ok() {
-    command -v node >/dev/null 2>&1 || return 1
-    major=$(node -v 2>/dev/null | sed 's/^v//' | cut -d. -f1)
-    [ -n "$major" ] && [ "$major" -ge 16 ] 2>/dev/null
+  command -v node >/dev/null 2>&1 || return 1
+  major=$(node -v 2>/dev/null | sed 's/^v//' | cut -d. -f1)
+  [ -n "$major" ] && [ "$major" -ge 16 ] 2>/dev/null
 }
 
 # Resolve how to run node: local install (>= 16) preferred, docker fallback.
 if node_ok; then
-    node_runner="node"
+  node_runner="node"
 else
-    if command -v node >/dev/null 2>&1; then
-        echo "Local node $(node -v) is too old (need >= 16), falling back to docker."
-    fi
+  if command -v node >/dev/null 2>&1; then
+    echo "Local node $(node -v) is too old (need >= 16), falling back to docker."
+  fi
 
-    if ! command -v docker >/dev/null 2>&1; then
-        echo "Error: requires either node (>= 16) or docker."
-        exit 1
-    fi
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "Error: requires either node (>= 16) or docker."
+    exit 1
+  fi
 
-    if ! docker info >/dev/null 2>&1; then
-        echo "Error: docker is installed but the daemon is not running."
-        exit 1
-    fi
+  if ! docker info >/dev/null 2>&1; then
+    echo "Error: docker is installed but the daemon is not running."
+    exit 1
+  fi
 
-    if ! docker image inspect node:22-alpine >/dev/null 2>&1; then
-        echo "Pulling node:22-alpine (first-run only)..."
-        docker pull node:22-alpine
-    fi
+  if ! docker image inspect node:22-alpine >/dev/null 2>&1; then
+    echo "Pulling node:22-alpine (first-run only)..."
+    docker pull node:22-alpine
+  fi
 
-    node_runner="docker run --rm node:22-alpine node"
+  node_runner="docker run --rm node:22-alpine node"
 fi
 
 # Read JWT_SECRET from .env
 if [ ! -f .env ]; then
-    echo "Error: .env file not found. Run generate-keys.sh first."
-    exit 1
+  echo "Error: .env file not found. Run generate-keys.sh first."
+  exit 1
 fi
 
 jwt_secret=$(grep '^JWT_SECRET=' .env | cut -d= -f2- | tr -d '\r')
 if [ -z "$jwt_secret" ]; then
-    echo "Error: JWT_SECRET not found in .env. Run generate-keys.sh first."
-    exit 1
+  echo "Error: JWT_SECRET not found in .env. Run generate-keys.sh first."
+  exit 1
 fi
 
 tmpdir=$(mktemp -d)
@@ -145,12 +145,15 @@ console.log("ANON_KEY_ASYMMETRIC=" + anonJwt);
 console.log("SERVICE_ROLE_KEY_ASYMMETRIC=" + serviceJwt);
 console.log("JWT_KEYS=" + JSON.stringify(jwksKeypair.keys));
 console.log("JWT_JWKS=" + JSON.stringify(jwksPublic));
-' "$jwt_secret" > "$tmpdir/output"
+' "$jwt_secret" >"$tmpdir/output"
 
 # Read generated values
 SUPABASE_PUBLISHABLE_KEY=$(grep '^SUPABASE_PUBLISHABLE_KEY=' "$tmpdir/output" | cut -d= -f2-)
 SUPABASE_SECRET_KEY=$(grep '^SUPABASE_SECRET_KEY=' "$tmpdir/output" | cut -d= -f2-)
+# Read by eval in the update loop; shellcheck cannot see that indirection.
+# shellcheck disable=SC2034
 ANON_KEY_ASYMMETRIC=$(grep '^ANON_KEY_ASYMMETRIC=' "$tmpdir/output" | cut -d= -f2-)
+# shellcheck disable=SC2034
 SERVICE_ROLE_KEY_ASYMMETRIC=$(grep '^SERVICE_ROLE_KEY_ASYMMETRIC=' "$tmpdir/output" | cut -d= -f2-)
 JWT_KEYS=$(grep '^JWT_KEYS=' "$tmpdir/output" | cut -d= -f2-)
 JWT_JWKS=$(grep '^JWT_JWKS=' "$tmpdir/output" | cut -d= -f2-)
@@ -170,51 +173,53 @@ echo "  Storage: JWT_JWKS: \${JWT_JWKS:-{\"keys\":[]}}"
 echo ""
 
 if [ "$1" = "--update-env" ]; then
-    update_env=true
+  update_env=true
 elif test -t 0; then
-    printf "Update .env file? (y/N) "
-    read -r REPLY
-    case "$REPLY" in
-        [Yy]) update_env=true ;;
-        *) update_env=false ;;
-    esac
+  printf "Update .env file? (y/N) "
+  read -r REPLY
+  case "$REPLY" in
+    [Yy]) update_env=true ;;
+    *) update_env=false ;;
+  esac
 else
-    echo "Running non-interactively. Pass --update-env to write to .env."
-    update_env=false
+  echo "Running non-interactively. Pass --update-env to write to .env."
+  update_env=false
 fi
 
 if [ "$update_env" != "true" ]; then
-    exit 0
+  exit 0
 fi
 
 echo "Updating .env..."
 
 # Append new variables if they don't exist, or update them if they do
 for var in SUPABASE_PUBLISHABLE_KEY SUPABASE_SECRET_KEY ANON_KEY_ASYMMETRIC SERVICE_ROLE_KEY_ASYMMETRIC JWT_KEYS JWT_JWKS; do
-    eval "val=\$$var"
-    if grep -q "^${var}=" .env; then
-        sed -i.old -e "s|^${var}=.*$|${var}=${val}|" .env
-    else
-        echo "${var}=${val}" >> .env
-    fi
+  eval "val=\$$var"
+  # val is assigned by the eval above.
+  # shellcheck disable=SC2154
+  if grep -q "^${var}=" .env; then
+    sed -i.old -e "s|^${var}=.*$|${var}=${val}|" .env
+  else
+    echo "${var}=${val}" >>.env
+  fi
 done
 
 # Uncomment new auth configuration in docker-compose.yml
 echo "Updating docker-compose.yml..."
 if [ ! -f docker-compose.yml ]; then
-    echo "Error: docker-compose.yml not found in $(pwd)"
-    exit 1
+  echo "Error: docker-compose.yml not found in $(pwd)"
+  exit 1
 fi
 
 # Always fall through to the grep check
 sed -i.old \
-    -e '/^[ ]*#GOTRUE_JWT_KEYS:/ s/#//' \
-    -e '/^[ ]*#JWT_JWKS:/ s/#//' \
-    docker-compose.yml || true
+  -e '/^[ ]*#GOTRUE_JWT_KEYS:/ s/#//' \
+  -e '/^[ ]*#JWT_JWKS:/ s/#//' \
+  docker-compose.yml || true
 
-if grep -q '^[ ]*GOTRUE_JWT_KEYS:' docker-compose.yml && \
-   grep -q '^[ ]*JWT_JWKS:' docker-compose.yml; then
-    echo "Done."
+if grep -q '^[ ]*GOTRUE_JWT_KEYS:' docker-compose.yml &&
+  grep -q '^[ ]*JWT_JWKS:' docker-compose.yml; then
+  echo "Done."
 else
-    echo "Warning: could not edit docker-compose.yml. Uncomment auth configuration manually."
+  echo "Warning: could not edit docker-compose.yml. Uncomment auth configuration manually."
 fi

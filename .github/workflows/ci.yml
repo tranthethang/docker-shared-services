@@ -28,14 +28,21 @@ jobs:
       - name: Check dependency lockfile
         run: uv lock --check
 
-      - name: Check formatting
-        run: make format-check
-
       - name: Create disposable Compose environment
         run: |
-          python3 bin/env_manager.py create all
-          python3 bin/env_manager.py fill-shared-password
-          python3 bin/env_manager.py fill-secrets all
+          uv run --frozen --no-dev python -m dss.cli.env create all
+          uv run --frozen --no-dev python -m dss.cli.env fill-shared-password
+          uv run --frozen --no-dev python -m dss.cli.env fill-secrets all
 
-      - name: Validate Compose projects and service catalog
-        run: make validate
+      - name: Run the quality gate
+        run: make check
+
+      - name: Smoke-test an exported stack
+        run: |-
+          dest="$RUNNER_TEMP/dss-export-smoke"
+          uv run --frozen --no-dev python -c 'import sys; from pathlib import Path; from dss.package.export import export_stack; export_stack(["memcached"], "smoke", destination=Path(sys.argv[1]))' "$dest"
+          cd "$dest"
+          uv run --frozen --no-dev python -m dss.cli.env create all
+          uv run --frozen --no-dev python -m dss.cli.env fill-shared-password
+          uv run --frozen --no-dev python -m dss.cli.env fill-secrets all
+          make validate

@@ -27,11 +27,13 @@ openssl rand -base64 32
 
 `make setup` generates a `DSS_SHARED_PASSWORD` of at least 15 characters with lowercase, uppercase, digit, and special characters. A new password passed via `password=…` or the `DSS_SHARED_PASSWORD` environment variable must meet the same rules.
 
-Older installs may hold a letters-and-digits password. Setup keeps it and prints a warning, because Postgres, MySQL, Redis, and other data services store the password in their volumes on first start. Zitadel is the exception: `make up service=zitadel` refuses a weak `ZITADEL_ADMIN_PASSWORD`, because Zitadel's default policy requires a symbol.
+Older installs may hold a letters-and-digits password. Setup keeps it and prints a warning, because MySQL, Redis, and other data services store the password in their volumes on first start. Zitadel is the exception: `make up service=zitadel` refuses a weak `ZITADEL_ADMIN_PASSWORD`, because Zitadel's default policy requires a symbol.
+
+Postgres 16 reapplies `POSTGRES_PASSWORD` each time its container starts, including when the data directory already exists. Clients such as Zitadel authenticate over the network with scram. `pg_isready` does not check that password, so the healthcheck connects to the container's own IP.
 
 To rotate:
 
-1. Change the password inside each running data service first (for example `ALTER USER postgres PASSWORD '…';` in Postgres), or wipe its volume if the data is disposable.
+1. For MySQL, Redis, and the other data services, change the password inside each running service first, or wipe its volume if the data is disposable. Postgres picks up `POSTGRES16_PASSWORD` on the next container start.
 1. Write the new value to every `.env`:
    ```bash
    make passwords password='New-Strong.Password1' force=1

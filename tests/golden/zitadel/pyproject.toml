@@ -1,0 +1,9 @@
+[project]
+name = "docker-shared-services"
+version = "0.1.0"
+description = "Packaged Docker Shared Services stack"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false

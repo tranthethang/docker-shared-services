@@ -2,7 +2,7 @@
 
 ![Docker Shared Services](assets/tux.svg)
 
-Local Docker Compose stack for common infra: databases, cache, messaging, CI/CD, auth, storage, and observability. Managed with a `Makefile` + scripts in `bin/`.
+Local Docker Compose stack for common infra: databases, cache, messaging, CI/CD, auth, storage, and observability. Managed with a `Makefile` + the `dss/` Python package (run through `uv`).
 
 **macOS / Linux only.** Windows is unsupported (WSL2 may work, untested).
 
@@ -73,7 +73,7 @@ uv sync --group tui   # once: install optional Textual + Docker SDK deps
 make tui              # interactive terminal required
 ```
 
-Press `?` inside the TUI for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `make logs`); press `l` again to stop. If `uv` or a TTY is missing, the command prints how to use `make manage` / `make up` / `make ps` instead.
+Press `?` inside the TUI for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `make logs`); press `l` again to stop. Press `m` and confirm to leave the dashboard and apply the manage plan in the terminal, so large image pulls show Docker progress. Without a TTY, the command prints how to use `make manage` / `make up` / `make ps` instead.
 
 ## What’s included
 
@@ -94,7 +94,9 @@ Full catalog: [docs/services.md](docs/services.md).
 ```
 docker-compose.shared.yml   # networks: traefik_proxy, backend_net, data_net
 Makefile                    # day-to-day commands
-bin/                        # env + service managers
+dss/                        # Python: core logic, CLIs, packager, TUI
+tools/                      # dev tooling (formatter, file-size check)
+scripts/                    # shell called by Makefile recipes (networks, certs, Dozzle users, cleanup)
 <service>/                  # docker-compose.yml + .env.example
 docs/                       # deeper guides
 ```
@@ -120,7 +122,7 @@ Details: [docs/configuration.md](docs/configuration.md#opt-in-zitadel-ui-authent
 
 ## Requirements
 
-Docker Engine 20.10+, Compose v2+, Make, Python 3. Optional: [uv](https://docs.astral.sh/uv/) for `make tui`, [mkcert](https://github.com/FiloSottile/mkcert) for local HTTPS.
+Docker Engine 20.10+, Compose v2+, Make, and [uv](https://docs.astral.sh/uv/) (it runs every Python target on Python 3.12). Optional: [mkcert](https://github.com/FiloSottile/mkcert) for local HTTPS.
 
 ## License
 

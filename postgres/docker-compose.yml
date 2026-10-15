@@ -2,6 +2,7 @@ services:
   postgres:
     container_name: postgres
     image: postgres:16.15-alpine
+    entrypoint: ["/bin/bash", "/usr/local/bin/dss-entrypoint.sh"]
     restart: "${RESTART_POLICY:-unless-stopped}"
     stop_grace_period: 60s
     deploy:
@@ -24,14 +25,18 @@ services:
       - data_net
     volumes:
       - ./bin/init.sh:/docker-entrypoint-initdb.d/10-init.sh:ro
+      - ./bin/entrypoint.sh:/usr/local/bin/dss-entrypoint.sh:ro
       - postgres_data:/var/lib/postgresql/data
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+    # pg_isready uses the local trust socket and stays green when scram rejects
+    # the password clients actually send. Probe the container IP instead.
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES16_USER:-postgres}"]
+      test: ["CMD-SHELL", "PGPASSWORD=\"$$POSTGRES_PASSWORD\" psql -h \"$$(hostname -i | awk '{print $$1}')\" -U \"$$POSTGRES_USER\"\
+            \ -d postgres -tAc 'SELECT 1' | grep -q 1"]
       interval: 10s
       timeout: 5s
       retries: 5

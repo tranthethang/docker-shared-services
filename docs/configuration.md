@@ -129,7 +129,7 @@ Browser UIs can sit behind a shared `oauth2-proxy` gateway that authenticates us
 
 1. `make setup` (creates `oauth2-proxy/.env` and fills `OAUTH2_PROXY_COOKIE_SECRET` when empty). General setup validation only requires the cookie secret; empty `OAUTH2_PROXY_CLIENT_ID` / `OAUTH2_PROXY_CLIENT_SECRET` are expected until you opt in.
 1. Start dependencies: `make up service=traefik`, `make up service=postgres`, `make up service=zitadel`.
-1. When configuring the auth gateway, register a confidential Web application in Zitadel Console with redirect URI `https://auth.dss.localhost/oauth2/callback`. Put the client id/secret into `oauth2-proxy/.env` (manual prerequisite for oauth2-proxy — never auto-generated).
+1. When configuring the auth gateway, register a confidential Web application in Zitadel Console with redirect URI `https://auth.dss.localhost/oauth2/callback`. Put the client id/secret into `oauth2-proxy/.env` (manual prerequisite for oauth2-proxy — never auto-generated). Until both values are set, `make manage` and `make tui` show `oauth2-proxy` as a label and will not start it. `make up service=oauth2-proxy` exits with the same reason.
 1. `make up service=oauth2-proxy`.
 1. To protect a UI, edit that service’s `.env`:
 
@@ -156,7 +156,7 @@ Middleware names: `auth-none` (public default), `auth-default` (any authenticate
 
 ```bash
 make info                              # Lists gateway URL + opt-in guidance
-python bin/env_manager.py summary      # Per-UI AUTH gateway on/off
+uv run python -m dss.cli.env summary   # Per-UI AUTH gateway on/off
 make up service=oauth2-proxy
 make logs service=oauth2-proxy
 make restart service=mermaid-live-editor
@@ -172,7 +172,7 @@ Traefik requires SSL/TLS certificates for HTTPS support. The easiest way is usin
 
 Public Traefik hostnames use the `*.dss.localhost` pattern (for example `https://mailpit.dss.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `dss.localhost`.
 
-Nested app hosts (one extra label) need an extra wildcard SAN — `make cert` also issues `*.tts.dss.localhost` (for `api.tts.dss.localhost`, `proxy.tts.dss.localhost`), plus `*.minio.dss.localhost` and `*.garage.dss.localhost`. Re-run `make cert` and restart Traefik after changing SANs.
+Nested app hosts (one extra label) need an extra wildcard SAN — `make cert` (`scripts/gen-certs.sh`) also issues `*.tts.dss.localhost` (for `api.tts.dss.localhost`, `proxy.tts.dss.localhost`), plus `*.minio.dss.localhost` and `*.garage.dss.localhost`. Re-run `make cert` and restart Traefik after changing SANs.
 
 ### Option 1: Using Makefile (Recommended)
 
@@ -200,7 +200,7 @@ openssl req -x509 -newkey rsa:4096 -keyout traefik/certs/server.key \
 - **Certificate files are in `.gitignore`** - They are NOT committed to the repository.
 - **Generate fresh certificates** for each environment (development, staging, production).
 - Certificates are located in: `traefik/certs/server.crt` and `traefik/certs/server.key`.
-- Update certificate validity period in the mkcert command as needed (default: 2 years).
+- Update certificate validity period in the mkcert command in `scripts/gen-certs.sh` as needed (default: 2 years).
 
 ### Verify Certificates
 

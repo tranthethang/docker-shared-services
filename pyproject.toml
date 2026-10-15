@@ -7,10 +7,17 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "import-linter>=2.1.0",
     "mdformat>=1.0.0",
     "mdformat-gfm>=1.0.0",
+    "mypy>=1.13.0",
     "pathspec>=1.1.1",
+    "prek>=0.5.5",
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
     "ruff>=0.16.1",
+    "shellcheck-py>=0.10.0",
+    "shfmt-py>=3.8.0",
     "yamlfix>=1.19.1",
 ]
 tui = [
@@ -28,6 +35,7 @@ extend-exclude = [
     ".venv",
     "**/data",
     "**/volumes",
+    "tests/golden",
 ]
 
 [tool.ruff.format]
@@ -37,7 +45,31 @@ line-ending = "lf"
 docstring-code-format = true
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "W"]
+select = ["E", "F", "W", "I", "UP", "B", "N", "SIM", "PTH", "S", "C90", "PLR"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-branches = 12
+max-args = 6
+max-statements = 50
+
+[tool.ruff.lint.per-file-ignores]
+# Long lines kept from the original modules (remediation messages, generated Makefile shell).
+"dss/core/env_report.py" = ["E501"]
+"dss/package/makefile_template.py" = ["E501"]
+# pytest uses bare assert.
+"tests/**" = ["S101"]
+# These modules shell out (docker, bash for the fzf lookup, the Python interpreter, the
+# formatter CLIs) with fixed argv lists and no shell=True.
+# S603 flags every subprocess call and S607 every PATH lookup; both are the intended design here.
+"dss/cli/compose.py" = ["S603", "S607"]
+"dss/cli/manage.py" = ["S603", "S607"]
+"dss/cli/readiness.py" = ["S603", "S607"]
+"dss/cli/service.py" = ["S603", "S607"]
+"dss/tui/compose_ops.py" = ["S603", "S607"]
+"tools/format_repo.py" = ["S603", "S607"]
 
 [tool.yamlfix]
 explicit_start = false
@@ -55,3 +87,41 @@ comments_whitelines = 1
 wrap = "keep"
 number = false
 end_of_line = "lf"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Run from the repo root so `dss` imports without an installed package.
+pythonpath = ["."]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["dss", "tools"]
+strict = true
+warn_unused_configs = true
+# tools/ scripts import their siblings as top-level modules (python tools/<script>.py).
+mypy_path = "tools"
+
+# Third-party packages without type information.
+[[tool.mypy.overrides]]
+module = ["textual.*", "docker.*"]
+ignore_missing_imports = true
+
+[tool.importlinter]
+root_package = "dss"
+
+[[tool.importlinter.contracts]]
+name = "core imports no higher layer"
+type = "forbidden"
+source_modules = ["dss.core"]
+forbidden_modules = ["dss.cli", "dss.package", "dss.tui"]
+
+[[tool.importlinter.contracts]]
+name = "cli and package do not import tui"
+type = "forbidden"
+source_modules = ["dss.cli", "dss.package"]
+forbidden_modules = ["dss.tui"]
+
+[[tool.importlinter.contracts]]
+name = "cli and package are independent"
+type = "independence"
+modules = ["dss.cli", "dss.package"]

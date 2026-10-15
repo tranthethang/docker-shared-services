@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "bin"))
+from dss.package.export import export_stack
 
-from package_export import export_stack  # noqa: E402
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class ExportRootFilesTests(unittest.TestCase):

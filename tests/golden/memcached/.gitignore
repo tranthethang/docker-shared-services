@@ -1,0 +1,35 @@
+# Environment & secrets
+.env
+.env.local
+.env.production
+.env.*.local
+.env.test
+!.env.example
+!**/.env.example
+
+# Runtime data
+**/data/
+**/*_data/
+dozzle/data/
+supabase/volumes/db/data/
+supabase/volumes/storage/
+
+# Certificates
+traefik/certs/*.crt
+traefik/certs/*.key
+**/server.crt
+**/server.key
+
+# Logs, temp, OS
+*.log
+logs/
+*.tmp
+tmp/
+temp/
+.DS_Store
+Thumbs.db
+
+# Python
+.venv/
+**/__pycache__/
+*.py[cod]

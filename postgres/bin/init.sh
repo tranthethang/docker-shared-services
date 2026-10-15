@@ -7,13 +7,13 @@ set -e
 DATABASES=(temporal sonarqube jenkins gitea inngest zitadel concourse hasura litellm)
 
 for db in "${DATABASES[@]}"; do
-    exists=$(psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" -tAc \
-        "SELECT 1 FROM pg_database WHERE datname = '${db}'")
-    if [[ "$exists" == "1" ]]; then
-        echo "  postgres-init: database '${db}' already exists, skipping"
-    else
-        echo "  postgres-init: creating database '${db}'"
-        psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" \
-            -c "CREATE DATABASE ${db};"
-    fi
+  exists=$(psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" -tAc \
+    "SELECT 1 FROM pg_database WHERE datname = '${db}'")
+  if [[ "$exists" == "1" ]]; then
+    echo "  postgres-init: database '${db}' already exists, skipping"
+  else
+    echo "  postgres-init: creating database '${db}'"
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" \
+      -c "CREATE DATABASE ${db};"
+  fi
 done
