@@ -3,47 +3,46 @@
 import sys
 import termios
 import tty
+from collections.abc import Callable
+
+_ARROW_KEYS = {"A": "UP", "B": "DOWN"}
+_PLAIN_KEYS = {"\r": "ENTER", "\n": "ENTER", " ": "SPACE", "\x03": "CTRL_C", "q": "Q", "Q": "Q"}
 
 
-def _read_key():
+def _read_key() -> str:
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     try:
         tty.setraw(fd)
         ch = sys.stdin.read(1)
         if ch == "\x1b":
-            ch2 = sys.stdin.read(1)
-            if ch2 == "[":
-                ch3 = sys.stdin.read(1)
-                if ch3 == "A":
-                    return "UP"
-                if ch3 == "B":
-                    return "DOWN"
+            if sys.stdin.read(1) == "[":
+                key = _ARROW_KEYS.get(sys.stdin.read(1))
+                if key:
+                    return key
             return "ESC"
-        if ch in ("\r", "\n"):
-            return "ENTER"
-        if ch == " ":
-            return "SPACE"
-        if ch == "\x03":
-            return "CTRL_C"
-        if ch.lower() == "q":
-            return "Q"
-        return "OTHER"
+        return _PLAIN_KEYS.get(ch, "OTHER")
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
 
-def _enter_alt_screen():
+def _enter_alt_screen() -> None:
     sys.stdout.write("\033[?1049h\033[H\033[?25l")
     sys.stdout.flush()
 
 
-def _leave_alt_screen():
+def _leave_alt_screen() -> None:
     sys.stdout.write("\033[?25h\033[?1049l")
     sys.stdout.flush()
 
 
-def _render(title, items, selected, cursor, badge_fn):
+def _render(
+    title: str,
+    items: list[str],
+    selected: set[str],
+    cursor: int,
+    badge_fn: Callable[[str], str] | None,
+) -> None:
     width = 66
     lines = [
         "",
@@ -70,7 +69,19 @@ def _render(title, items, selected, cursor, badge_fn):
     sys.stdout.flush()
 
 
-def show_checkbox_menu(items, default_checked=None, title="Select", badge_fn=None):
+def _toggle(selected: set[str], item: str) -> None:
+    if item in selected:
+        selected.discard(item)
+    else:
+        selected.add(item)
+
+
+def show_checkbox_menu(
+    items: list[str],
+    default_checked: list[str] | None = None,
+    title: str = "Select",
+    badge_fn: Callable[[str], str] | None = None,
+) -> list[str] | None:
     """
     Show an interactive checkbox menu.
     Returns sorted list of selected items, or None when TTY is unavailable.
@@ -95,11 +106,7 @@ def show_checkbox_menu(items, default_checked=None, title="Select", badge_fn=Non
             elif key == "DOWN":
                 cursor = (cursor + 1) % len(items)
             elif key == "SPACE":
-                item = items[cursor]
-                if item in selected:
-                    selected.discard(item)
-                else:
-                    selected.add(item)
+                _toggle(selected, items[cursor])
             elif key == "ENTER":
                 _leave_alt_screen()
                 return sorted(selected, key=items.index)

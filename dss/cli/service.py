@@ -11,15 +11,15 @@ from dss.core.config import ACTIONS, SERVICES
 from dss.core.utils import error, print_header, success
 
 
-def is_valid_service(service):
+def is_valid_service(service: str | None) -> bool:
     return service in SERVICES
 
 
-def is_valid_action(action):
+def is_valid_action(action: str | None) -> bool:
     return action in ACTIONS
 
 
-def has_fzf():
+def has_fzf() -> bool:
     return (
         subprocess.run(
             ["bash", "-lc", "command -v fzf >/dev/null 2>&1"],
@@ -30,7 +30,15 @@ def has_fzf():
     )
 
 
-def execute_action(service, action):
+# action -> (progress message, compose args, done message)
+_SIMPLE_ACTIONS = {
+    "down": ("ℹ️  Stopping and removing {service}...", ["down"], "{service} down"),
+    "stop": ("ℹ️  Stopping {service}...", ["stop"], "{service} stopped"),
+    "restart": ("ℹ️  Restarting {service}...", ["restart"], "{service} restarted"),
+}
+
+
+def _require_valid(service: str, action: str) -> None:
     if not is_valid_service(service):
         error(f"Unknown service: {service}")
         print("\nAvailable services:")
@@ -44,41 +52,41 @@ def execute_action(service, action):
         print(f"Available actions: {', '.join(ACTIONS)}")
         sys.exit(1)
 
+
+def _start(service: str, cmd: list[str]) -> None:
+    from dss.core.env_report import check_prerequisites
+
+    if not check_prerequisites(service):
+        error(f"Cannot start {service}: prerequisite checks failed.")
+        sys.exit(1)
+    ensure_network()
+    if not ensure_dependencies_ready(service):
+        sys.exit(1)
+    success(f"Starting {service}...")
+    subprocess.run([*cmd, "up", "-d"])
+    success(f"{service} started successfully")
+
+
+def execute_action(service: str, action: str) -> None:
+    _require_valid(service, action)
     cmd = get_compose_cmd(service)
 
     if action == "up":
-        from dss.core.env_report import check_prerequisites
-
-        if not check_prerequisites(service):
-            error(f"Cannot start {service}: prerequisite checks failed.")
-            sys.exit(1)
-        ensure_network()
-        if not ensure_dependencies_ready(service):
-            sys.exit(1)
-        success(f"Starting {service}...")
-        subprocess.run(cmd + ["up", "-d"])
-        success(f"{service} started successfully")
-    elif action == "down":
-        print(f"ℹ️  Stopping and removing {service}...")
-        subprocess.run(cmd + ["down"])
-        success(f"{service} down")
-    elif action == "stop":
-        print(f"ℹ️  Stopping {service}...")
-        subprocess.run(cmd + ["stop"])
-        success(f"{service} stopped")
-    elif action == "restart":
-        print(f"ℹ️  Restarting {service}...")
-        subprocess.run(cmd + ["restart"])
-        success(f"{service} restarted")
+        _start(service, cmd)
+    elif action in _SIMPLE_ACTIONS:
+        progress, args, done = _SIMPLE_ACTIONS[action]
+        print(progress.format(service=service))
+        subprocess.run([*cmd, *args])
+        success(done.format(service=service))
     elif action == "logs":
         print(f"ℹ️  Displaying logs for {service} (press Ctrl+C to exit)...")
         try:
-            subprocess.run(cmd + ["logs", "-f"])
+            subprocess.run([*cmd, "logs", "-f"])
         except KeyboardInterrupt:
             print("\nStopped log streaming.")
 
 
-def show_menu(items, title):
+def show_menu(items: list[str], title: str) -> str:
     if has_fzf():
         try:
             selected = subprocess.run(
@@ -113,13 +121,12 @@ def show_menu(items, title):
             idx = int(choice) - 1
             if 0 <= idx < len(items):
                 return items[idx]
-            else:
-                error(f"Invalid selection. Please enter 1-{len(items)} or 'q'")
+            error(f"Invalid selection. Please enter 1-{len(items)} or 'q'")
         except ValueError:
             error(f"Invalid selection. Please enter 1-{len(items)} or 'q'")
 
 
-def interactive_menu(preselected_action=None):
+def interactive_menu(preselected_action: str | None = None) -> None:
     print_header("Docker Shared Services Manager")
 
     service = show_menu(SERVICES, "Select service")
@@ -131,7 +138,7 @@ def interactive_menu(preselected_action=None):
     execute_action(service, action)
 
 
-def normalize_args(args):
+def normalize_args(args: argparse.Namespace) -> tuple[str | None, str | None]:
     """
     Accept these forms:
     - <service> <action>
@@ -150,7 +157,7 @@ def normalize_args(args):
     return args.service, args.action
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Docker Shared Services Manager")
     parser.add_argument("service", nargs="?", help="Service name")
     parser.add_argument("action", nargs="?", help="Action (up, down, restart, logs)")
@@ -184,16 +191,9 @@ def main():
 
     service, action = normalize_args(args)
 
-    if not service and not action:
-        interactive_menu()
-        return
-
-    if not service and action:
-        interactive_menu(preselected_action=action)
-        return
-
-    if service and not action:
-        interactive_menu()
+    if not service or not action:
+        # A lone action keeps it and asks for the service; otherwise ask for both.
+        interactive_menu(preselected_action=None if service else action)
         return
 
     execute_action(service, action)

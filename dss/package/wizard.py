@@ -35,7 +35,7 @@ class SelectScreen(Screen[list[str] | None]):
 
     BINDINGS = [
         Binding("enter", "confirm", "Continue", priority=True),
-        Binding("space", "toggle", "Toggle"),
+        Binding("space", "toggle_service", "Toggle"),
         Binding("slash", "focus_filter", "Filter"),
         Binding("q", "cancel", "Quit"),
     ]
@@ -145,7 +145,7 @@ class SelectScreen(Screen[list[str] | None]):
     def action_focus_filter(self) -> None:
         self.query_one("#select-filter", Input).focus()
 
-    def action_toggle(self) -> None:
+    def action_toggle_service(self) -> None:
         service = self._highlighted_service()
         if service:
             self._toggle(service)

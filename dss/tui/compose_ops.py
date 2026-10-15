@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import os
 import re
 import subprocess
 import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 
 from dss.cli.compose import get_compose_cmd, sort_for_shutdown, sort_for_startup
 from dss.cli.readiness import ensure_dependencies_ready
@@ -52,19 +52,23 @@ def _ensure_network() -> bool:
     return result.returncode == 0
 
 
+def _should_mask(key: str, value: str) -> bool:
+    if value.lower() in ("true", "false") or value.isdigit():
+        return False
+    if _SECRET_KEY.search(key):
+        return len(value) >= _MIN_SECRET_VALUE
+    return len(value) >= _LONG_VALUE
+
+
 def _env_values_to_mask(service: str) -> list[str]:
     """Known values from the root and service .env files that must never reach the TUI."""
     values: set[str] = set()
-    for path in (".env", os.path.join(service, ".env")):
-        if not os.path.isfile(path):
+    for path in (Path(".env"), Path(service) / ".env"):
+        if not path.is_file():
             continue
         for key, raw in iter_env_assignments(path):
             value = raw.strip().strip("'\"")
-            if value.lower() in ("true", "false") or value.isdigit():
-                continue
-            if _SECRET_KEY.search(key) and len(value) >= _MIN_SECRET_VALUE:
-                values.add(value)
-            elif len(value) >= _LONG_VALUE:
+            if _should_mask(key, value):
                 values.add(value)
     # Longest first so a value containing another one is masked whole.
     return sorted(values, key=len, reverse=True)
@@ -87,7 +91,7 @@ def _run_compose(
     args: list[str],
     on_progress: ProgressCb | None = None,
 ) -> int:
-    cmd = get_compose_cmd(service) + args
+    cmd = [*get_compose_cmd(service), *args]
     if on_progress:
         on_progress(f"$ {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -99,6 +103,36 @@ def _run_compose(
     return result.returncode
 
 
+# action -> (progress message, compose args, done message, failure message)
+_ACTIONS = {
+    "up": ("", ["up", "-d"], "{service} started", "Failed to start {service}"),
+    "down": (
+        "Stopping and removing {service}…",
+        ["down"],
+        "{service} down",
+        "Failed to bring down {service}",
+    ),
+    "stop": ("Stopping {service}…", ["stop"], "{service} stopped", "Failed to stop {service}"),
+    "restart": (
+        "Restarting {service}…",
+        ["restart"],
+        "{service} restarted",
+        "Failed to restart {service}",
+    ),
+}
+
+
+def _prepare_up(service: str, on_progress: ProgressCb | None) -> OpResult | None:
+    """Networks and backends for ``up``; returns a failure result, or None when ready."""
+    if on_progress:
+        on_progress(f"Ensuring shared networks, then starting {service}…")
+    if not _ensure_network():
+        return OpResult(False, f"Failed to prepare networks for {service}", [service])
+    if not ensure_dependencies_ready(service, announce=on_progress):
+        return OpResult(False, f"Failed to start {service}: a dependency is not ready", [service])
+    return None
+
+
 def run_action(
     service: str,
     action: str,
@@ -106,47 +140,19 @@ def run_action(
 ) -> OpResult:
     if service not in SERVICES:
         return OpResult(False, f"Unknown service: {service}", [service])
-    if action not in ("up", "down", "stop", "restart"):
+    if action not in _ACTIONS:
         return OpResult(False, f"Unsupported action: {action}", [service])
 
+    progress, args, done, failure = _ACTIONS[action]
     if action == "up":
-        if on_progress:
-            on_progress(f"Ensuring shared networks, then starting {service}…")
-        if not _ensure_network():
-            return OpResult(False, f"Failed to prepare networks for {service}", [service])
-        if not ensure_dependencies_ready(service, announce=on_progress):
-            return OpResult(
-                False,
-                f"Failed to start {service}: a dependency is not ready",
-                [service],
-            )
-        code = _run_compose(service, ["up", "-d"], on_progress)
-        if code == 0:
-            return OpResult(True, f"{service} started", [])
-        return OpResult(False, f"Failed to start {service}", [service])
-
-    if action == "down":
-        if on_progress:
-            on_progress(f"Stopping and removing {service}…")
-        code = _run_compose(service, ["down"], on_progress)
-        if code == 0:
-            return OpResult(True, f"{service} down", [])
-        return OpResult(False, f"Failed to bring down {service}", [service])
-
-    if action == "stop":
-        if on_progress:
-            on_progress(f"Stopping {service}…")
-        code = _run_compose(service, ["stop"], on_progress)
-        if code == 0:
-            return OpResult(True, f"{service} stopped", [])
-        return OpResult(False, f"Failed to stop {service}", [service])
-
-    if on_progress:
-        on_progress(f"Restarting {service}…")
-    code = _run_compose(service, ["restart"], on_progress)
-    if code == 0:
-        return OpResult(True, f"{service} restarted", [])
-    return OpResult(False, f"Failed to restart {service}", [service])
+        blocked = _prepare_up(service, on_progress)
+        if blocked is not None:
+            return blocked
+    elif on_progress:
+        on_progress(progress.format(service=service))
+    if _run_compose(service, args, on_progress) == 0:
+        return OpResult(True, done.format(service=service), [])
+    return OpResult(False, failure.format(service=service), [service])
 
 
 def apply_manage(

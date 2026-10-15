@@ -10,12 +10,15 @@ Respects .gitignore and .ignore (gitwildmatch). Run via:
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from pathspec import PathSpec
+from pathspec.pattern import Pattern
 from repo_files import ROOT, classify, is_ignored, iter_repo_files, load_ignore_spec
 
 
@@ -169,30 +172,65 @@ def parse_types(raw: str) -> set[str]:
     return parts
 
 
+def select_files(raw_paths: list[Path], spec: PathSpec[Pattern]) -> list[Path]:
+    """Expand explicit paths (files or directories) into non-ignored repo files."""
+    selected: list[Path] = []
+    for raw in raw_paths:
+        path = (raw if raw.is_absolute() else (ROOT / raw)).resolve()
+        if path.is_dir():
+            selected.extend(iter_repo_files(path, spec))
+        elif path.is_file():
+            rel = str(path.relative_to(ROOT)).replace("\\", "/")
+            if not is_ignored(rel, spec):
+                selected.append(path)
+    return sorted(set(selected))
+
+
+def run_formatters(
+    wanted: set[str], buckets: dict[str, list[Path]], *, check: bool, stats: Stats
+) -> int:
+    exit_code = 0
+    if "python" in wanted:
+        exit_code |= format_python(buckets["python"], check=check)
+    if "yaml" in wanted:
+        exit_code |= format_yaml(buckets["yaml"], check=check)
+    if "markdown" in wanted:
+        exit_code |= format_markdown(buckets["markdown"], check=check)
+    if "json" in wanted:
+        exit_code |= format_json(buckets["json"], check=check, stats=stats)
+    if "env" in wanted:
+        exit_code |= format_env(buckets["env"], check=check, stats=stats)
+    return exit_code
+
+
+def print_report(stats: Stats, *, check: bool) -> int:
+    """Print errors and changed files; return 1 when there were errors."""
+    exit_code = 0
+    if stats.errors:
+        print()
+        print("Errors:")
+        for err in stats.errors:
+            print(f"  - {err}")
+        exit_code = 1
+
+    if stats.changed:
+        print()
+        label = "Would reformat" if check else "Reformatted"
+        print(f"{label} ({len(stats.changed)}):")
+        for item in stats.changed:
+            print(f"  - {item}")
+    return exit_code
+
+
 def main(argv: list[str] | None = None) -> int:
-    if hasattr(sys.stdout, "reconfigure"):
+    if isinstance(sys.stdout, io.TextIOWrapper) and isinstance(sys.stderr, io.TextIOWrapper):
         sys.stdout.reconfigure(line_buffering=True)
         sys.stderr.reconfigure(line_buffering=True)
 
     args = parse_args(argv)
     wanted = parse_types(args.types)
     spec = load_ignore_spec(ROOT)
-
-    if args.paths:
-        selected: list[Path] = []
-        for raw in args.paths:
-            path = raw if raw.is_absolute() else (ROOT / raw)
-            path = path.resolve()
-            if path.is_dir():
-                selected.extend(iter_repo_files(path, spec))
-            elif path.is_file():
-                rel = str(path.relative_to(ROOT)).replace("\\", "/")
-                if not is_ignored(rel, spec):
-                    selected.append(path)
-        files = sorted(set(selected))
-    else:
-        files = iter_repo_files(ROOT, spec)
-
+    files = select_files(args.paths, spec) if args.paths else iter_repo_files(ROOT, spec)
     buckets = classify(files)
 
     print(f"Root: {ROOT}", flush=True)
@@ -200,32 +238,8 @@ def main(argv: list[str] | None = None) -> int:
     print(flush=True)
 
     stats = Stats()
-    exit_code = 0
-
-    if "python" in wanted:
-        exit_code |= format_python(buckets["python"], check=args.check)
-    if "yaml" in wanted:
-        exit_code |= format_yaml(buckets["yaml"], check=args.check)
-    if "markdown" in wanted:
-        exit_code |= format_markdown(buckets["markdown"], check=args.check)
-    if "json" in wanted:
-        exit_code |= format_json(buckets["json"], check=args.check, stats=stats)
-    if "env" in wanted:
-        exit_code |= format_env(buckets["env"], check=args.check, stats=stats)
-
-    if stats.errors:
-        print()
-        print("Errors:")
-        for err in stats.errors:
-            print(f"  - {err}")
-        exit_code |= 1
-
-    if stats.changed:
-        print()
-        label = "Would reformat" if args.check else "Reformatted"
-        print(f"{label} ({len(stats.changed)}):")
-        for item in stats.changed:
-            print(f"  - {item}")
+    exit_code = run_formatters(wanted, buckets, check=args.check, stats=stats)
+    exit_code |= print_report(stats, check=args.check)
 
     print()
     if exit_code == 0:

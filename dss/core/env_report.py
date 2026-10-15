@@ -1,6 +1,6 @@
 """Validate ``.env`` files and print the configuration summary."""
 
-import os
+from pathlib import Path
 
 from dss.core.config import (
     AUTH_GATEWAY_MIDDLEWARE_OFF,
@@ -21,13 +21,13 @@ from dss.core.utils import (
 )
 
 
-def validate_env(service_arg):
+def validate_env(service_arg: str | None) -> bool:
     services = get_services(service_arg)
     print("\nValidating environment variables...\n")
     errors = 0
     for s in services:
-        env_path = os.path.join(s, ".env")
-        if not os.path.exists(env_path):
+        env_path = Path(s) / ".env"
+        if not env_path.exists():
             continue
 
         for var in VALIDATION_RULES.get(s, []):
@@ -53,12 +53,12 @@ def validate_env(service_arg):
     return True
 
 
-def check_prerequisites(service_arg="all") -> bool:
+def check_prerequisites(service_arg: str | None = "all") -> bool:
     """
     Check if environment files exist and mandatory variables are set before starting services.
     Returns True if valid, False if errors found.
     """
-    if not os.path.exists(".env"):
+    if not Path(".env").exists():
         error("Root environment file (.env) not found.")
         print("  Remediation: Run 'make setup' to initialize .env from .env.example.\n")
         return False
@@ -68,8 +68,8 @@ def check_prerequisites(service_arg="all") -> bool:
     for s in services:
         if s == ".":
             continue
-        env_path = os.path.join(s, ".env")
-        if not os.path.exists(env_path):
+        env_path = Path(s) / ".env"
+        if not env_path.exists():
             error(f"{s}: Environment file not found ({env_path}).")
             print(f"  Remediation: Run 'make setup' or copy {s}/.env.example to {env_path}.\n")
             errors += 1
@@ -100,14 +100,26 @@ def check_prerequisites(service_arg="all") -> bool:
     return errors == 0
 
 
-def show_summary(service_arg):
+def _print_env_vars(env_path: Path, vars_to_check: list[str]) -> None:
+    found = False
+    with env_path.open() as f:
+        for line in f:
+            for var in vars_to_check:
+                if line.startswith(f"{var}="):
+                    print(f"  {line.strip()}")
+                    found = True
+    if not found:
+        print("  (no specific ports configured in .env)")
+
+
+def show_summary(service_arg: str | None) -> None:
     services = get_services(service_arg)
     print_header("Services Configuration")
     for s in services:
         if s == ".":
             continue
-        env_path = os.path.join(s, ".env")
-        if not os.path.exists(env_path):
+        env_path = Path(s) / ".env"
+        if not env_path.exists():
             continue
         print(f"Service: {s}")
         vars_to_check = SERVICE_INFO_VARS.get(s, [])
@@ -116,15 +128,7 @@ def show_summary(service_arg):
         elif not vars_to_check:
             print("  (configured)")
         else:
-            found = False
-            with open(env_path) as f:
-                for line in f:
-                    for var in vars_to_check:
-                        if line.startswith(f"{var}="):
-                            print(f"  {line.strip()}")
-                            found = True
-            if not found:
-                print("  (no specific ports configured in .env)")
+            _print_env_vars(env_path, vars_to_check)
         if s in AUTH_OPT_IN_UI_SERVICES:
             enabled = (read_env_value(env_path, "AUTH_ENABLED") or "false").lower()
             middleware = (read_env_value(env_path, "AUTH_MIDDLEWARE") or "").strip()

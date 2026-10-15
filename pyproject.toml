@@ -12,6 +12,7 @@ dev = [
     "mdformat-gfm>=1.0.0",
     "mypy>=1.13.0",
     "pathspec>=1.1.1",
+    "prek>=0.5.5",
     "pytest>=8.3.0",
     "pytest-cov>=6.0.0",
     "ruff>=0.16.1",
@@ -44,12 +45,31 @@ line-ending = "lf"
 docstring-code-format = true
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "W"]
+select = ["E", "F", "W", "I", "UP", "B", "N", "SIM", "PTH", "S", "C90", "PLR"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-branches = 12
+max-args = 6
+max-statements = 50
 
 [tool.ruff.lint.per-file-ignores]
 # Long lines kept from the original modules (remediation messages, generated Makefile shell).
 "dss/core/env_report.py" = ["E501"]
 "dss/package/makefile_template.py" = ["E501"]
+# pytest uses bare assert.
+"tests/**" = ["S101"]
+# These modules shell out (docker, bash for the fzf lookup, the Python interpreter, the
+# formatter CLIs) with fixed argv lists and no shell=True.
+# S603 flags every subprocess call and S607 every PATH lookup; both are the intended design here.
+"dss/cli/compose.py" = ["S603", "S607"]
+"dss/cli/manage.py" = ["S603", "S607"]
+"dss/cli/readiness.py" = ["S603", "S607"]
+"dss/cli/service.py" = ["S603", "S607"]
+"dss/tui/compose_ops.py" = ["S603", "S607"]
+"tools/format_repo.py" = ["S603", "S607"]
 
 [tool.yamlfix]
 explicit_start = false
@@ -76,30 +96,15 @@ pythonpath = ["."]
 [tool.mypy]
 python_version = "3.12"
 files = ["dss", "tools"]
+strict = true
 warn_unused_configs = true
-# Non-strict baseline. Per-module ignore_errors stays until P3 removes it.
+# tools/ scripts import their siblings as top-level modules (python tools/<script>.py).
+mypy_path = "tools"
 
+# Third-party packages without type information.
 [[tool.mypy.overrides]]
-module = [
-  "dss.cli.service",
-  "dss.core.env_files",
-  "dss.core.env_report",
-  "dss.core.secrets",
-  "dss.core.service_catalog",
-  "dss.package.export",
-  "dss.package.wizard",
-  "dss.package.wizard_screens",
-  "dss.tui",
-  "dss.tui.__main__",
-  "dss.tui.app",
-  "dss.tui.compose_ops",
-  "dss.tui.docker_state",
-  "dss.tui.ops_mixin",
-  "dss.tui.screens",
-  "dss.tui.table_mixin",
-  "format_repo",
-]
-ignore_errors = true
+module = ["textual.*", "docker.*"]
+ignore_missing_imports = true
 
 [tool.importlinter]
 root_package = "dss"

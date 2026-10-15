@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from functools import partial
+from typing import TYPE_CHECKING
 
 from dss.tui.compose_ops import OpResult, apply_manage, plan_manage_changes, run_action
 from dss.tui.docker_state import (
@@ -15,8 +16,13 @@ from dss.tui.screens import ConfirmScreen
 
 LOG_TAIL = 200
 
+if TYPE_CHECKING:
+    from dss.tui.app_base import ServiceManagerBase as _AppBase
+else:
+    _AppBase = object
 
-class OpsMixin:
+
+class OpsMixin(_AppBase):
     """Mixin expecting ServiceManagerApp attributes and helpers."""
 
     def action_load_logs(self) -> None:

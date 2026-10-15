@@ -1,5 +1,7 @@
 """Backend ordering derived from ``PACKAGE_REQUIRES`` and ``START_ORDER``."""
 
+from collections.abc import Iterable
+
 from dss.core.config import PACKAGE_REQUIRES, START_ORDER
 
 
@@ -31,7 +33,7 @@ def dependency_queue(service: str, available: set[str] | None = None) -> list[st
     return startup_queue(seen)
 
 
-def startup_queue(services) -> list[str]:
+def startup_queue(services: Iterable[str]) -> list[str]:
     """Dependency order, using ``START_ORDER`` when several services are ready together."""
     selected = list(dict.fromkeys(services))
     selected_set = set(selected)

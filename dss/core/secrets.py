@@ -3,6 +3,8 @@
 import os
 import re
 import shutil
+from collections.abc import Iterator
+from pathlib import Path
 
 from dss.core.config import (
     AUTO_GENERATED_SECRETS,
@@ -25,16 +27,16 @@ from dss.core.utils import (
 )
 
 
-def fill_secrets(service_arg):
+def fill_secrets(service_arg: str | None) -> None:
     """Fill empty secrets and replace the former default dashboard hash."""
     services = get_services(service_arg)
     print("\nFilling empty auto-generated secrets...\n")
     filled = 0
     legacy_dashboard_hash = "admin:$apr1$dsslocal$d6fWuAuh2eC9xV6eu7kMP."
     for s in services:
-        env_path = ".env" if s == "." else os.path.join(s, ".env")
+        env_path = _env_path(s)
         specs = AUTO_GENERATED_SECRETS.get(s)
-        if not specs or not os.path.exists(env_path):
+        if not specs or not env_path.exists():
             continue
         for var, (method, nbytes) in specs.items():
             current = read_env_value(env_path, var)
@@ -101,7 +103,7 @@ def _resolve_shared_password(explicit: str | None) -> str:
     from_env = os.environ.get("DSS_SHARED_PASSWORD", "").strip()
     if from_env:
         return _require_strong(from_env, "DSS_SHARED_PASSWORD env")
-    if os.path.exists(".env"):
+    if Path(".env").exists():
         root_existing = read_env_value(".env", "DSS_SHARED_PASSWORD")
         if root_existing and root_existing not in INVALID_PASSWORD_VALUES:
             # Existing installs keep working: data services already store this
@@ -125,9 +127,43 @@ def _should_overwrite(current: str | None, force: bool) -> bool:
     if current in SHARED_PASSWORD_PLACEHOLDERS:
         return True
     # Compound values from old .env files that still embed the legacy placeholder.
-    if LEGACY_PLACEHOLDER_PASSWORD in current:
-        return True
-    return False
+    return LEGACY_PLACEHOLDER_PASSWORD in current
+
+
+def _env_path(service: str) -> Path:
+    return Path(service) / ".env"
+
+
+def _announce_password_source(password: str | None) -> None:
+    if password:
+        success("Using password from --password")
+    elif os.environ.get("DSS_SHARED_PASSWORD", "").strip():
+        success("Using password from DSS_SHARED_PASSWORD env")
+    elif Path(".env").exists() and read_env_value(".env", "DSS_SHARED_PASSWORD"):
+        success("Reusing DSS_SHARED_PASSWORD from root .env")
+    else:
+        success("Generated a new random shared password")
+
+
+def _apply_value(env_path: Path, key: str, value: str, dry_run: bool) -> None:
+    if dry_run:
+        print(f"  would set {env_path}: {key}")
+    else:
+        set_env_value(env_path, key, value)
+        success(f"{env_path}: {key}")
+
+
+def _shared_password_targets(password: str) -> Iterator[tuple[Path, str, str]]:
+    """Yield (env_path, key, value) for every shared-password key whose .env exists."""
+    for service, keys in SHARED_PASSWORD_KEYS.items():
+        env_path = _env_path(service)
+        if env_path.exists():
+            for key in keys:
+                yield env_path, key, password
+    for (service, key), template in SHARED_PASSWORD_TEMPLATES.items():
+        env_path = _env_path(service)
+        if env_path.exists():
+            yield env_path, key, template.format(password=password)
 
 
 def fill_shared_password(
@@ -154,56 +190,22 @@ def fill_shared_password(
         )
         raise SystemExit(1)
     print("\nApplying shared password across services...\n")
-    if password:
-        success("Using password from --password")
-    elif os.environ.get("DSS_SHARED_PASSWORD", "").strip():
-        success("Using password from DSS_SHARED_PASSWORD env")
-    elif os.path.exists(".env") and read_env_value(".env", "DSS_SHARED_PASSWORD"):
-        success("Reusing DSS_SHARED_PASSWORD from root .env")
-    else:
-        success("Generated a new random shared password")
+    _announce_password_source(password)
 
     if dry_run:
         warning(f"Dry-run: would set shared password ({len(resolved)} chars)")
-    else:
-        # Ensure root .env exists so we can record DSS_SHARED_PASSWORD.
-        if not os.path.exists(".env") and os.path.exists(".env.example"):
-            shutil.copy(".env.example", ".env")
-            success("Created ./.env from .env.example")
+    # Ensure root .env exists so we can record DSS_SHARED_PASSWORD.
+    elif not Path(".env").exists() and Path(".env.example").exists():
+        shutil.copy(".env.example", ".env")
+        success("Created ./.env from .env.example")
 
     updated = 0
     skipped = 0
-
-    for service, keys in SHARED_PASSWORD_KEYS.items():
-        env_path = os.path.join(service, ".env") if service != "." else ".env"
-        if not os.path.exists(env_path):
-            continue
-        for key in keys:
-            current = read_env_value(env_path, key)
-            if not _should_overwrite(current, force):
-                skipped += 1
-                continue
-            if dry_run:
-                print(f"  would set {env_path}: {key}")
-            else:
-                set_env_value(env_path, key, resolved)
-                success(f"{env_path}: {key}")
-            updated += 1
-
-    for (service, key), template in SHARED_PASSWORD_TEMPLATES.items():
-        env_path = os.path.join(service, ".env") if service != "." else ".env"
-        if not os.path.exists(env_path):
-            continue
-        current = read_env_value(env_path, key)
-        if not _should_overwrite(current, force):
+    for env_path, key, value in _shared_password_targets(resolved):
+        if not _should_overwrite(read_env_value(env_path, key), force):
             skipped += 1
             continue
-        value = template.format(password=resolved)
-        if dry_run:
-            print(f"  would set {env_path}: {key}")
-        else:
-            set_env_value(env_path, key, value)
-            success(f"{env_path}: {key}")
+        _apply_value(env_path, key, value, dry_run)
         updated += 1
 
     print(f"\n✅ Shared password sync complete (updated={updated}, skipped_custom={skipped}).")

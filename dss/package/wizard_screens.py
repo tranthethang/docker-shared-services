@@ -62,14 +62,14 @@ class ConfirmScreen(Screen[bool]):
 
     def __init__(self, name: str, checked: list[str], added: list[str]) -> None:
         super().__init__()
-        self._name = name
+        self._stack_name = name
         self._checked = checked
         self._added = added
 
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static(
-            f"Write dist/{escape(self._name)}/ with {len(self._checked) + len(self._added)} "
+            f"Write dist/{escape(self._stack_name)}/ with {len(self._checked) + len(self._added)} "
             f"services ({len(self._checked)} checked, {len(self._added)} added as dependencies).",
             id="confirm-title",
         )

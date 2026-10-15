@@ -2,6 +2,7 @@
 
 import subprocess
 import time
+from collections.abc import Callable
 
 from dss.cli.compose import get_compose_cmd
 from dss.core.dependencies import dependency_queue
@@ -9,11 +10,22 @@ from dss.core.utils import error, success
 
 # A database can spend its start_period plus several probe retries before it accepts clients.
 READY_TIMEOUT_SECONDS = 300
+# `docker inspect` prints "<status> <health>".
+_INSPECT_FIELDS = 2
+
+Announce = Callable[[str], None]
 
 
-def _container_ids(service):
+def _say(message: str, announce: Announce | None) -> None:
+    if announce:
+        announce(message)
+    else:
+        print(message)
+
+
+def _container_ids(service: str) -> list[str]:
     result = subprocess.run(
-        get_compose_cmd(service) + ["ps", "-aq"],
+        [*get_compose_cmd(service), "ps", "-aq"],
         capture_output=True,
         text=True,
     )
@@ -22,7 +34,7 @@ def _container_ids(service):
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
-def _container_ready(container_id):
+def _container_ready(container_id: str) -> bool:
     result = subprocess.run(
         [
             "docker",
@@ -37,21 +49,16 @@ def _container_ready(container_id):
     if result.returncode != 0:
         return False
     parts = result.stdout.split()
-    if len(parts) < 2:
+    if len(parts) < _INSPECT_FIELDS:
         return False
     status, health = parts[0], parts[1]
     return status == "running" and health in ("none", "healthy")
 
 
-def wait_until_ready(service, timeout=READY_TIMEOUT_SECONDS, announce=None):
+def wait_until_ready(
+    service: str, timeout: int = READY_TIMEOUT_SECONDS, announce: Announce | None = None
+) -> bool:
     """Block until every container in ``service`` is running and healthy when probed."""
-
-    def say(message):
-        if announce:
-            announce(message)
-        else:
-            print(message)
-
     ids = _container_ids(service)
     if not ids:
         error(f"{service} has no containers")
@@ -59,7 +66,7 @@ def wait_until_ready(service, timeout=READY_TIMEOUT_SECONDS, announce=None):
     if all(_container_ready(container_id) for container_id in ids):
         return True
 
-    say(f"ℹ️  Waiting until {service} is ready...")
+    _say(f"ℹ️  Waiting until {service} is ready...", announce)
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         time.sleep(2)
@@ -71,30 +78,23 @@ def wait_until_ready(service, timeout=READY_TIMEOUT_SECONDS, announce=None):
     return False
 
 
-def _service_is_ready(service):
+def _service_is_ready(service: str) -> bool:
     ids = _container_ids(service)
     return bool(ids) and all(_container_ready(container_id) for container_id in ids)
 
 
-def ensure_dependencies_ready(service, announce=None):
+def ensure_dependencies_ready(service: str, announce: Announce | None = None) -> bool:
     """Start missing backends, then wait until each one is ready."""
-
-    def say(message):
-        if announce:
-            announce(message)
-        else:
-            print(message)
-
     from dss.core.env_report import check_prerequisites
 
     for dependency in dependency_queue(service):
         if _service_is_ready(dependency):
             continue
-        say(f"ℹ️  Queuing {dependency} before {service}...")
+        _say(f"ℹ️  Queuing {dependency} before {service}...", announce)
         if not check_prerequisites(dependency):
             error(f"Cannot start {service}: prerequisite checks failed for {dependency}")
             return False
-        result = subprocess.run(get_compose_cmd(dependency) + ["up", "-d"])
+        result = subprocess.run([*get_compose_cmd(dependency), "up", "-d"])
         if result.returncode != 0:
             error(f"Failed to start dependency {dependency}")
             return False

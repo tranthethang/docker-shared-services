@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import threading
 import time
 from collections import deque
@@ -92,7 +93,7 @@ def list_service_statuses(client: Any) -> list[ServiceStatus]:
             continue
         try:
             container.reload()
-        except Exception:
+        except Exception:  # noqa: S112  # the TUI owns stdout, so there is nowhere to log
             # A container can disappear between list and inspect during a Compose action.
             continue
         attrs = container.attrs or {}
@@ -166,15 +167,11 @@ class LogFollower:
             self._stopped = True
             streams = list(self._streams)
         for stream in streams:
-            try:
+            with contextlib.suppress(Exception):
                 stream.close()
-            except Exception:
-                pass
         if self._client is not None:
-            try:
+            with contextlib.suppress(Exception):
                 self._client.close()
-            except Exception:
-                pass
 
     def _follow(self, info: ContainerInfo) -> None:
         prefix = f"[{info.compose_service}] " if self._prefix else ""
@@ -246,35 +243,31 @@ class EventWatcher:
         for closable in (stream, client):
             if closable is None:
                 continue
-            try:
+            with contextlib.suppress(Exception):
                 closable.close()
-            except Exception:
-                pass
 
     def _run(self) -> None:
         while not self._stopped.is_set():
             try:
-                client = connect_client()
-                stream = client.events(
-                    decode=True,
-                    filters={"type": "container", "label": COMPOSE_PROJECT_LABEL},
-                )
-                with self._lock:
-                    self._client, self._stream = client, stream
-                if self._stopped.is_set():
-                    break
-                for event in stream:
-                    action = str(event.get("Action") or event.get("status") or "")
-                    if action.split(":", 1)[0] in _STATE_EVENTS:
-                        self._on_change()
-            except Exception:
-                pass
+                # Any daemon error ends this stream; the loop reconnects after RECONNECT_DELAY.
+                with contextlib.suppress(Exception):
+                    client = connect_client()
+                    stream = client.events(
+                        decode=True,
+                        filters={"type": "container", "label": COMPOSE_PROJECT_LABEL},
+                    )
+                    with self._lock:
+                        self._client, self._stream = client, stream
+                    if self._stopped.is_set():
+                        break
+                    for event in stream:
+                        action = str(event.get("Action") or event.get("status") or "")
+                        if action.split(":", 1)[0] in _STATE_EVENTS:
+                            self._on_change()
             finally:
                 with self._lock:
                     client, self._client, self._stream = self._client, None, None
                 if client is not None:
-                    try:
+                    with contextlib.suppress(Exception):
                         client.close()
-                    except Exception:
-                        pass
             self._stopped.wait(self.RECONNECT_DELAY)

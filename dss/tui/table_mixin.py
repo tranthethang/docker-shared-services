@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from rich.text import Text
 from textual.widgets import DataTable, RichLog
 
@@ -10,8 +12,13 @@ from dss.tui.models import ServiceStatus
 _STATE_STYLES = {"running": "green", "partial": "yellow", "stopped": "red", "absent": "dim"}
 _HEALTH_STYLES = {"healthy": "green", "starting": "yellow", "unhealthy": "bold red", "none": ""}
 
+if TYPE_CHECKING:
+    from dss.tui.app_base import ServiceManagerBase as _AppBase
+else:
+    _AppBase = object
 
-class TableMixin:
+
+class TableMixin(_AppBase):
     """Mixin expecting ServiceManagerApp attributes and helpers."""
 
     def _filtered_rows(self) -> list[ServiceStatus]:

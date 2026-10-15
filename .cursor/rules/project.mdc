@@ -1,0 +1,13 @@
+---
+description: Project rules for docker-shared-services
+alwaysApply: true
+---
+
+Read `AGENTS.md` at the repo root first. It holds project facts, commands, gotchas, and limits, and it links to the rule docs in `docs/dev/`:
+
+- `docs/dev/python-layout.md`
+- `docs/dev/shell-scripts.md`
+- `docs/dev/quality-gate.md`
+- `docs/dev/adding-a-service.md`
+
+Follow those files. This file holds no rules of its own.

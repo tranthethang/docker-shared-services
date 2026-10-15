@@ -1,13 +1,20 @@
 import base64
+import hashlib
 import re
 import secrets
 import string
+import subprocess
+from collections.abc import Iterator
+from pathlib import Path
 
 _ENV_ASSIGNMENT = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 
+# Any path form the env helpers accept.
+StrPath = str | Path
+
 
 # Special characters that are safe in URLs, shell, .env and compose files.
-PASSWORD_SPECIALS = "-_.!*"
+PASSWORD_SPECIALS = "-_.!*"  # noqa: S105  # character set, not a credential
 PASSWORD_MIN_LENGTH = 15
 
 
@@ -26,7 +33,7 @@ def validate_password_strength(password: str) -> str | None:
     return None
 
 
-def generate_password(length=32):
+def generate_password(length: int = 32) -> str:
     length = max(length, PASSWORD_MIN_LENGTH)
     pools = [
         string.ascii_lowercase,
@@ -55,10 +62,9 @@ def generate_secret(method: str, nbytes: int = 32, password: str | None = None) 
         password = password or generate_password(nbytes)
         salt = secrets.token_hex(4)
         try:
-            import subprocess
-
-            res = subprocess.run(
-                ["openssl", "passwd", "-apr1", "-salt", salt, "-stdin"],
+            # Fixed argv, no shell; openssl is resolved from PATH on the host.
+            res = subprocess.run(  # noqa: S603
+                ["openssl", "passwd", "-apr1", "-salt", salt, "-stdin"],  # noqa: S607
                 input=password + "\n",
                 capture_output=True,
                 text=True,
@@ -66,18 +72,16 @@ def generate_secret(method: str, nbytes: int = 32, password: str | None = None) 
             )
             return f"admin:{res.stdout.strip().replace('$', '$$')}"
         except Exception:
-            import hashlib
-
-            sha1_hash = base64.b64encode(hashlib.sha1(password.encode("utf-8")).digest()).decode(
-                "ascii"
-            )
+            # htpasswd {SHA} format is defined as SHA1; Traefik basic auth reads it as such.
+            digest = hashlib.sha1(password.encode("utf-8")).digest()  # noqa: S324
+            sha1_hash = base64.b64encode(digest).decode("ascii")
             return f"admin:{{SHA}}{sha1_hash}"
     raise ValueError(f"Unsupported secret method: {method}")
 
 
-def iter_env_assignments(env_path: str):
+def iter_env_assignments(env_path: StrPath) -> Iterator[tuple[str, str]]:
     """Yield (KEY, raw_value) for each assignment line (comments/blank skipped)."""
-    with open(env_path) as f:
+    with Path(env_path).open() as f:
         for line in f:
             match = _ENV_ASSIGNMENT.match(line.rstrip("\n"))
             if match is None:
@@ -85,7 +89,7 @@ def iter_env_assignments(env_path: str):
             yield match.group(1), match.group(2)
 
 
-def read_env_value(env_path: str, key: str) -> str | None:
+def read_env_value(env_path: StrPath, key: str) -> str | None:
     """Return the raw value for KEY in a .env file, or None if missing."""
     for name, value in iter_env_assignments(env_path):
         if name == key:
@@ -93,9 +97,9 @@ def read_env_value(env_path: str, key: str) -> str | None:
     return None
 
 
-def set_env_value(env_path: str, key: str, value: str) -> None:
+def set_env_value(env_path: StrPath, key: str, value: str) -> None:
     """Replace KEY=... in place, or append if the key is absent."""
-    with open(env_path) as f:
+    with Path(env_path).open() as f:
         lines = f.readlines()
 
     replaced = False
@@ -113,24 +117,24 @@ def set_env_value(env_path: str, key: str, value: str) -> None:
             new_lines[-1] += "\n"
         new_lines.append(f"{key}={value}\n")
 
-    with open(env_path, "w") as f:
+    with Path(env_path).open("w") as f:
         f.writelines(new_lines)
 
 
-def print_header(title):
+def print_header(title: str) -> None:
     width = 66
     print("\n" + "╔" + "═" * (width - 2) + "╗")
     print(f"║ {title:^{width - 4}} ║")
     print("╚" + "═" * (width - 2) + "╝\n")
 
 
-def success(msg):
+def success(msg: str) -> None:
     print(f"✅ {msg}")
 
 
-def warning(msg):
+def warning(msg: str) -> None:
     print(f"⚠️  {msg}")
 
 
-def error(msg):
+def error(msg: str) -> None:
     print(f"❌ {msg}")

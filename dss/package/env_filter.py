@@ -126,7 +126,7 @@ def filter_env_example(text: str, services: list[str]) -> str:
         return text
 
     shared_end = 0
-    for start, end, title in spans:
+    for _start, end, title in spans:
         if title.startswith("SHARED PASSWORD"):
             shared_end = end
             break

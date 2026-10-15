@@ -1,4 +1,4 @@
-.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage tui package sync format format-check lint typecheck test test-update check
+.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage tui package sync format format-check lint typecheck test test-update check hooks
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -149,6 +149,7 @@ info: ## Show service information and access URLs
 	@$(PY) -m dss.cli.info
 
 validate: ## Validate all Docker Compose files
+	@echo "==> validate"
 	@$(PYTHON_SVC_MGR) --validate-compose
 
 sync: ## Install Python tooling deps with uv (ruff, yamlfix, mdformat, …)
@@ -160,6 +161,7 @@ format: ## Format YAML, JSON, Markdown, Python, and .env.example files
 	@PYTHONUNBUFFERED=1 $(UV) run python tools/format_repo.py
 
 format-check: ## Check formatting without writing changes
+	@echo "==> format-check"
 	@$(UV) sync --group dev --quiet
 	@PYTHONUNBUFFERED=1 $(UV) run python tools/format_repo.py --check
 
@@ -167,22 +169,39 @@ SHELL_SCRIPTS = $(shell find . -name '*.sh' -not -path './.venv/*' -not -path '.
 
 lint: ## Run ruff, import-linter, the file-size check, shellcheck, and shfmt
 	@$(UV) sync --group dev --quiet
+	@echo "==> lint: ruff"
 	@$(UV) run ruff check dss tools tests
+	@echo "==> lint: import-linter"
 	@$(UV) run lint-imports
+	@echo "==> lint: file size"
 	@$(UV) run python tools/check_file_size.py
+	@echo "==> lint: shellcheck"
 	@$(UV) run shellcheck -x $(SHELL_SCRIPTS)
+	@echo "==> lint: shfmt"
 	@$(UV) run shfmt -d -i 2 -ci $(SHELL_SCRIPTS)
 
-typecheck: ## Run mypy on dss/ and tools/
-	@$(UV) sync --group dev --quiet
-	@$(UV) run mypy dss tools
+typecheck: ## Run mypy (strict) on dss/ and tools/
+	@# The tui group installs textual so its widgets type-check as real classes, not Any.
+	@echo "==> typecheck: mypy (strict)"
+	@$(UV) sync --group dev --group tui --quiet
+	@$(UV) run --group tui mypy dss tools
 
-test: ## Run pytest with a coverage report for dss/
+COVERAGE_FLOOR_CORE = 80
+
+test: ## Run pytest with a dss/ coverage report; dss/core must reach the coverage floor
+	@echo "==> test: pytest"
 	@$(UV) sync --group dev --quiet
 	@$(UV) run pytest --cov=dss --cov-report=term-missing
+	@echo "==> test: coverage floor dss/core >= $(COVERAGE_FLOOR_CORE)%"
+	@$(UV) run coverage report --include='dss/core/*' --fail-under=$(COVERAGE_FLOOR_CORE)
 
 test-update: ## Regenerate tests/golden snapshots
 	@$(UV) sync --group dev --quiet
 	@GOLDEN_UPDATE=1 $(UV) run pytest
+
+hooks: ## Install git hooks (pre-commit: format-check, lint, typecheck; pre-push: test)
+	@$(UV) sync --group dev --quiet
+	@$(UV) run prek install
+	@echo "✅ Git hooks installed (.pre-commit-config.yaml)"
 
 check: format-check lint typecheck test validate ## Run format-check, lint, typecheck, test, and validate

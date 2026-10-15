@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from pathspec import PathSpec
+from pathspec.pattern import Pattern
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -23,7 +24,7 @@ ALWAYS_SKIP_DIRS = {
 ENV_NAMES = {".env.example"}
 
 
-def load_ignore_spec(root: Path) -> PathSpec:
+def load_ignore_spec(root: Path) -> PathSpec[Pattern]:
     lines: list[str] = []
     for name in (".gitignore", ".ignore"):
         path = root / name
@@ -46,12 +47,12 @@ def load_ignore_spec(root: Path) -> PathSpec:
     return PathSpec.from_lines("gitwildmatch", lines)
 
 
-def is_ignored(rel: str, spec: PathSpec) -> bool:
+def is_ignored(rel: str, spec: PathSpec[Pattern]) -> bool:
     # Match both file and as-directory forms.
     return spec.match_file(rel) or spec.match_file(rel.rstrip("/") + "/")
 
 
-def iter_repo_files(root: Path, spec: PathSpec) -> list[Path]:
+def iter_repo_files(root: Path, spec: PathSpec[Pattern]) -> list[Path]:
     files: list[Path] = []
     for dirpath, dirnames, filenames in os.walk(root):
         base = Path(dirpath)

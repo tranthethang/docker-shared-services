@@ -1,13 +1,15 @@
 """Command-line entry for env file management: ``python -m dss.cli.env <command>``."""
 
 import argparse
+import sys
+from collections.abc import Callable
 
 from dss.core.env_files import check_env, create_env, merge_missing_env_keys
 from dss.core.env_report import check_prerequisites, show_summary, validate_env
 from dss.core.secrets import fill_secrets, fill_shared_password
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Docker Services Environment Manager")
     parser.add_argument(
         "command",
@@ -43,28 +45,29 @@ def main():
 
     args = parser.parse_args()
 
-    if args.command == "check":
-        check_env(args.service)
-    elif args.command == "create":
-        create_env(args.service)
-    elif args.command == "merge-missing":
-        merge_missing_env_keys(args.service)
-    elif args.command == "fill-secrets":
-        fill_secrets(args.service)
-    elif args.command in ("fill-shared-password", "passwords"):
+    if args.command in ("fill-shared-password", "passwords"):
         fill_shared_password(
             password=args.password,
             force=args.force,
             dry_run=args.dry_run,
         )
-    elif args.command == "validate":
-        if not validate_env(args.service):
-            exit(1)
-    elif args.command == "check-prerequisites":
-        if not check_prerequisites(args.service):
-            exit(1)
-    elif args.command == "summary":
-        show_summary(args.service)
+        return
+    gates: dict[str, Callable[[str], bool]] = {
+        "validate": validate_env,
+        "check-prerequisites": check_prerequisites,
+    }
+    if args.command in gates:
+        if not gates[args.command](args.service):
+            sys.exit(1)
+        return
+    actions: dict[str, Callable[[str], object]] = {
+        "check": check_env,
+        "create": create_env,
+        "merge-missing": merge_missing_env_keys,
+        "fill-secrets": fill_secrets,
+        "summary": show_summary,
+    }
+    actions[args.command](args.service)
 
 
 if __name__ == "__main__":

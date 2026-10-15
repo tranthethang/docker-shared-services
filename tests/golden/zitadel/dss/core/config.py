@@ -53,7 +53,7 @@ SHARED_PASSWORD_PLACEHOLDERS = frozenset(
 
 # Old repo default. Example files now ship empty values, but .env files created
 # before that may still hold it, so setup keeps overwriting and rejecting it.
-LEGACY_PLACEHOLDER_PASSWORD = "Password102!"
+LEGACY_PLACEHOLDER_PASSWORD = "Password102!"  # noqa: S105  # rejected value, not a secret
 INVALID_PASSWORD_VALUES = frozenset({LEGACY_PLACEHOLDER_PASSWORD})
 
 # Service dir -> vars that must pass validate_password_strength before `up`.

@@ -23,6 +23,7 @@ from dss.package.templates import (
 )
 
 _NAME_RE = re.compile(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
+_MAX_NAME_LENGTH = 48
 # dss/ files the packaged Makefile needs: env management only.
 _PACKAGE_DSS_FILES = (
     "dss/__init__.py",
@@ -42,7 +43,11 @@ def repo_root() -> Path:
 
 def validate_stack_name(name: str) -> str:
     """Return ``name`` when it matches ``^[a-z][a-z0-9]*(-[a-z0-9]+)*$`` and length 1–48."""
-    if not isinstance(name, str) or not _NAME_RE.fullmatch(name) or not 1 <= len(name) <= 48:
+    if (
+        not isinstance(name, str)
+        or not _NAME_RE.fullmatch(name)
+        or not 1 <= len(name) <= _MAX_NAME_LENGTH
+    ):
         raise ValueError(
             "Stack name must match ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ and be 1-48 characters."
         )

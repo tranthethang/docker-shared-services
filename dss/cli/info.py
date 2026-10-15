@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from dss.core.service_catalog import load_catalog
 
 HEADER = [
@@ -29,13 +31,13 @@ FOOTER = [
 ]
 
 
-def service_lines(catalog: dict[str, dict]) -> list[str]:
+def service_lines(catalog: dict[str, dict[str, Any]]) -> list[str]:
     """Every catalog ``info`` line, sorted case-insensitively by its text."""
     lines = [line for entry in catalog.values() for line in entry.get("info", [])]
     return sorted(lines, key=str.casefold)
 
 
-def render_info(catalog: dict[str, dict] | None = None) -> str:
+def render_info(catalog: dict[str, dict[str, Any]] | None = None) -> str:
     catalog = load_catalog() if catalog is None else catalog
     bullets = [f"  • {line}" for line in service_lines(catalog)]
     return "\n".join([*HEADER, *bullets, *FOOTER]) + "\n"

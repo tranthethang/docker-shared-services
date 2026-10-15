@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from dss.core.service_catalog import CATEGORIES, load_catalog
 
 PACKAGE_PYPROJECT = """[project]
@@ -62,7 +64,9 @@ Thumbs.db
 """
 
 
-def render_readme(name: str, services: list[str], catalog: dict | None = None) -> str:
+def render_readme(
+    name: str, services: list[str], catalog: dict[str, dict[str, Any]] | None = None
+) -> str:
     """README for the packaged tree: quick start plus services grouped by category."""
     catalog = load_catalog() if catalog is None else catalog
     lines = [

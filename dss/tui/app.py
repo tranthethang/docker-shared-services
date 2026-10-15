@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
@@ -109,10 +111,8 @@ class ServiceManagerApp(OpsMixin, TableMixin, App[None]):
 
     def _on_docker_event(self) -> None:
         """Called from the event thread; coalesce bursts (e.g. `compose up` of a stack)."""
-        try:
+        with contextlib.suppress(RuntimeError):  # app is shutting down
             self.call_from_thread(self._schedule_event_refresh)
-        except RuntimeError:
-            pass  # app is shutting down
 
     def _schedule_event_refresh(self) -> None:
         if self._event_refresh_pending:

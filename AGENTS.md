@@ -1,8 +1,21 @@
 # AGENTS.md
 
+Entry point for agents and contributors. Rules live in `docs/dev/`. Each rule there names the tool that enforces it, or says it is review only.
+
 ## Project
 
 Local Docker Compose infrastructure for development (databases, cache, auth, CI, observability). Each service is its own Compose project, started from the root Makefile via `python -m dss.cli.service` (run through `uv`). Web UIs are reached through Traefik at `https://*.dss.localhost`.
+
+## Rules
+
+| Topic                                      | Doc                                                          |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| `dss` layers, lint/type rules, new modules | [docs/dev/python-layout.md](docs/dev/python-layout.md)       |
+| Shell scripts                              | [docs/dev/shell-scripts.md](docs/dev/shell-scripts.md)       |
+| `make check`, limits, goldens, git hooks   | [docs/dev/quality-gate.md](docs/dev/quality-gate.md)         |
+| Compose layout, Traefik, catalog, backends | [docs/dev/adding-a-service.md](docs/dev/adding-a-service.md) |
+
+Write files in this repo in English (README, `docs/`, comments, commits, `.env.example`).
 
 ## Commands
 
@@ -15,41 +28,20 @@ make health service=postgres            # health for one service
 make logs service=zitadel               # logs for one service
 make check                              # format, lint, typecheck, test, and Compose validate
 make test-update                        # regenerate tests/golden (GOLDEN_UPDATE=1)
+make hooks                              # install prek git hooks
 ```
 
-Validate one Compose file:
-
-```bash
-docker compose --project-directory zitadel \
-  -f docker-compose.shared.yml -f zitadel/docker-compose.yml config -q
-```
-
-Every target that runs Python needs `uv`; the Makefile stops with an install hint when it is missing. `make tui` and `make package` also need a TTY.
+Every target that runs Python needs `uv`. The Makefile stops with an install hint when it is missing. `make tui` and `make package` also need a TTY.
 
 ## Structure
 
-- `dss/` — Python package, one layer per subpackage (enforced by `lint-imports`):
-  - `dss/core/` — `config.py` (service lists and maps), `dependencies.py` (backend order), `service_catalog.py` + `.json`, `utils.py`, `env_files.py` (check/create/merge `.env`), `secrets.py` (shared password, generated secrets), `env_report.py` (validate, prerequisites, summary). Standard library only.
-  - `dss/cli/` — `service.py` (`make up/down/…` dispatch), `compose.py` (Compose commands, networks, `make validate`), `readiness.py` (dependency queue wait), `manage.py` (`make manage`), `env.py` (`make setup`, env commands), `info.py` (`make info`), `checkbox_menu.py`
-  - `dss/package/` — `export.py` (`export_stack`) with `env_filter.py`, `config_filter.py`, `copy_tree.py`, `makefile_template.py`, `templates.py`; `wizard.py` + `wizard_screens.py` (`make package` UI) and `wizard_model.py` (selection logic, no Textual)
-  - `dss/tui/` — Textual dashboard (`make tui`)
-- `tools/` — dev tooling (`format_repo.py` + `repo_files.py`, `check_file_size.py` + `file_size_baseline.json`, kept empty)
-- `scripts/` — shell scripts only, called by Makefile recipes: `ensure-networks.sh`, `ensure-dozzle-users.sh`, `gen-certs.sh`, `remove-all.sh`, `remove-config.sh`
+- `dss/` — Python package: `core` (config, catalog, env, secrets; stdlib only), `cli` (make entry points), `package` (`make package` exporter + wizard), `tui` (Textual dashboard)
+- `tools/` — dev tooling (`format_repo.py`, `check_file_size.py`)
+- `scripts/` — shell scripts called by Makefile recipes
 - `<service>/` — that service's `docker-compose.yml` and `.env.example`
 - `docker-compose.shared.yml` — external networks `traefik_proxy`, `backend_net`, `data_net`
-- `traefik/` — reverse proxy
-- `docs/` — usage, configuration, networking, troubleshooting
+- `docs/` — usage, configuration, networking, troubleshooting; `docs/dev/` — contributor rules
 - `dist/` — export from `make package`; gitignored
-
-## Conventions
-
-- Write files in this repo in English (README, `docs/`, comments, commits, `.env.example`).
-- Load a service with `--project-directory <service>` so `<service>/.env` and relative paths resolve.
-- Publish web UIs with Traefik labels. Bind database and protocol ports to `127.0.0.1` only.
-- Record cross-project backends in `PACKAGE_REQUIRES` in `dss/core/config.py` (`postgres` → `zitadel`, `zitadel` → `oauth2-proxy`).
-- `make info` prints each service's `info` lines from `dss/core/service_catalog.json`, sorted. Edit the catalog, not code, to change them.
-- Run Python as modules from the repo root through `uv` (`uv run --frozen --no-dev python -m dss.cli.env …`). Imports are absolute (`from dss.core.config import …`); do not add `sys.path` hacks.
-- `dss.core` imports nothing from `dss.cli`, `dss.package`, or `dss.tui`; `dss.cli` and `dss.package` do not import each other or `dss.tui`.
 
 ## Gotchas
 
@@ -58,18 +50,19 @@ Every target that runs Python needs `uv`; the Makefile stops with an install hin
 - `make setup` prompts before writing `.env` files and certificates. Skip it when there is no TTY.
 - Root `.env` must exist before `make up`. Create it with `make setup`.
 - Setup rejects the legacy password `Password102!`.
+- `dss/core/config.py` is copied into exports, so editing it changes the export goldens. Run `make test-update` and review the diff.
 
 ## Workflow
 
-- After Compose, shell, or `dss/` edits, run `make check`. It runs `format-check`, `lint`, `typecheck`, `test`, and `validate`. Regenerate exporter snapshots with `make test-update` when `export_stack` output changes on purpose.
-- Ask before adding dependencies, committing, or pushing.
-- Create a commit only when the user asks.
+- After Compose, shell, `dss/`, `tools/`, or `tests/` edits, run `make check`.
+- Ask before adding dependencies, committing, or pushing. Create a commit only when the user asks.
 
 ## Limits
 
 - **NEVER** edit or test under `dist/`. Change the origin tree (`Makefile`, `dss/`, service directories). Leave `dist/` empty unless the user asks for a new export.
 - Do not commit `.env` files or `traefik/certs/*.{crt,key}`.
 - Do not run `make remove-all`, `make prune`, or `make remove-config` unless the user asks. They delete data or env files.
+- Do not lower a quality limit (complexity, coverage floor, 300-line file size) to pass a check.
 
 ## More docs
 

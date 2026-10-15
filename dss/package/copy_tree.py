@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import shutil
 from pathlib import Path
 
@@ -39,7 +38,7 @@ def copy_tree(src: Path, dst: Path, service: str, root: Path, relative: Path) ->
         if entry.is_symlink():
             if _link_escapes(entry, root):
                 continue
-            (dst / entry.name).symlink_to(os.readlink(entry))
+            (dst / entry.name).symlink_to(entry.readlink())
             continue
         if entry.is_dir():
             if _skip_dir(entry.name):

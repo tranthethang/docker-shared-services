@@ -1,7 +1,7 @@
 """Check, create, and merge per-service ``.env`` files from ``.env.example``."""
 
-import os
 import shutil
+from pathlib import Path
 
 from dss.core.config import (
     SERVICES,
@@ -15,7 +15,7 @@ from dss.core.utils import (
 )
 
 
-def get_services(service_arg):
+def get_services(service_arg: str | None) -> list[str]:
     if not service_arg or service_arg == "all":
         return ["."] + SERVICES
     if service_arg in SERVICES or service_arg == ".":
@@ -23,16 +23,16 @@ def get_services(service_arg):
     return []
 
 
-def check_env(service_arg):
+def check_env(service_arg: str | None) -> bool:
     services = get_services(service_arg)
     print("Checking .env files...\n")
-    missing = []
+    missing: list[str] = []
     for s in services:
-        env_path = os.path.join(s, ".env")
-        example_path = os.path.join(s, ".env.example")
-        if os.path.exists(env_path):
+        env_path = Path(s) / ".env"
+        example_path = Path(s) / ".env.example"
+        if env_path.exists():
             success(f"{s}/.env exists")
-        elif os.path.exists(example_path):
+        elif example_path.exists():
             warning(f"{s}/.env missing (only .env.example exists)")
             missing.append(s)
         else:
@@ -44,14 +44,14 @@ def check_env(service_arg):
     return False
 
 
-def create_env(service_arg):
+def create_env(service_arg: str | None) -> None:
     services = get_services(service_arg)
     print("\nCreating .env files from .env.example...\n")
-    created = []
+    created: list[str] = []
     for s in services:
-        env_path = os.path.join(s, ".env")
-        example_path = os.path.join(s, ".env.example")
-        if os.path.exists(example_path) and not os.path.exists(env_path):
+        env_path = Path(s) / ".env"
+        example_path = Path(s) / ".env.example"
+        if example_path.exists() and not env_path.exists():
             shutil.copy(example_path, env_path)
             success(f"Created {s}/.env")
             created.append(s)
@@ -62,7 +62,7 @@ def create_env(service_arg):
     warning("Next: shared password sync (fill-shared-password) + unique secrets (fill-secrets).")
 
 
-def _example_env_assignments(example_path: str) -> list[tuple[str, str]]:
+def _example_env_assignments(example_path: Path) -> list[tuple[str, str]]:
     """Return (KEY, raw_value) pairs from .env.example in file order (first wins)."""
     seen: set[str] = set()
     pairs: list[tuple[str, str]] = []
@@ -74,7 +74,7 @@ def _example_env_assignments(example_path: str) -> list[tuple[str, str]]:
     return pairs
 
 
-def merge_missing_env_keys(service_arg):
+def merge_missing_env_keys(service_arg: str | None) -> None:
     """Append keys that exist in .env.example but are absent from .env.
 
     Never overwrites existing keys (including empty values). Safe for repeated
@@ -84,9 +84,9 @@ def merge_missing_env_keys(service_arg):
     print("\nMerging missing keys from .env.example into existing .env files...\n")
     added_total = 0
     for s in services:
-        env_path = os.path.join(s, ".env")
-        example_path = os.path.join(s, ".env.example")
-        if not os.path.exists(env_path) or not os.path.exists(example_path):
+        env_path = Path(s) / ".env"
+        example_path = Path(s) / ".env.example"
+        if not env_path.exists() or not example_path.exists():
             continue
         missing = [
             (key, value)
@@ -95,9 +95,8 @@ def merge_missing_env_keys(service_arg):
         ]
         if not missing:
             continue
-        with open(env_path) as f:
-            content = f.read()
-        suffix_parts = []
+        content = env_path.read_text()
+        suffix_parts: list[str] = []
         if content and not content.endswith("\n"):
             suffix_parts.append("\n")
         if content.strip():
@@ -106,7 +105,7 @@ def merge_missing_env_keys(service_arg):
             suffix_parts.append(f"{key}={value}\n")
             success(f"{s}: added {key}")
             added_total += 1
-        with open(env_path, "a") as f:
+        with env_path.open("a") as f:
             f.write("".join(suffix_parts))
     if added_total == 0:
         print("✅ No missing keys to merge.")

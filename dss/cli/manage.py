@@ -16,19 +16,45 @@ from dss.core.config import SERVICES
 from dss.core.utils import error, success
 
 
-def show_multi_select(default_selected):
+def _toggle_choices(choice: str, selected: set[str]) -> None:
+    """Toggle each 1-based service number in ``choice``; report invalid parts."""
+    invalid = False
+    for part in choice.split():
+        try:
+            idx = int(part) - 1
+        except ValueError:
+            idx = -1
+        if 0 <= idx < len(SERVICES):
+            selected.symmetric_difference_update({SERVICES[idx]})
+        else:
+            error(f"Invalid selection: {part}")
+            invalid = True
+    if invalid:
+        print("")
+
+
+def _print_toggle_list(selected: set[str], running: set[str]) -> None:
+    name_width = max(len(s) for s in SERVICES) + 2
+    for i, service in enumerate(SERVICES):
+        mark = "x" if service in selected else " "
+        badge = " ● running" if service in running else ""
+        print(f"  {i + 1:2}. {service:<{name_width}} [{mark}]{badge}")
+    print("")
+
+
+def show_multi_select(default_selected: list[str]) -> list[str]:
     default_set = set(default_selected)
     title = "Docker Shared Services — Manage"
 
-    selected = show_checkbox_menu(
+    chosen = show_checkbox_menu(
         SERVICES,
         default_checked=default_selected,
         title=title,
         badge_fn=lambda s: " ● running" if s in default_set else "",
     )
 
-    if selected is not None:
-        return selected
+    if chosen is not None:
+        return chosen
 
     # Non-TTY fallback (e.g. piped input)
     selected = set(default_set)
@@ -37,13 +63,7 @@ def show_multi_select(default_selected):
     print("")
 
     while True:
-        name_width = max(len(s) for s in SERVICES) + 2
-        for i, service in enumerate(SERVICES):
-            mark = "x" if service in selected else " "
-            running = " ● running" if service in default_set else ""
-            print(f"  {i + 1:2}. {service:<{name_width}} [{mark}]{running}")
-        print("")
-
+        _print_toggle_list(selected, default_set)
         try:
             choice = input("Toggle (numbers) or Enter to confirm [q]: ").strip().lower()
         except KeyboardInterrupt:
@@ -54,29 +74,10 @@ def show_multi_select(default_selected):
             sys.exit(0)
         if choice == "":
             return sorted(selected, key=SERVICES.index)
-
-        invalid = False
-        for part in choice.split():
-            try:
-                idx = int(part) - 1
-                if 0 <= idx < len(SERVICES):
-                    service = SERVICES[idx]
-                    if service in selected:
-                        selected.discard(service)
-                    else:
-                        selected.add(service)
-                else:
-                    error(f"Invalid selection: {part}")
-                    invalid = True
-            except ValueError:
-                error(f"Invalid selection: {part}")
-                invalid = True
-
-        if invalid:
-            print("")
+        _toggle_choices(choice, selected)
 
 
-def confirm_apply(to_up, to_down):
+def confirm_apply(to_up: list[str], to_down: list[str]) -> bool:
     if not to_up and not to_down:
         print("ℹ️  No changes needed.")
         return False
@@ -97,7 +98,7 @@ def confirm_apply(to_up, to_down):
     return reply in ("", "y", "yes")
 
 
-def apply_manage_changes(selected):
+def apply_manage_changes(selected: list[str]) -> None:
     running = set(get_running_services())
     selected_set = set(selected)
 
@@ -108,12 +109,12 @@ def apply_manage_changes(selected):
         print("Operation cancelled")
         return
 
-    failed = []
+    failed: list[str] = []
 
     for service in to_down:
         cmd = get_compose_cmd(service)
         print(f"ℹ️  Stopping and removing {service}...")
-        result = subprocess.run(cmd + ["down"])
+        result = subprocess.run([*cmd, "down"])
         if result.returncode == 0:
             success(f"{service} down")
         else:
@@ -135,7 +136,7 @@ def apply_manage_changes(selected):
             break
         cmd = get_compose_cmd(service)
         success(f"Starting {service}...")
-        result = subprocess.run(cmd + ["up", "-d"])
+        result = subprocess.run([*cmd, "up", "-d"])
         if result.returncode == 0:
             success(f"{service} started successfully")
         else:
@@ -149,7 +150,7 @@ def apply_manage_changes(selected):
     success("All changes applied successfully")
 
 
-def manage_services():
+def manage_services() -> None:
     print("ℹ️  Detecting running services...")
     running = get_running_services()
     if running:

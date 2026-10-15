@@ -1,8 +1,9 @@
 """Compose commands, shared networks, validation, and start/stop ordering per service."""
 
-import os
 import subprocess
 import sys
+from collections.abc import Iterable
+from pathlib import Path
 
 from dss.core.config import SERVICES, START_ORDER
 from dss.core.dependencies import startup_queue
@@ -17,7 +18,7 @@ SHARED_NETWORKS = (
 )
 
 
-def _docker_network_exists(name):
+def _docker_network_exists(name: str) -> bool:
     return (
         subprocess.run(
             ["docker", "network", "inspect", name],
@@ -28,7 +29,7 @@ def _docker_network_exists(name):
     )
 
 
-def ensure_network():
+def ensure_network() -> None:
     for name, subnet in SHARED_NETWORKS:
         if _docker_network_exists(name):
             continue
@@ -79,7 +80,7 @@ def ensure_network():
         )
 
 
-def get_compose_cmd(service):
+def get_compose_cmd(service: str) -> list[str]:
     return [
         "docker",
         "compose",
@@ -92,48 +93,58 @@ def get_compose_cmd(service):
     ]
 
 
-def validate_all_compose():
+def _check_compose_config(service: str) -> tuple[bool, bool]:
+    """Run ``compose config``; report problems. Returns (parsed, clean)."""
+    result = subprocess.run(
+        [*get_compose_cmd(service), "config"],
+        capture_output=True,
+        text=True,
+    )
+    stderr = (result.stderr or "").strip()
+
+    if result.returncode != 0:
+        error(f"{service}: invalid")
+        if stderr:
+            print(stderr, file=sys.stderr)
+        return False, False
+    if stderr:
+        # Unset-variable warnings still mean config is usable but incomplete.
+        warning(f"{service}: {stderr.splitlines()[0]}")
+        if stderr.count("\n") > 0:
+            print(stderr, file=sys.stderr)
+        return True, False
+    return True, True
+
+
+def _listed_services(service: str) -> list[str] | None:
+    listed = subprocess.run(
+        [*get_compose_cmd(service), "config", "--services"],
+        capture_output=True,
+        text=True,
+    )
+    if listed.returncode != 0:
+        return None
+    return [line.strip() for line in listed.stdout.splitlines() if line.strip()]
+
+
+def validate_all_compose() -> None:
     """Validate each service with --project-directory so service/.env is loaded."""
     print("Validating Docker Compose configuration...")
-    failed = []
-    compose_services = {}
+    failed: list[str] = []
+    compose_services: dict[str, list[str]] = {}
 
     for service in sorted(SERVICES):
-        compose_file = os.path.join(service, "docker-compose.yml")
-        if not os.path.isfile(compose_file):
+        compose_file = Path(service) / "docker-compose.yml"
+        if not compose_file.is_file():
             error(f"{service}: missing {compose_file}")
             failed.append(service)
             continue
-
-        result = subprocess.run(
-            get_compose_cmd(service) + ["config"],
-            capture_output=True,
-            text=True,
-        )
-        stderr = (result.stderr or "").strip()
-
-        if result.returncode != 0:
-            error(f"{service}: invalid")
-            if stderr:
-                print(stderr, file=sys.stderr)
+        parsed, clean = _check_compose_config(service)
+        if not clean:
             failed.append(service)
-        elif stderr:
-            # Unset-variable warnings still mean config is usable but incomplete.
-            warning(f"{service}: {stderr.splitlines()[0]}")
-            if stderr.count("\n") > 0:
-                print(stderr, file=sys.stderr)
-            failed.append(service)
-
-        if result.returncode == 0:
-            listed = subprocess.run(
-                get_compose_cmd(service) + ["config", "--services"],
-                capture_output=True,
-                text=True,
-            )
-            if listed.returncode == 0:
-                compose_services[service] = [
-                    line.strip() for line in listed.stdout.splitlines() if line.strip()
-                ]
+        names = _listed_services(service) if parsed else None
+        if names is not None:
+            compose_services[service] = names
 
     print("Validating service catalog (dss/core/service_catalog.json)...")
     problems = catalog_problems(load_catalog(), compose_services)
@@ -149,10 +160,10 @@ def validate_all_compose():
     success("Compose configuration and service catalog are valid")
 
 
-def get_stack_services(service):
+def get_stack_services(service: str) -> list[str]:
     """Compose service names in a stack directory (e.g. otel -> grafana, loki, alloy)."""
     result = subprocess.run(
-        get_compose_cmd(service) + ["config", "--services"],
+        [*get_compose_cmd(service), "config", "--services"],
         capture_output=True,
         text=True,
     )
@@ -162,28 +173,28 @@ def get_stack_services(service):
     return names or [service]
 
 
-def is_service_running(service):
+def is_service_running(service: str) -> bool:
     stack_services = get_stack_services(service)
     result = subprocess.run(
-        get_compose_cmd(service) + ["ps", "-q", "--status", "running", *stack_services],
+        [*get_compose_cmd(service), "ps", "-q", "--status", "running", *stack_services],
         capture_output=True,
         text=True,
     )
     return bool(result.stdout.strip())
 
 
-def get_running_services():
+def get_running_services() -> list[str]:
     return [s for s in SERVICES if is_service_running(s)]
 
 
-def sort_for_startup(services):
+def sort_for_startup(services: Iterable[str]) -> list[str]:
     return startup_queue(services)
 
 
-def sort_for_shutdown(services):
+def sort_for_shutdown(services: Iterable[str]) -> list[str]:
     order_map = {s: i for i, s in enumerate(START_ORDER)}
 
-    def shutdown_key(service):
+    def shutdown_key(service: str) -> tuple[int, str]:
         if service == "traefik":
             return (-1, service)
         return (order_map.get(service, 500), service)
