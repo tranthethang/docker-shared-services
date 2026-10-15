@@ -20,6 +20,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3001/ || exit 1"]
       interval: 30s
@@ -33,6 +34,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

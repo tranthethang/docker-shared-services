@@ -2,16 +2,23 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
+import json
 from pathlib import Path
 
 import pytest
 
+from dss.core.config import AUTO_GENERATED_SECRETS
 from dss.core.secrets import _resolve_shared_password, fill_secrets, fill_shared_password
-from dss.core.utils import read_env_value
+from dss.core.utils import JWT_LIFETIME_SECONDS, generate_hs256_jwt, read_env_value
 
 STRONG = "Strong-Password-123"
 GENERATED_LENGTH = 32
 HEX_32_BYTES = 64
+ZITADEL_MASTERKEY_LENGTH = 32
+INNGEST_KEY_LENGTH = 16
 LEGACY_DASHBOARD_HASH = "admin:$apr1$dsslocal$d6fWuAuh2eC9xV6eu7kMP."
 
 
@@ -158,3 +165,71 @@ def test_fill_secrets_htpasswd_needs_shared_password(tree: Path) -> None:
     _write(tree / "traefik" / ".env", "TRAEFIK_DASHBOARD_AUTH=\n")
     with pytest.raises(SystemExit):
         fill_secrets("traefik")
+
+
+def _jwt_claims(token: str) -> dict[str, object]:
+    payload = token.split(".")[1]
+    claims: dict[str, object] = json.loads(
+        base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4))
+    )
+    return claims
+
+
+def _signature_ok(token: str, secret: str) -> bool:
+    signing_input, signature = token.rsplit(".", 1)
+    expected = hmac.new(secret.encode("utf-8"), signing_input.encode("ascii"), hashlib.sha256)
+    encoded = base64.urlsafe_b64encode(expected.digest()).rstrip(b"=").decode("ascii")
+    return hmac.compare_digest(encoded, signature)
+
+
+def test_hs256_jwt_matches_signature_and_claims() -> None:
+    token = generate_hs256_jwt("s3cret", "anon", now=1_000)
+    assert _signature_ok(token, "s3cret")
+    assert _jwt_claims(token) == {
+        "role": "anon",
+        "iss": "supabase",
+        "iat": 1_000,
+        "exp": 1_000 + JWT_LIFETIME_SECONDS,
+    }
+
+
+def test_fill_secrets_signs_supabase_keys_with_generated_jwt_secret(tree: Path) -> None:
+    _write(tree / "supabase" / ".env", "JWT_SECRET=\nANON_KEY=\nSERVICE_ROLE_KEY=\n")
+    fill_secrets("supabase")
+    jwt_secret = read_env_value("supabase/.env", "JWT_SECRET")
+    assert jwt_secret
+    assert len(jwt_secret) == HEX_32_BYTES
+    for var, role in (("ANON_KEY", "anon"), ("SERVICE_ROLE_KEY", "service_role")):
+        token = read_env_value("supabase/.env", var)
+        assert token
+        assert _jwt_claims(token)["role"] == role
+        assert _signature_ok(token, jwt_secret)
+
+
+def test_fill_secrets_jwt_needs_jwt_secret(tree: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setitem(AUTO_GENERATED_SECRETS, "supabase", {"ANON_KEY": ("jwt_hs256", 0)})
+    _write(tree / "supabase" / ".env", "JWT_SECRET=\nANON_KEY=\n")
+    with pytest.raises(SystemExit):
+        fill_secrets("supabase")
+
+
+def test_fill_secrets_warns_on_known_placeholder(
+    tree: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _write(tree / "zitadel" / ".env", "ZITADEL_MASTERKEY=MasterkeyNeedsToHave32Characters\n")
+    fill_secrets("zitadel")
+    assert read_env_value("zitadel/.env", "ZITADEL_MASTERKEY") == "MasterkeyNeedsToHave32Characters"
+    assert "public placeholder" in capsys.readouterr().out
+
+
+def test_fill_secrets_generates_sized_values(tree: Path) -> None:
+    _write(tree / "zitadel" / ".env", "ZITADEL_MASTERKEY=\n")
+    _write(tree / "inngest" / ".env", "INNGEST_EVENT_KEY=\nINNGEST_SIGNING_KEY=\n")
+    fill_secrets(None)
+    assert (
+        len(read_env_value("zitadel/.env", "ZITADEL_MASTERKEY") or "") == ZITADEL_MASTERKEY_LENGTH
+    )
+    for var in ("INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"):
+        value = read_env_value("inngest/.env", var) or ""
+        assert len(value) == INNGEST_KEY_LENGTH
+        int(value, 16)

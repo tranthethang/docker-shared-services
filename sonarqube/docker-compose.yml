@@ -19,12 +19,13 @@ services:
           cpus: "${SONARQUBE_CPUS_RESERVED:-1}"
           memory: "${SONARQUBE_MEMORY_RESERVED:-1G}"
     environment:
-      SONAR_JDBC_URL: jdbc:postgresql://${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-sonarqube}
+      SONAR_JDBC_URL: jdbc:postgresql://${POSTGRES16_HOST:-postgres}:5432/${POSTGRES16_DB:-sonarqube}
       SONAR_JDBC_USERNAME: "${POSTGRES16_USER:-postgres}"
       SONAR_JDBC_PASSWORD: "${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}"
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     volumes:
       - sonarqube_conf:/opt/sonarqube/conf
       - sonarqube_data:/opt/sonarqube/data
@@ -45,6 +46,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

@@ -15,13 +15,17 @@ services:
           cpus: "${DOZZLE_CPUS_LIMIT:-0.5}"
           memory: "${DOZZLE_MEMORY_LIMIT:-512M}"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./data:/data
     environment:
+      DOCKER_HOST: tcp://dozzle-socket-proxy:2375
       DOZZLE_AUTH_PROVIDER: "${DOZZLE_AUTH_PROVIDER:-simple}"
       DOZZLE_AUTH_TTL: "${DOZZLE_AUTH_TTL:-48h}"
+    depends_on:
+      socket-proxy:
+        condition: service_healthy
     networks:
       - traefik_proxy
+      - dozzle_docker
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
       interval: 30s
@@ -34,6 +38,39 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Read-only Docker API. Dozzle calls /info at startup and exits without it.
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    container_name: dozzle-socket-proxy
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOZZLE_SOCKET_PROXY_CPUS_LIMIT:-0.1}"
+          memory: "${DOZZLE_SOCKET_PROXY_MEMORY_LIMIT:-64M}"
+    environment:
+      - CONTAINERS=1
+      - INFO=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - dozzle_docker
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2375/_ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 networks:
   traefik_proxy:
     external: true
+  # Only Dozzle may reach its socket proxy. Do not attach this network elsewhere.
+  dozzle_docker:
+    name: dozzle_docker
+    internal: true

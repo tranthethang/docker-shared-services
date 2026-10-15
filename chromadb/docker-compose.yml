@@ -23,7 +23,6 @@ services:
       - PERSIST_DIRECTORY=/chroma/data
     networks:
       - traefik_proxy
-      - backend_net
       - data_net
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/heartbeat',\
@@ -43,9 +42,7 @@ volumes:
     name: chromadb_data
 
 networks:
-  traefik_proxy:
-    external: true
-  backend_net:
-    external: true
   data_net:
+    external: true
+  traefik_proxy:
     external: true

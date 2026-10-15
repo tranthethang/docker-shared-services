@@ -33,6 +33,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness')"]
       interval: 15s
@@ -47,6 +48,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

@@ -15,13 +15,13 @@ services:
           cpus: "${ZITADEL_CPUS_RESERVED:-0.2}"
           memory: "${ZITADEL_MEMORY_RESERVED:-256M}"
     environment:
-      - ZITADEL_MASTERKEY=${ZITADEL_MASTERKEY:-MasterkeyNeedsToHave32Characters}
+      - ZITADEL_MASTERKEY=${ZITADEL_MASTERKEY:?Set ZITADEL_MASTERKEY in .env — run make setup}
       - ZITADEL_EXTERNALDOMAIN=${ZITADEL_HOSTNAME:-zitadel.dss.localhost}
       - ZITADEL_EXTERNALPORT=443
       - ZITADEL_EXTERNALSECURE=true
       - ZITADEL_TLS_ENABLED=false
       - ZITADEL_DATABASE_POSTGRES_HOST=${POSTGRES16_HOST:-postgres}
-      - ZITADEL_DATABASE_POSTGRES_PORT=${POSTGRES16_PORT:-5432}
+      - ZITADEL_DATABASE_POSTGRES_PORT=5432
       - ZITADEL_DATABASE_POSTGRES_DATABASE=${POSTGRES16_DB:-zitadel}
       - ZITADEL_DATABASE_POSTGRES_USER_USERNAME=${POSTGRES16_USER:-postgres}
       - ZITADEL_DATABASE_POSTGRES_USER_PASSWORD=${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}
@@ -62,6 +62,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     healthcheck:
       test: ["CMD", "/app/zitadel", "ready"]
       interval: 10s
@@ -130,6 +131,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

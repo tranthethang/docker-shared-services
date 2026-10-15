@@ -31,7 +31,7 @@ services:
       start_period: 20s
     depends_on:
       supabase-meta:
-        condition: service_started
+        condition: service_healthy
     environment:
       HOSTNAME: "0.0.0.0"
       STUDIO_PG_META_URL: http://supabase-meta:8080
@@ -40,15 +40,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       POSTGRES_USER_READ_WRITE: postgres
-      PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+      PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY:?Set PG_META_CRYPTO_KEY in .env — run make setup}
       DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION:-Default Organization}
       DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT:-Default Project}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       SUPABASE_URL: http://supabase-kong:8000
       SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.dss.localhost}
-      SUPABASE_ANON_KEY: ${ANON_KEY}
-      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
-      AUTH_JWT_SECRET: ${JWT_SECRET}
+      SUPABASE_ANON_KEY: ${ANON_KEY:?Set ANON_KEY in .env — run make setup}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY:?Set SERVICE_ROLE_KEY in .env — run make setup}
+      AUTH_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
       ENABLED_FEATURES_LOGS_ALL: "false"
@@ -57,6 +57,7 @@ services:
       - ./volumes/snippets:/app/snippets:z
     networks:
       - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -118,7 +119,7 @@ services:
       realtime:
         condition: service_healthy
       supabase-meta:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
       - ./volumes/api/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro,z
@@ -133,8 +134,8 @@ services:
       KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
       KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
       KONG_PROXY_ACCESS_LOG: /dev/stdout combined
-      SUPABASE_ANON_KEY: ${ANON_KEY}
-      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_ANON_KEY: ${ANON_KEY:?Set ANON_KEY in .env — run make setup}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY:?Set SERVICE_ROLE_KEY in .env — run make setup}
       SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
       ANON_KEY_ASYMMETRIC: ${ANON_KEY_ASYMMETRIC:-}
@@ -187,7 +188,7 @@ services:
       GOTRUE_JWT_AUD: authenticated
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
       GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
-      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       GOTRUE_JWT_ISSUER: ${API_EXTERNAL_URL:-https://supabase.dss.localhost/auth/v1}
       GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP:-true}
       GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS:-false}
@@ -207,6 +208,7 @@ services:
       GOTRUE_SMS_AUTOCONFIRM: ${ENABLE_PHONE_AUTOCONFIRM:-true}
     networks:
       - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -235,9 +237,9 @@ services:
       retries: 3
       start_period: 10s
     environment:
-      ANON_KEY: ${ANON_KEY}
-      SERVICE_KEY: ${SERVICE_ROLE_KEY}
-      AUTH_JWT_SECRET: ${JWT_SECRET}
+      ANON_KEY: ${ANON_KEY:?Set ANON_KEY in .env — run make setup}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY:?Set SERVICE_ROLE_KEY in .env — run make setup}
+      AUTH_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
       STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.dss.localhost}
       REQUEST_ALLOW_X_FORWARDED_PATH: "true"
@@ -248,12 +250,14 @@ services:
       TENANT_ID: ${STORAGE_TENANT_ID:-stub}
       REGION: ${REGION:-stub}
       ENABLE_IMAGE_TRANSFORMATION: "false"
-      S3_PROTOCOL_ACCESS_KEY_ID: ${S3_PROTOCOL_ACCESS_KEY_ID}
-      S3_PROTOCOL_ACCESS_KEY_SECRET: ${S3_PROTOCOL_ACCESS_KEY_SECRET}
+      S3_PROTOCOL_ACCESS_KEY_ID: ${S3_PROTOCOL_ACCESS_KEY_ID:?Set S3_PROTOCOL_ACCESS_KEY_ID in .env — run make setup}
+      S3_PROTOCOL_ACCESS_KEY_SECRET: ${S3_PROTOCOL_ACCESS_KEY_SECRET:?Set S3_PROTOCOL_ACCESS_KEY_SECRET in .env — run make
+        setup}
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     networks:
       - backend_net
+      - data_net
 
   # Container name is intentional: Realtime derives tenant id from the subdomain
   # (realtime-dev). Do not rename to supabase-realtime.
@@ -291,10 +295,10 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       DB_NAME: ${POSTGRES_DB:-postgres}
       DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
-      DB_ENC_KEY: ${REALTIME_DB_ENC_KEY:-supabaserealtime}
-      API_JWT_SECRET: ${JWT_SECRET}
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
-      METRICS_JWT_SECRET: ${JWT_SECRET}
+      DB_ENC_KEY: ${REALTIME_DB_ENC_KEY:?Set REALTIME_DB_ENC_KEY in .env — run make setup}
+      API_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Set SECRET_KEY_BASE in .env — run make setup}
+      METRICS_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       ERL_AFLAGS: -proto_dist inet_tcp
       DNS_NODES: "''"
       RLIMIT_NOFILE: "10000"
@@ -304,6 +308,7 @@ services:
       DISABLE_HEALTHCHECK_LOGGING: "true"
     networks:
       - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -339,9 +344,10 @@ services:
       PG_META_DB_NAME: ${POSTGRES_DB:-postgres}
       PG_META_DB_USER: postgres
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
-      CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+      CRYPTO_KEY: ${PG_META_CRYPTO_KEY:?Set PG_META_CRYPTO_KEY in .env — run make setup}
     networks:
       - backend_net
+      - data_net
 
   # Dedicated Supabase Postgres (not shared pgvector/postgres stacks)
     logging:
@@ -388,11 +394,10 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       PGDATABASE: ${POSTGRES_DB:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       JWT_EXP: ${JWT_EXPIRY:-3600}
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=fatal"]
     networks:
-      - backend_net
       - data_net
     logging:
       driver: json-file

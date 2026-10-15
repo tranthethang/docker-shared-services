@@ -21,7 +21,6 @@ services:
     ports:
       - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
     networks:
-      - backend_net
       - data_net
     volumes:
       - mysql_data:/var/lib/mysql
@@ -39,8 +38,6 @@ services:
       start_period: 30s
 
 networks:
-  backend_net:
-    external: true
   data_net:
     external: true
 

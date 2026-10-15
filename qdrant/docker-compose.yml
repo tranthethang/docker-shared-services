@@ -28,7 +28,6 @@ services:
       - qdrant_snapshots:/qdrant/snapshots
     networks:
       - traefik_proxy
-      - backend_net
       - data_net
     ulimits:
       nofile:
@@ -50,11 +49,9 @@ services:
         max-file: "3"
 
 networks:
-  traefik_proxy:
-    external: true
-  backend_net:
-    external: true
   data_net:
+    external: true
+  traefik_proxy:
     external: true
 
 volumes:

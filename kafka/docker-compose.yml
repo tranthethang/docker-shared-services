@@ -33,7 +33,6 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
-      - backend_net
       - data_net
     restart: "${RESTART_POLICY:-unless-stopped}"
     stop_grace_period: 60s
@@ -69,6 +68,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"

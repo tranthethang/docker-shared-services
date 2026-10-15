@@ -15,7 +15,8 @@ START_ORDER = [
 VALIDATION_RULES = {}
 
 # Local random secrets that `make setup` can auto-fill when empty.
-# Format: service -> { VAR: (method, nbytes) } where method is "hex" or "base64" or "htpasswd".
+# Format: service -> { VAR: (method, nbytes) } where method is "hex", "base64", "htpasswd",
+# or "jwt_hs256" (signed with JWT_SECRET from the same .env; nbytes unused).
 # External API keys (e.g. HINDSIGHT_API_LLM_API_KEY) stay manual.
 # These stay UNIQUE per variable (not the shared password).
 AUTO_GENERATED_SECRETS = {}
@@ -25,6 +26,16 @@ AUTO_GENERATED_SECRETS = {}
 AUTH_GATEWAY_MIDDLEWARE_OFF = "auth-none"
 AUTH_GATEWAY_MIDDLEWARES_ON = frozenset({"auth-default", "auth-admin"})
 AUTH_OPT_IN_UI_SERVICES = []
+
+# Data-store UIs allowed on data_net besides PACKAGE_REQUIRES consumers (test_network_tiers).
+DATA_CLIENT_UI_SERVICES = [
+    "adminer",
+    "appsmith",
+    "chromadb_admin",
+    "n8n",
+    "node-red",
+    "redisinsight",
+]
 
 # Sentinel values treated as "still the repo default" and safe to overwrite
 # when applying the shared password.

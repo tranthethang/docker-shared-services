@@ -1,9 +1,12 @@
 import base64
 import hashlib
+import hmac
+import json
 import re
 import secrets
 import string
 import subprocess
+import time
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -77,6 +80,26 @@ def generate_secret(method: str, nbytes: int = 32, password: str | None = None) 
             sha1_hash = base64.b64encode(digest).decode("ascii")
             return f"admin:{{SHA}}{sha1_hash}"
     raise ValueError(f"Unsupported secret method: {method}")
+
+
+JWT_LIFETIME_SECONDS = 10 * 365 * 24 * 3600
+
+
+def _b64url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def generate_hs256_jwt(secret: str, role: str, now: int | None = None) -> str:
+    """Sign a Supabase API key (HS256 JWT) for ``role`` with ``secret``."""
+    issued = int(time.time()) if now is None else now
+    header = {"alg": "HS256", "typ": "JWT"}
+    payload = {"role": role, "iss": "supabase", "iat": issued, "exp": issued + JWT_LIFETIME_SECONDS}
+    signing_input = ".".join(
+        _b64url(json.dumps(part, separators=(",", ":")).encode("utf-8"))
+        for part in (header, payload)
+    )
+    signature = hmac.new(secret.encode("utf-8"), signing_input.encode("ascii"), hashlib.sha256)
+    return f"{signing_input}.{_b64url(signature.digest())}"
 
 
 def iter_env_assignments(env_path: StrPath) -> Iterator[tuple[str, str]]:

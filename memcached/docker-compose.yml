@@ -14,7 +14,6 @@ services:
     ports:
       - "127.0.0.1:${MEMCACHED_PORT:-11211}:11211"
     networks:
-      - backend_net
       - data_net
     stop_grace_period: 20s
     logging:
@@ -30,7 +29,5 @@ services:
       start_period: 5s
 
 networks:
-  backend_net:
-    external: true
   data_net:
     external: true

@@ -27,7 +27,6 @@ services:
       - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
     networks:
       - traefik_proxy
-      - backend_net
       - data_net
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
@@ -44,11 +43,9 @@ services:
       start_period: 30s
 
 networks:
-  traefik_proxy:
-    external: true
-  backend_net:
-    external: true
   data_net:
+    external: true
+  traefik_proxy:
     external: true
 
 volumes:

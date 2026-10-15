@@ -7,11 +7,12 @@ Steps and rules for a new `<service>/` directory. Each rule names the tool that 
 Create `<service>/docker-compose.yml` and `<service>/.env.example`.
 
 - Every service is its own Compose project, loaded with `--project-directory <service>` together with `docker-compose.shared.yml`, so `<service>/.env` and relative paths resolve. **Enforced by** `make validate` (runs `docker compose --project-directory <service> -f docker-compose.shared.yml -f <service>/docker-compose.yml config` for each service).
-- Attach only the external networks the service needs: `traefik_proxy` for a web UI, `backend_net` for app-to-app traffic, `data_net` for databases. See [network segmentation](../network-segmentation.md). **Review only.**
+- Attach only the external networks the service needs: `traefik_proxy` for a web UI, `backend_net` for app-to-app traffic, `data_net` for databases. A data store attaches to `data_net` and not `backend_net`; a client joins `data_net` only as a `PACKAGE_REQUIRES` consumer, a same-project container, or a `DATA_CLIENT_UI_SERVICES` entry. See [network segmentation](../network-segmentation.md#data-tier-rules). **Enforced by** `tests/test_network_tiers.py` (`make test`) for the data tier; the rest is **review only**.
 - Pin image tags; do not use `latest`. Set `container_name`, `restart: "${RESTART_POLICY:-unless-stopped}"`, resource limits through `<SERVICE>_*` env vars, `json-file` logging with rotation, and a `healthcheck` whenever the image allows one. **Review only.**
 - Bind database and protocol ports to `127.0.0.1` only (`"127.0.0.1:${PORT}:5432"`). **Review only.**
 - `depends_on` does not cross Compose projects. Declare cross-project backends in `PACKAGE_REQUIRES` (step 3). **Review only.**
-- `.env.example` ships empty values for secrets. The legacy password `Password102!` is rejected. **Enforced by** `make setup` (`fill-shared-password` refuses it) and `make up` (the prerequisite check rejects it for variables in `VALIDATION_RULES`).
+- A service that only reads Docker state uses a `tecnativa/docker-socket-proxy` sidecar on its own internal network, not a direct `docker.sock` mount. See [Docker API access](../network-segmentation.md#docker-api-access). **Review only.**
+- `.env.example` ships empty values for secrets, and Compose reads them as `${VAR:?Set VAR in .env — run make setup}` so a missing value stops `up`. Add locally generated secrets to `AUTO_GENERATED_SECRETS`. The legacy password `Password102!` is rejected. **Enforced by** `make setup` (`fill-shared-password` refuses it) and `make up` (the prerequisite check rejects it for variables in `VALIDATION_RULES`).
 
 ## 2. Web UI through Traefik
 

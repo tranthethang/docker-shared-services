@@ -125,7 +125,8 @@
     "category": "Observability",
     "description": "Live web viewer for Docker container logs.",
     "containers": [
-      "dozzle"
+      "dozzle",
+      "socket-proxy"
     ],
     "web_ui": [
       "https://dozzle.dss.localhost"
@@ -376,6 +377,7 @@
       "grafana",
       "loki",
       "alloy",
+      "alloy-socket-proxy",
       "otel-collector-probe"
     ],
     "web_ui": [
@@ -533,7 +535,8 @@
     "category": "Auth & Gateway",
     "description": "Reverse proxy and TLS termination for every *.dss.localhost UI.",
     "containers": [
-      "traefik"
+      "traefik",
+      "socket-proxy"
     ],
     "web_ui": [
       "https://traefik.dss.localhost/dashboard/"

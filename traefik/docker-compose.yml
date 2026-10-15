@@ -30,6 +30,7 @@ services:
       - "--providers.file=true"
       - "--providers.file.filename=/traefik/config.yml"
       - "--providers.docker=true"
+      - "--providers.docker.endpoint=tcp://traefik-socket-proxy:2375"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=traefik_proxy"
       - "--providers.docker.defaultRule=Host(`{{ normalize .Name }}.dss.localhost`)"
@@ -39,7 +40,6 @@ services:
       - "127.0.0.1:80:80"
       - "127.0.0.1:443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config.yml:/traefik/config.yml:ro
       - ./certs:/certs:ro
     logging:
@@ -54,12 +54,48 @@ services:
       retries: 3
       start_period: 10s
     restart: "${RESTART_POLICY:-unless-stopped}"
+    depends_on:
+      socket-proxy:
+        condition: service_healthy
     networks:
       traefik_proxy:
         aliases:
           - minio.dss.localhost
           - s3.minio.dss.localhost
+      traefik_docker:
+
+  # Read-only Docker API for the provider. A :ro socket mount does not limit the API.
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    container_name: traefik-socket-proxy
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${TRAEFIK_SOCKET_PROXY_CPUS_LIMIT:-0.1}"
+          memory: "${TRAEFIK_SOCKET_PROXY_MEMORY_LIMIT:-64M}"
+    environment:
+      - CONTAINERS=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik_docker
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2375/_ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   traefik_proxy:
     external: true
+  # Only Traefik may reach its socket proxy. Do not attach this network elsewhere.
+  traefik_docker:
+    name: traefik_docker
+    internal: true

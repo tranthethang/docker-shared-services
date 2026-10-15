@@ -19,11 +19,11 @@ services:
           cpus: "${BUGSINK_CPUS_RESERVED:-0.1}"
           memory: "${BUGSINK_MEMORY_RESERVED:-128M}"
     environment:
-      SECRET_KEY: "${BUGSINK_SECRET_KEY:-change-me-generate-with-openssl-rand-base64-50}"
+      SECRET_KEY: "${BUGSINK_SECRET_KEY:?Set BUGSINK_SECRET_KEY in .env — run make setup}"
       CREATE_SUPERUSER: "${BUGSINK_CREATE_SUPERUSER:-admin@example.org:admin}"
       PORT: 8000
       DATABASE_URL: "postgresql://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run\
-        \ make setup}@${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-bugsink}"
+        \ make setup}@${POSTGRES16_HOST:-postgres}:5432/${POSTGRES16_DB:-bugsink}"
       BEHIND_HTTPS_PROXY: "${BUGSINK_BEHIND_HTTPS_PROXY:-true}"
       USE_X_FORWARDED_HOST: "${BUGSINK_USE_X_FORWARDED_HOST:-true}"
       BASE_URL: "${BUGSINK_BASE_URL:-https://bugsink.dss.localhost}"
@@ -40,6 +40,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     healthcheck:
       test: ["CMD-SHELL", 'python -c ''import requests; requests.get("http://localhost:8000/health/ready").raise_for_status()''']
       interval: 30s
@@ -53,6 +54,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

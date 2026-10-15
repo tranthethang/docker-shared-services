@@ -29,6 +29,7 @@ services:
       - TEMPORAL_S3_S3_FORCE_PATH_STYLE=true
     networks:
       - backend_net
+      - data_net
     ports:
       - "127.0.0.1:${TEMPORAL_GRPC_PORT:-7233}:7233"
     stop_grace_period: 30s
@@ -87,6 +88,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

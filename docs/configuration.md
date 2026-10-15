@@ -18,8 +18,16 @@ cp pgvector/.env.example pgvector/.env
 ### Shared password (recommended)
 
 `make setup` applies **one** shared password to every service password field that
-is still empty (or holds the legacy `Password102!` default from an older `.env`). Unique secrets (Garage,
-Woodpecker agent, Zitadel masterkey) are generated separately.
+is still empty (or holds the legacy `Password102!` default from an older `.env`). Unique secrets are
+generated separately, only when the value is empty: Garage, LiteLLM, the oauth2-proxy cookie secret,
+the Woodpecker agent secret, the Zitadel masterkey, the Bugsink secret key, the Inngest event and
+signing keys (16 hex characters), and the Supabase secrets. Supabase `ANON_KEY` and `SERVICE_ROLE_KEY`
+are HS256 JWTs signed with the generated `JWT_SECRET`.
+
+An older `.env` may still hold a former example value such as `MasterkeyNeedsToHave32Characters` or
+the Supabase demo keys. `make setup` warns about it and leaves it unchanged, because the Zitadel
+masterkey and `REALTIME_DB_ENC_KEY` encrypt existing data. Replace those values yourself before the
+first start, or after resetting that service's data.
 
 ```bash
 # Generate a random shared password and write it into all service .env files

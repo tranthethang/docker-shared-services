@@ -23,10 +23,10 @@ services:
           memory: "${JENKINS_MEMORY_RESERVED:-1G}"
     volumes:
       - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
@@ -38,7 +38,7 @@ services:
       - JENKINS_OPTS=--httpPort=8080
       - TZ="${TZ:-Asia/Ho_Chi_Minh}"
       - POSTGRES_HOST=${POSTGRES16_HOST:-postgres}
-      - POSTGRES_PORT=${POSTGRES16_PORT:-5432}
+      - POSTGRES_PORT=5432
       - JENKINS_DB_NAME=${JENKINS_DB_NAME:-jenkins}
       - POSTGRES_USER=${POSTGRES16_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}
@@ -49,6 +49,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

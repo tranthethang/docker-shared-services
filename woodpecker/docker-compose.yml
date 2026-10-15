@@ -77,6 +77,12 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - woodpecker_docker
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2375/_ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     logging:
       driver: json-file
       options:
@@ -99,7 +105,7 @@ services:
       woodpecker-server:
         condition: service_healthy
       socket-proxy:
-        condition: service_started
+        condition: service_healthy
     env_file:
       - ./.env
     environment:
@@ -113,6 +119,13 @@ services:
     networks:
       - backend_net
       - woodpecker_docker
+    # `ping` hits the agent's :3000/healthz, which stops while the server is unreachable.
+    healthcheck:
+      test: ["CMD", "/bin/woodpecker-agent", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     logging:
       driver: json-file
       options:

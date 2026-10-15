@@ -16,25 +16,26 @@ services:
       inngest start --host 0.0.0.0 --port 8288 --sdk-url ${INNGEST_SDK_URL:-http://api:8000/api/inngest}
     environment:
       - INNGEST_PORT=8288
-      - INNGEST_EVENT_KEY=${INNGEST_EVENT_KEY}
-      - INNGEST_SIGNING_KEY=${INNGEST_SIGNING_KEY}
+      - INNGEST_EVENT_KEY=${INNGEST_EVENT_KEY:?Set INNGEST_EVENT_KEY in .env — run make setup}
+      - INNGEST_SIGNING_KEY=${INNGEST_SIGNING_KEY:?Set INNGEST_SIGNING_KEY in .env — run make setup}
       - INNGEST_POSTGRES_URL=postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env
-        — run make setup}@${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-inngest}?sslmode=disable
+        — run make setup}@${POSTGRES16_HOST:-postgres}:5432/${POSTGRES16_DB:-inngest}?sslmode=disable
       - INNGEST_POSTGRES_URI=postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env
-        — run make setup}@${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-inngest}?sslmode=disable
-      - INNGEST_REDIS_URL=redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env — run make setup}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
-      - INNGEST_REDIS_URI=redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env — run make setup}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
+        — run make setup}@${POSTGRES16_HOST:-postgres}:5432/${POSTGRES16_DB:-inngest}?sslmode=disable
+      - INNGEST_REDIS_URL=redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env — run make setup}@${REDIS_HOST:-redis}:6379
+      - INNGEST_REDIS_URI=redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env — run make setup}@${REDIS_HOST:-redis}:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env — run make setup}
       - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PORT=6379
       - POSTGRES_USER=${POSTGRES16_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}
       - POSTGRES_HOST=${POSTGRES16_HOST:-postgres}
-      - POSTGRES_PORT=${POSTGRES16_PORT:-5432}
+      - POSTGRES_PORT=5432
       - POSTGRES_DB=${POSTGRES16_DB:-inngest}
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8288 && echo -e 'GET /health HTTP/1.1\\r\\nHost: localhost\\\
             r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
@@ -55,6 +56,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

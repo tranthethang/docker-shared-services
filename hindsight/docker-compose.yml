@@ -30,7 +30,7 @@ services:
     # Traefik-only access — no host port publish (see plan: omit ports:).
     environment:
       HINDSIGHT_API_DATABASE_URL: "postgresql://${PGVECTOR_USER:-postgres}:${PGVECTOR_PASSWORD:?Set PGVECTOR_PASSWORD in .env\
-        \ — run make setup}@${PGVECTOR_HOST:-pgvector}:${PGVECTOR_PORT:-5432}/${PGVECTOR_DB:-hindsight}"
+        \ — run make setup}@${PGVECTOR_HOST:-pgvector}:5432/${PGVECTOR_DB:-hindsight}"
       # Chat via openai-quota-gateway (OpenAI-compatible /v1/chat/completions).
       HINDSIGHT_API_LLM_PROVIDER: "${HINDSIGHT_API_LLM_PROVIDER:-openai}"
       HINDSIGHT_API_LLM_API_KEY: "${HINDSIGHT_API_LLM_API_KEY:-}"
@@ -56,6 +56,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     healthcheck:
       # /health/ready verifies PostgreSQL connectivity (alias: /health).
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/health/ready',\
@@ -71,6 +72,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

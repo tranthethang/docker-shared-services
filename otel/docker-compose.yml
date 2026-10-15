@@ -18,6 +18,7 @@ services:
       - "127.0.0.1:${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
     networks:
       - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -46,6 +47,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
@@ -79,7 +81,6 @@ services:
     ports:
       - "127.0.0.1:${LOKI_PORT:-3100}:3100"
     networks:
-      - backend_net
       - data_net
     volumes:
       - ./config/loki.yml:/etc/loki/local-config.yaml:ro
@@ -112,10 +113,11 @@ services:
       - /etc/alloy/config.alloy
     networks:
       - backend_net
+      - otel_docker
+      - data_net
     volumes:
       - ./config/alloy.alloy:/etc/alloy/config.alloy:ro
       - alloy_data:/var/lib/alloy/data
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
       resources:
         limits:
@@ -129,6 +131,8 @@ services:
     depends_on:
       loki:
         condition: service_healthy
+      alloy-socket-proxy:
+        condition: service_healthy
     # grafana/alloy:v1.20.1 is root with perl, and has neither wget nor curl.
     healthcheck:
       test: ["CMD-SHELL", "perl -e 'use IO::Socket::INET; my $$s = IO::Socket::INET->new(PeerAddr => \"127.0.0.1:12345\",\
@@ -138,6 +142,35 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+
+  # Read-only Docker API for log discovery. Alloy also lists /networks.
+  alloy-socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    container_name: alloy-socket-proxy
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${ALLOY_SOCKET_PROXY_CPUS_LIMIT:-0.1}"
+          memory: "${ALLOY_SOCKET_PROXY_MEMORY_LIMIT:-64M}"
+    environment:
+      - CONTAINERS=1
+      - NETWORKS=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - otel_docker
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2375/_ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   otel-collector-probe:
     container_name: otel-collector-probe
@@ -175,6 +208,10 @@ networks:
     external: true
   data_net:
     external: true
+  # Only Alloy may reach its socket proxy. Do not attach this network elsewhere.
+  otel_docker:
+    name: otel_docker
+    internal: true
 
 volumes:
   grafana_data:

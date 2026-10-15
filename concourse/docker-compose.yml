@@ -29,7 +29,7 @@ services:
       start_period: 60s
     environment:
       CONCOURSE_POSTGRES_HOST: "${POSTGRES16_HOST:-postgres}"
-      CONCOURSE_POSTGRES_PORT: "${POSTGRES16_PORT:-5432}"
+      CONCOURSE_POSTGRES_PORT: "5432"
       CONCOURSE_POSTGRES_USER: "${POSTGRES16_USER:-postgres}"
       CONCOURSE_POSTGRES_PASSWORD: "${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}"
       CONCOURSE_POSTGRES_DATABASE: "${CONCOURSE_DB_NAME:-concourse}"
@@ -40,6 +40,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -47,6 +48,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

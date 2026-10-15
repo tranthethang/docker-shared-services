@@ -1,5 +1,5 @@
 discovery.docker "containers" {
-  host             = "unix:///var/run/docker.sock"
+  host             = "tcp://alloy-socket-proxy:2375"
   refresh_interval = "5s"
 }
 
@@ -35,7 +35,7 @@ loki.relabel "stream" {
 }
 
 loki.source.docker "containers" {
-  host             = "unix:///var/run/docker.sock"
+  host             = "tcp://alloy-socket-proxy:2375"
   targets          = discovery.relabel.containers.output
   forward_to       = [loki.write.default.receiver]
   relabel_rules    = loki.relabel.stream.rules

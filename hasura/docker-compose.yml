@@ -14,9 +14,9 @@ services:
     environment:
       # Shared PostgreSQL 16 (postgres/docker-compose.yml) on backend_net
       HASURA_GRAPHQL_METADATA_DATABASE_URL: "postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD\
-        \ in .env — run make setup}@${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-hasura}"
+        \ in .env — run make setup}@${POSTGRES16_HOST:-postgres}:5432/${POSTGRES16_DB:-hasura}"
       PG_DATABASE_URL: "postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run\
-        \ make setup}@${POSTGRES16_HOST:-postgres}:${POSTGRES16_PORT:-5432}/${POSTGRES16_DB:-hasura}"
+        \ make setup}@${POSTGRES16_HOST:-postgres}:5432/${POSTGRES16_DB:-hasura}"
       HASURA_GRAPHQL_ENABLE_CONSOLE: "${HASURA_GRAPHQL_ENABLE_CONSOLE:-true}"
       HASURA_GRAPHQL_DEV_MODE: "${HASURA_GRAPHQL_DEV_MODE:-true}"
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: "${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup, http-log, webhook-log, websocket-log,\
@@ -33,6 +33,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
       interval: 15s
@@ -46,6 +47,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:
