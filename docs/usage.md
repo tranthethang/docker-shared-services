@@ -79,7 +79,7 @@ uv run python -m dss.cli.env merge-missing all   # add keys from .env.example mi
 make restart service=mermaid-live-editor
 ```
 
-See [configuration.md](configuration.md#opt-in-zitadel-ui-authentication) and [oauth2-proxy/README.md](../oauth2-proxy/README.md).
+See [configuration.md](configuration.md#opt-in-oidc-ui-authentication) and [oauth2-proxy/README.md](../oauth2-proxy/README.md).
 
 ### Docker Compose Direct
 

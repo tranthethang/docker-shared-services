@@ -21,7 +21,7 @@ HEADER = [
 ]
 FOOTER = [
     "",
-    "Opt-in UI auth (oauth2-proxy + Zitadel; OFF by default):",
+    "Opt-in UI auth (oauth2-proxy + OIDC issuer; OFF by default):",
     "  • Candidates: mermaid-live-editor, temporal UI, chromadb, qdrant, kafka-ui",
     "  • Enable: set AUTH_ENABLED=true and AUTH_MIDDLEWARE=auth-default in that service .env,"
     " then restart",

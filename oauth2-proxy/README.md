@@ -1,20 +1,16 @@
-# oauth2-proxy (Zitadel authentication gateway)
+# oauth2-proxy (OIDC authentication gateway)
 
-Browser authentication gateway for selected Traefik-routed UIs. Backed by Zitadel
-OIDC; opt-in per UI via `AUTH_ENABLED` / `AUTH_MIDDLEWARE` on the target service.
+Browser authentication gateway for selected Traefik-routed UIs. It accepts any
+OIDC issuer and is enabled per UI via `AUTH_ENABLED` / `AUTH_MIDDLEWARE` on the
+target service.
 
-## Quick Start
+## Quick start
 
 ```sh
 # From repo root
 make setup                       # Creates oauth2-proxy/.env; fills cookie secret
-                                 # (CLIENT_ID / CLIENT_SECRET stay empty until you opt in)
-make up service=postgres         # Zitadel DB dependency
-make up service=traefik
-make up service=zitadel
-# Prerequisite only when enabling this gateway: register a Zitadel app
-# (see below), then set CLIENT_ID / CLIENT_SECRET in oauth2-proxy/.env.
-# Until then, `make manage` and `make tui` show this service as a label.
+make up service=traefik           # Needed to publish the gateway and local IdPs
+# Configure the issuer and client credentials in oauth2-proxy/.env (see below).
 make up service=oauth2-proxy
 ```
 
@@ -24,26 +20,44 @@ make up service=oauth2-proxy
 | OAuth callback          | `https://auth.dss.localhost/oauth2/callback` |
 | Logout                  | `https://auth.dss.localhost/oauth2/sign_out` |
 
-No host ports are published; access is Traefik-only (`*.dss.localhost` cert covers `auth`).
+No host ports are published; access is Traefik-only (`*.dss.localhost` cert
+covers `auth`).
 
-## Zitadel application registration
+## Configure an OIDC issuer
 
-Required only when you are configuring the opt-in auth gateway. General
-`make setup` does not treat client id/secret as missing configuration.
+Register a confidential client with your OIDC provider and allow the redirect
+URI `https://auth.dss.localhost/oauth2/callback`. Set the values in
+`oauth2-proxy/.env`:
 
-1. Open [Zitadel Console](https://zitadel.dss.localhost/ui/console).
-1. Create a **Project** (or reuse an existing one) → **New Application**.
-1. Type: **Web** → **Code** (authorization code + PKCE).
-1. Redirect URI: `https://auth.dss.localhost/oauth2/callback`
-1. Post-logout / additional origins (optional): `https://auth.dss.localhost`
-1. Copy **Client ID** and **Client Secret** into `oauth2-proxy/.env`:
-   ```env
-   OAUTH2_PROXY_CLIENT_ID=...
-   OAUTH2_PROXY_CLIENT_SECRET=...
-   ```
-1. Restart: `make restart service=oauth2-proxy`
+```env
+OAUTH2_PROXY_OIDC_ISSUER_URL=https://idp.example.com/issuer-path
+OAUTH2_PROXY_OIDC_ISSUER_HOST=
+OAUTH2_PROXY_CLIENT_ID=...
+OAUTH2_PROXY_CLIENT_SECRET=...
+```
 
-Issuer discovery: `https://zitadel.dss.localhost/.well-known/openid-configuration`.
+`OAUTH2_PROXY_OIDC_ISSUER_URL` is the issuer base URL (origin plus path), not
+the `/.well-known/openid-configuration` URL. For a public issuer, leave
+`OAUTH2_PROXY_OIDC_ISSUER_HOST` empty so normal DNS is used. If a local issuer is
+reached through this machine's Traefik, set the host to its hostname only, for
+example `idp.dss.localhost`; Compose maps that name to `host-gateway`. The
+issuer URL must still contain the matching HTTPS origin and any path.
+
+General `make setup` does not treat client id/secret as missing configuration.
+Until both are set, `make manage` and `make tui` show this service as a label,
+and `make up service=oauth2-proxy` exits with the same reason. Restart after
+changing the issuer or credentials:
+
+```sh
+make restart service=oauth2-proxy
+```
+
+Zitadel is one possible local issuer. For that example, use
+`https://zitadel.dss.localhost` as the issuer URL and
+`zitadel.dss.localhost` as `OAUTH2_PROXY_OIDC_ISSUER_HOST`; configure a Web
+application with the callback above. Existing installs that kept the old issuer
+URL must set that host: Compose no longer pins `zitadel.dss.localhost`.
+Starting oauth2-proxy does not start or wait for Zitadel.
 
 ## Traefik middleware
 
@@ -52,7 +66,7 @@ Defined on this service (Docker provider):
 | Middleware     | Purpose                                                                       |
 | -------------- | ----------------------------------------------------------------------------- |
 | `auth-none`    | No-op (public UI; default for opt-in services)                                |
-| `auth-default` | Require any authenticated Zitadel user (ForwardAuth with browser redirect)    |
+| `auth-default` | Require an authenticated user (ForwardAuth with browser redirect)             |
 | `auth-admin`   | Extension point for stricter policies (same forward auth until customized)    |
 | `auth-forward` | ForwardAuth to oauth2-proxy `/` (202 authenticated, 302 to sign-in otherwise) |
 
@@ -63,8 +77,8 @@ AUTH_ENABLED=true
 AUTH_MIDDLEWARE=auth-default
 ```
 
-Use `AUTH_MIDDLEWARE=auth-none` (default) to keep the UI public. Do **not** attach
-these middlewares to Zitadel itself.
+Use `AUTH_MIDDLEWARE=auth-none` (default) to keep the UI public. Do not attach
+these middlewares to the issuer itself.
 
 Forwarded identity headers (when authenticated): `X-Auth-Request-User`,
 `X-Auth-Request-Email`, `X-Auth-Request-Access-Token`, `Authorization`.
@@ -78,13 +92,11 @@ container directly (no ForwardAuth on the oauth2-proxy router).
 - Secure + SameSite=Lax for HTTPS local certs
 - `OAUTH2_PROXY_COOKIE_SECRET` is auto-generated by `make setup` when empty and
   is the only oauth2-proxy value checked during general setup validation
-- Zitadel `OAUTH2_PROXY_CLIENT_ID` / `OAUTH2_PROXY_CLIENT_SECRET` stay manual
-  and are prerequisites only when enabling this gateway
+- Client id and secret stay manual and are prerequisites only when enabling
+  this gateway
 
 ## Dependencies
 
 - **Traefik** — TLS and routing
-- **Zitadel** — OIDC issuer (start before oauth2-proxy)
-
-The container uses `extra_hosts: zitadel.dss.localhost:host-gateway` so OIDC
-discovery/token calls reach Traefik on the Docker host.
+- **OIDC issuer** — any configured provider; for a local issuer through host
+  Traefik, set `OAUTH2_PROXY_OIDC_ISSUER_HOST`

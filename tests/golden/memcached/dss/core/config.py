@@ -63,12 +63,10 @@ PACKAGE_DEFAULT_SERVICES = [
     "traefik",
     "oauth2-proxy",
     "postgres",
-    "zitadel",
     "redis",
     "adminer",
     "mailpit",
     "garage",
-    "hasura",
 ]
 
 # Backend -> services that require it. Resolution is transitive, then ordered as SERVICES.
@@ -89,5 +87,4 @@ PACKAGE_REQUIRES: dict[str, list[str]] = {
     ],
     "pgvector": ["hindsight"],
     "redis": ["inngest", "redisinsight"],
-    "zitadel": ["oauth2-proxy"],
 }

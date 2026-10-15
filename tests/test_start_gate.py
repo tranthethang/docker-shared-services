@@ -1,4 +1,4 @@
-"""oauth2-proxy stays a label until the Zitadel client id and secret are set."""
+"""oauth2-proxy stays a label until the OIDC client id and secret are set."""
 
 from __future__ import annotations
 

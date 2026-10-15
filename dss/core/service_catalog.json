@@ -356,7 +356,7 @@
   },
   "oauth2-proxy": {
     "category": "Auth & Gateway",
-    "description": "Opt-in Traefik login gateway backed by Zitadel OIDC.",
+    "description": "Opt-in Traefik login gateway for any OIDC issuer.",
     "containers": [
       "oauth2-proxy",
       "oauth2-proxy-probe"
@@ -365,7 +365,7 @@
       "https://auth.dss.localhost"
     ],
     "info": [
-      "oauth2-proxy (auth gateway) - https://auth.dss.localhost (Traefik only; needs Zitadel app)"
+      "oauth2-proxy (auth gateway) - https://auth.dss.localhost (Traefik only; needs OIDC client)"
     ]
   },
   "otel": {

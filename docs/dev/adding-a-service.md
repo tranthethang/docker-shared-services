@@ -34,7 +34,7 @@ labels:
 
 - Add the directory name to `SERVICES`. **Enforced by** `tests/test_service_catalog.py` (every directory with a `docker-compose.yml` is in `SERVICES` and the catalog).
 - If other services start it first, add it to `START_ORDER`. **Review only.**
-- Record cross-project backends in `PACKAGE_REQUIRES` (backend → services that need it), for example `postgres` → `zitadel` and `zitadel` → `oauth2-proxy`. `make up service=<name>` starts and waits on these. **Enforced by** `tests/test_config.py` (no cycles, transitive order). Whether the list is complete is **review only**.
+- Record cross-project backends in `PACKAGE_REQUIRES` (backend → services that need it), for example `postgres` → `zitadel`. `make up service=<name>` starts and waits on these. **Enforced by** `tests/test_config.py` (no cycles, transitive order). Whether the list is complete is **review only**.
 - Add mandatory variables to `VALIDATION_RULES`, generated secrets to `AUTO_GENERATED_SECRETS`, and shared-password keys to `SHARED_PASSWORD_KEYS`. **Review only.**
 
 Editing `config.py` changes the export goldens. Run `make test-update` and review the diff ([quality-gate.md](quality-gate.md)).

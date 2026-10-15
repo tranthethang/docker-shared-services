@@ -87,7 +87,7 @@ VALIDATION_RULES = {
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["MONGO_ROOT_PASSWORD"],
     "mysql8": ["MYSQL_ROOT_PASSWORD"],
-    # Cookie secret only — Zitadel CLIENT_ID / CLIENT_SECRET are opt-in
+    # Cookie secret only — OIDC CLIENT_ID / CLIENT_SECRET are opt-in
     # prerequisites when configuring the auth gateway, not general setup.
     "oauth2-proxy": [
         "OAUTH2_PROXY_COOKIE_SECRET",
@@ -117,7 +117,7 @@ AUTO_GENERATED_SECRETS = {
         "LITELLM_MASTER_KEY": ("hex", 32),
         "LITELLM_SALT_KEY": ("hex", 32),
     },
-    # Cookie encryption only — Zitadel CLIENT_ID / CLIENT_SECRET stay manual.
+    # Cookie encryption only — OIDC CLIENT_ID / CLIENT_SECRET stay manual.
     "oauth2-proxy": {
         # oauth2-proxy v7 expects the decoded secret value to be exactly
         # 16, 24, or 32 bytes; use 32 hex characters rather than a 32-byte
@@ -258,12 +258,10 @@ PACKAGE_DEFAULT_SERVICES = [
     "traefik",
     "oauth2-proxy",
     "postgres",
-    "zitadel",
     "redis",
     "adminer",
     "mailpit",
     "garage",
-    "hasura",
 ]
 
 # Backend -> services that require it. Resolution is transitive, then ordered as SERVICES.
@@ -284,5 +282,4 @@ PACKAGE_REQUIRES: dict[str, list[str]] = {
     ],
     "pgvector": ["hindsight"],
     "redis": ["inngest", "redisinsight"],
-    "zitadel": ["oauth2-proxy"],
 }

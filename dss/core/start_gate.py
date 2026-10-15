@@ -1,7 +1,7 @@
 """Services shown as labels until manual configuration exists.
 
 ``oauth2-proxy`` stays in the catalog, but ``make manage`` and ``make tui`` do not
-offer it as a start target while the Zitadel client id and secret are empty.
+offer it as a start target while the OIDC client id and secret are empty.
 """
 
 from pathlib import Path

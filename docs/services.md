@@ -67,7 +67,7 @@ ______________________________________________________________________
 - **Alloy** - Ships Docker container stdout to Loki via the Docker API
 - **Traefik** - Reverse proxy and load balancer
 - **Zitadel** - Central Identity Provider / OIDC & OAuth2 Server
-- **oauth2-proxy** - Opt-in Traefik authentication gateway (`auth.dss.localhost`) backed by Zitadel
+- **oauth2-proxy** - Opt-in Traefik authentication gateway (`auth.dss.localhost`) for any OIDC issuer
 - **Redis Insight** - Redis management UI
 - **Dozzle** - Live container log tail (complement to Loki history search)
 
@@ -104,9 +104,9 @@ ______________________________________________________________________
 | Grafana        | `https://grafana.dss.localhost`                                                                | `admin` / `DSS_SHARED_PASSWORD`                                       |
 | Loki           | `http://localhost:3100`                                                                        | -                                                                     |
 | OTel Collector | `localhost:4317` (gRPC), `localhost:4318` (HTTP)                                               | Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`          |
-| Temporal UI    | `https://temporal.dss.localhost`                                                               | Opt-in Zitadel via `AUTH_*` (off by default)                          |
+| Temporal UI    | `https://temporal.dss.localhost`                                                               | Opt-in OIDC authentication via `AUTH_*` (off by default)              |
 | Traefik        | `https://traefik.dss.localhost/dashboard/`                                                     | `admin` / `DSS_SHARED_PASSWORD`                                       |
-| oauth2-proxy   | `https://auth.dss.localhost` (Traefik only)                                                    | Zitadel OIDC client id/secret in `oauth2-proxy/.env`                  |
+| oauth2-proxy   | `https://auth.dss.localhost` (Traefik only)                                                    | OIDC issuer URL and client id/secret in `oauth2-proxy/.env`           |
 | Zitadel        | `https://zitadel.dss.localhost`                                                                | `zitadel-admin@zitadel.zitadel.dss.localhost` / `DSS_SHARED_PASSWORD` |
 | Verdaccio      | `https://verdaccio.dss.localhost`; npm: `127.0.0.1:4873`; containers: `http://verdaccio:4873/` | `admin` / `DSS_SHARED_PASSWORD`                                       |
 

@@ -121,15 +121,16 @@ docker exec [container] ping [other_container]  # Test connectivity
 
 ______________________________________________________________________
 
-## Opt-in Zitadel UI authentication
+## Opt-in OIDC UI authentication
 
-Browser UIs can sit behind a shared `oauth2-proxy` gateway that authenticates users with Zitadel. Authentication is **opt-in and disabled by default**.
+Browser UIs can sit behind a shared `oauth2-proxy` gateway that authenticates users with any OIDC issuer. Authentication is **opt-in and disabled by default**.
 
 ### Rollout
 
 1. `make setup` (creates `oauth2-proxy/.env` and fills `OAUTH2_PROXY_COOKIE_SECRET` when empty). General setup validation only requires the cookie secret; empty `OAUTH2_PROXY_CLIENT_ID` / `OAUTH2_PROXY_CLIENT_SECRET` are expected until you opt in.
-1. Start dependencies: `make up service=traefik`, `make up service=postgres`, `make up service=zitadel`.
-1. When configuring the auth gateway, register a confidential Web application in Zitadel Console with redirect URI `https://auth.dss.localhost/oauth2/callback`. Put the client id/secret into `oauth2-proxy/.env` (manual prerequisite for oauth2-proxy — never auto-generated). Until both values are set, `make manage` and `make tui` show `oauth2-proxy` as a label and will not start it. `make up service=oauth2-proxy` exits with the same reason.
+1. Start Traefik: `make up service=traefik`.
+1. Register a confidential client with your OIDC provider and allow redirect URI `https://auth.dss.localhost/oauth2/callback`. Set `OAUTH2_PROXY_OIDC_ISSUER_URL` to the issuer base URL (origin plus path, not the well-known URL), and set the client id/secret in `oauth2-proxy/.env`. For a public issuer, leave `OAUTH2_PROXY_OIDC_ISSUER_HOST` empty. For a local issuer reached through this machine's Traefik, set it to the issuer hostname only, for example `idp.dss.localhost`.
+1. The client id/secret are manual prerequisites for oauth2-proxy and are never auto-generated. Until both values are set, `make manage` and `make tui` show `oauth2-proxy` as a label and will not start it. `make up service=oauth2-proxy` exits with the same reason.
 1. `make up service=oauth2-proxy`.
 1. To protect a UI, edit that service’s `.env`:
 
@@ -150,7 +151,7 @@ Then `make restart service=<folder>`. Set `AUTH_MIDDLEWARE=auth-none` (and `AUTH
 | `qdrant`              | `qdrant.dss.localhost`   | Prefer native `QDRANT_API_KEY` for APIs    |
 | `kafka` (Kafka UI)    | `kafka-ui.dss.localhost` | UI only                                    |
 
-Middleware names: `auth-none` (public default), `auth-default` (any authenticated user), `auth-admin` (extension point for stricter policy later). Do **not** protect Zitadel itself.
+Middleware names: `auth-none` (public default), `auth-default` (any authenticated user), `auth-admin` (extension point for stricter policy later). Do **not** protect the OIDC issuer itself.
 
 ### Status and lifecycle
 

@@ -103,15 +103,15 @@ docs/                       # deeper guides
 
 ## Opt-in UI authentication
 
-Selected Traefik UIs can require Zitadel login via `oauth2-proxy` (`https://auth.dss.localhost`). Auth is **off by default**. `make setup` only requires the oauth2-proxy cookie secret; Zitadel client id/secret are a prerequisite when you configure the gateway.
+Selected Traefik UIs can require login through `oauth2-proxy` (`https://auth.dss.localhost`) with any OIDC issuer. Auth is **off by default**. `make setup` only requires the oauth2-proxy cookie secret; an OIDC client id/secret are prerequisites when you configure the gateway.
 
-1. Start Traefik + Zitadel + oauth2-proxy (register a Zitadel Web app and set client credentials — see [oauth2-proxy/README.md](oauth2-proxy/README.md)).
+1. Start Traefik, register a confidential OIDC client with the callback URL, and set the issuer URL and client credentials in `oauth2-proxy/.env`. Then start oauth2-proxy. See [oauth2-proxy/README.md](oauth2-proxy/README.md).
 1. In a candidate service `.env` set `AUTH_ENABLED=true` and `AUTH_MIDDLEWARE=auth-default`, then restart that service.
 1. Candidates (remain disabled until you opt in): Mermaid Live Editor, Temporal UI, ChromaDB, Qdrant, Kafka UI.
 
 For Mermaid Live Editor, `AUTH_ENABLED=true` alone is not sufficient; make sure `AUTH_MIDDLEWARE=auth-default` is set instead of the default `auth-none`.
 
-Details: [docs/configuration.md](docs/configuration.md#opt-in-zitadel-ui-authentication).
+Details: [docs/configuration.md](docs/configuration.md#opt-in-oidc-ui-authentication).
 
 ## Docs
 

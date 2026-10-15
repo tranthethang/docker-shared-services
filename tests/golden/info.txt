@@ -38,7 +38,7 @@ Services:
   • MySQL 8 - localhost:3306
   • n8n - https://n8n.dss.localhost
   • Node-RED - https://node-red.dss.localhost
-  • oauth2-proxy (auth gateway) - https://auth.dss.localhost (Traefik only; needs Zitadel app)
+  • oauth2-proxy (auth gateway) - https://auth.dss.localhost (Traefik only; needs OIDC client)
   • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP) [otel stack]
   • PgVector (PostgreSQL 17, standalone) - localhost:5433
   • PocketBase - https://pocketbase.dss.localhost
@@ -54,7 +54,7 @@ Services:
   • Woodpecker CI - https://woodpecker.dss.localhost
   • Zitadel - https://zitadel.dss.localhost
 
-Opt-in UI auth (oauth2-proxy + Zitadel; OFF by default):
+Opt-in UI auth (oauth2-proxy + OIDC issuer; OFF by default):
   • Candidates: mermaid-live-editor, temporal UI, chromadb, qdrant, kafka-ui
   • Enable: set AUTH_ENABLED=true and AUTH_MIDDLEWARE=auth-default in that service .env, then restart
   • Status: uv run python -m dss.cli.env summary  (shows AUTH gateway on/off)
