@@ -9,6 +9,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import DataTable, Footer, Header, Input, RichLog, Static
 
+from dss.core.start_gate import label_only_reason
 from dss.tui.docker_state import (
     DockerStateError,
     EventWatcher,
@@ -165,7 +166,11 @@ class ServiceManagerApp(OpsMixin, TableMixin, App[None]):
         self._docker_error = ""
         self._rows = rows
         if not self._manage_initialized or not self._manage_dirty:
-            self._manage = {row.name for row in rows if row.running_count > 0}
+            self._manage = {
+                row.name
+                for row in rows
+                if row.running_count > 0 and label_only_reason(row.name) is None
+            }
             self._manage_initialized = True
         self._render_table()
         if not self._busy and self._log_follower is None:

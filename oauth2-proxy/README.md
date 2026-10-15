@@ -13,7 +13,8 @@ make up service=postgres         # Zitadel DB dependency
 make up service=traefik
 make up service=zitadel
 # Prerequisite only when enabling this gateway: register a Zitadel app
-# (see below), then set CLIENT_ID / CLIENT_SECRET in oauth2-proxy/.env
+# (see below), then set CLIENT_ID / CLIENT_SECRET in oauth2-proxy/.env.
+# Until then, `make manage` and `make tui` show this service as a label.
 make up service=oauth2-proxy
 ```
 

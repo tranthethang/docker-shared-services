@@ -42,6 +42,7 @@ def _render(
     selected: set[str],
     cursor: int,
     badge_fn: Callable[[str], str] | None,
+    locked: dict[str, str],
 ) -> None:
     width = 66
     lines = [
@@ -57,10 +58,13 @@ def _render(
     name_width = max((len(item) for item in items), default=0) + 2
 
     for i, item in enumerate(items):
-        check = "x" if item in selected else " "
-        badge = badge_fn(item) if badge_fn else ""
         prefix = ">" if i == cursor else " "
-        line = f" {prefix} {item:<{name_width}} [{check}]{badge}"
+        if item in locked:
+            line = f" {prefix} {item:<{name_width}} —{locked[item]}"
+        else:
+            check = "x" if item in selected else " "
+            badge = badge_fn(item) if badge_fn else ""
+            line = f" {prefix} {item:<{name_width}} [{check}]{badge}"
         if i == cursor:
             line = f"\033[7m{line:<{width - 2}}\033[0m"
         lines.append(line)
@@ -81,6 +85,7 @@ def show_checkbox_menu(
     default_checked: list[str] | None = None,
     title: str = "Select",
     badge_fn: Callable[[str], str] | None = None,
+    locked: dict[str, str] | None = None,
 ) -> list[str] | None:
     """
     Show an interactive checkbox menu.
@@ -92,20 +97,21 @@ def show_checkbox_menu(
     if not sys.stdin.isatty() or not sys.stdout.isatty():
         return None
 
-    selected = set(default_checked)
+    selected = set(default_checked) - set(locked or {})
+    held = locked or {}
     cursor = 0
 
     _enter_alt_screen()
     try:
         while True:
-            _render(title, items, selected, cursor, badge_fn)
+            _render(title, items, selected, cursor, badge_fn, held)
             key = _read_key()
 
             if key == "UP":
                 cursor = (cursor - 1) % len(items)
             elif key == "DOWN":
                 cursor = (cursor + 1) % len(items)
-            elif key == "SPACE":
+            elif key == "SPACE" and items[cursor] not in held:
                 _toggle(selected, items[cursor])
             elif key == "ENTER":
                 _leave_alt_screen()

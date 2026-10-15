@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from rich.text import Text
 from textual.widgets import DataTable, RichLog
 
+from dss.core.start_gate import label_only_reason
 from dss.tui.models import ServiceStatus
 
 _STATE_STYLES = {"running": "green", "partial": "yellow", "stopped": "red", "absent": "dim"}
@@ -33,11 +34,17 @@ class TableMixin(_AppBase):
         rows = self._filtered_rows()
         table.clear()
         for row in rows:
-            mark = Text("✓", style="bold green") if row.name in self._manage else ""
+            reason = label_only_reason(row.name)
+            if reason:
+                mark = Text("—", style="dim")
+                name = Text(row.name, style="dim")
+            else:
+                mark = Text("✓", style="bold green") if row.name in self._manage else Text("")
+                name = Text(row.name)
             containers = f"{row.running_count}/{row.container_count}"
             table.add_row(
                 mark,
-                row.name,
+                name,
                 Text(row.state, style=_STATE_STYLES.get(row.state, "")),
                 Text(row.health, style=_HEALTH_STYLES.get(row.health, "dim")),
                 containers,
@@ -66,6 +73,9 @@ class TableMixin(_AppBase):
             self._detail_write(f"No data for {name}")
             return
         self._detail_write(f"Service: {row.name}")
+        reason = label_only_reason(row.name)
+        if reason:
+            self._detail_write(f"Label only: {reason}")
         self._detail_write(f"State: {row.state}  Health: {row.health}")
         self._detail_write(f"Containers: {row.running_count}/{row.container_count}")
         if not row.containers:
@@ -80,6 +90,10 @@ class TableMixin(_AppBase):
         name = self._selected_service()
         if not name:
             return
+        reason = label_only_reason(name)
+        if reason:
+            self._set_status(f"{name} is label only: {reason}")
+            return
         if name in self._manage:
             self._manage.discard(name)
         else:
@@ -89,7 +103,7 @@ class TableMixin(_AppBase):
         self._set_status(f"Manage selection: {len(self._manage)} service(s)")
 
     def action_select_all_manage(self) -> None:
-        self._manage = {r.name for r in self._filtered_rows()}
+        self._manage = {r.name for r in self._filtered_rows() if label_only_reason(r.name) is None}
         self._manage_dirty = True
         self._render_table()
 

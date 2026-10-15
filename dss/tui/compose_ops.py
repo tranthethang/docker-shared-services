@@ -12,6 +12,7 @@ from pathlib import Path
 from dss.cli.compose import get_compose_cmd, sort_for_shutdown, sort_for_startup
 from dss.cli.readiness import ensure_dependencies_ready
 from dss.core.config import SERVICES
+from dss.core.start_gate import label_only_reason
 from dss.core.utils import iter_env_assignments
 
 ProgressCb = Callable[[str], None]
@@ -35,8 +36,9 @@ class OpResult:
 def plan_manage_changes(
     selected: Sequence[str], running: Sequence[str]
 ) -> tuple[list[str], list[str]]:
-    selected_set = set(selected)
-    running_set = set(running)
+    frozen = {name for name in (*selected, *running) if label_only_reason(name)}
+    selected_set = set(selected) - frozen
+    running_set = set(running) - frozen
     to_up = sort_for_startup(selected_set - running_set)
     to_down = sort_for_shutdown(running_set - selected_set)
     return to_up, to_down
@@ -142,6 +144,10 @@ def run_action(
         return OpResult(False, f"Unknown service: {service}", [service])
     if action not in _ACTIONS:
         return OpResult(False, f"Unsupported action: {action}", [service])
+    if action in ("up", "restart"):
+        reason = label_only_reason(service)
+        if reason:
+            return OpResult(False, f"Cannot {action} {service}: {reason}", [service])
 
     progress, args, done, failure = _ACTIONS[action]
     if action == "up":

@@ -63,6 +63,7 @@ Notes:
 
 - Status refreshes automatically on Docker container events (start, stop, health changes); `r` forces a refresh.
 - `m` closes the dashboard after confirmation and runs the same start/stop commands as `make manage`, so image pulls print in the terminal.
+- `oauth2-proxy` is a label until `OAUTH2_PROXY_CLIENT_ID` and `OAUTH2_PROXY_CLIENT_SECRET` are set in `oauth2-proxy/.env`. Space, `a`, `u`, and restart leave it unchanged. Stop and down still work.
 - Logs are streamed **unredacted**, exactly like `make logs` / `docker logs`, and only when you press `l`. Application logs can contain credentials; treat the screen accordingly.
 - When a Compose action fails, the operations panel shows the last lines of Compose's error output with values from the root and service `.env` files masked as `***`. Run the matching `make` target for the full output.
 

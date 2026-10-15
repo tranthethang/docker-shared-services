@@ -74,7 +74,7 @@ Keyboard controls
   d             Down (confirm) selected service
   s             Stop selected service
   Shift+R       Restart selected service
-  Space         Toggle manage selection
+  Space         Toggle manage selection (label-only rows stay fixed)
   m             Apply manage plan (confirm, then quit and show Docker logs)
   a             Select all for manage
   c             Clear manage selection

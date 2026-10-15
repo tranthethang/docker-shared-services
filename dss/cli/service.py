@@ -8,6 +8,7 @@ from dss.cli.compose import ensure_network, get_compose_cmd, validate_all_compos
 from dss.cli.manage import manage_services
 from dss.cli.readiness import ensure_dependencies_ready
 from dss.core.config import ACTIONS, SERVICES
+from dss.core.start_gate import label_only_reason
 from dss.core.utils import error, print_header, success
 
 
@@ -53,9 +54,18 @@ def _require_valid(service: str, action: str) -> None:
         sys.exit(1)
 
 
+def _refuse_unconfigured(service: str, action: str) -> None:
+    reason = label_only_reason(service)
+    if reason is None:
+        return
+    error(f"Cannot {action} {service}: {reason}")
+    sys.exit(1)
+
+
 def _start(service: str, cmd: list[str]) -> None:
     from dss.core.env_report import check_prerequisites
 
+    _refuse_unconfigured(service, "start")
     if not check_prerequisites(service):
         error(f"Cannot start {service}: prerequisite checks failed.")
         sys.exit(1)
@@ -74,6 +84,8 @@ def execute_action(service: str, action: str) -> None:
     if action == "up":
         _start(service, cmd)
     elif action in _SIMPLE_ACTIONS:
+        if action == "restart":
+            _refuse_unconfigured(service, "restart")
         progress, args, done = _SIMPLE_ACTIONS[action]
         print(progress.format(service=service))
         subprocess.run([*cmd, *args])
