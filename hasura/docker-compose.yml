@@ -12,7 +12,7 @@ services:
           cpus: "${HASURA_CPUS_RESERVED:-0.1}"
           memory: "${HASURA_MEMORY_RESERVED:-128M}"
     environment:
-      # Shared PostgreSQL 16 (postgres/docker-compose.yml) on backend_net
+      # Shared PostgreSQL 16 (postgres/docker-compose.yml) on data_net
       HASURA_GRAPHQL_METADATA_DATABASE_URL: "postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD\
         \ in .env — run make setup}@${POSTGRES16_HOST:-postgres}:5432/${POSTGRES16_DB:-hasura}"
       PG_DATABASE_URL: "postgres://${POSTGRES16_USER:-postgres}:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run\
