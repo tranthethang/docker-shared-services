@@ -22,8 +22,14 @@ services:
       - traefik_proxy
       - backend_net
       - data_net
+    # Mount the theme as a directory: a single-file bind mount keeps the old inode, so an editor's
+    # atomic save drops adminer.css from the container. The entrypoint links designs/dss/adminer.css.
+    environment:
+      ADMINER_DESIGN: dss
+      # The image's DefaultServerPlugin prefills the login "Server" field with this (else "db").
+      ADMINER_DEFAULT_SERVER: postgres
     volumes:
-      - ./adminer.css:/var/www/html/adminer.css:ro
+      - ./design:/var/www/html/designs/dss:ro
     logging:
       driver: json-file
       options:
