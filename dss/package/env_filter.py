@@ -40,6 +40,7 @@ _BANNER_TO_SERVICE = {
     "SUPABASE": "supabase",
     "CENTRIFUGO": "centrifugo",
     "GOTENBERG": "gotenberg",
+    "LIBREOFFICE WRITER": "libreoffice-writer",
     "MERMAID": "mermaid-live-editor",
     "HASURA": "hasura",
 }

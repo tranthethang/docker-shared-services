@@ -1,0 +1,39 @@
+services:
+  libreoffice-writer:
+    container_name: libreoffice-writer
+    build: .
+    image: dss/libreoffice-writer:1.0.0
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${LIBREOFFICE_WRITER_CPUS_LIMIT:-1}"
+          memory: "${LIBREOFFICE_WRITER_MEMORY_LIMIT:-1G}"
+        reservations:
+          cpus: "${LIBREOFFICE_WRITER_CPUS_RESERVED:-0.1}"
+          memory: "${LIBREOFFICE_WRITER_MEMORY_RESERVED:-256M}"
+    ports:
+      - "127.0.0.1:${LIBREOFFICE_WRITER_UNO_PORT:-2002}:2002"
+    volumes:
+      - libreoffice-writer-data:/data
+    networks:
+      - backend_net
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; socket.create_connection(('127.0.0.1', 2002), 5).close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  libreoffice-writer-data:
+    name: libreoffice-writer-data
+
+networks:
+  backend_net:
+    external: true

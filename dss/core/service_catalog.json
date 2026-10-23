@@ -235,6 +235,17 @@
       "Kafka UI - https://kafka-ui.dss.localhost"
     ]
   },
+  "libreoffice-writer": {
+    "category": "Dev Tools",
+    "description": "Headless LibreOffice Writer UNO runtime (no app code) for document automation.",
+    "containers": [
+      "libreoffice-writer"
+    ],
+    "web_ui": [],
+    "info": [
+      "LibreOffice Writer UNO - localhost:2002 (container: libreoffice-writer:2002)"
+    ]
+  },
   "litellm": {
     "category": "AI & Search",
     "description": "OpenAI-compatible LLM proxy with an admin UI. Models and virtual keys are stored in Postgres.",

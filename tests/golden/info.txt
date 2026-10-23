@@ -28,6 +28,7 @@ Services:
   • Jenkins - https://jenkins.dss.localhost (agent: localhost:50000)
   • Kafka - localhost:9092
   • Kafka UI - https://kafka-ui.dss.localhost
+  • LibreOffice Writer UNO - localhost:2002 (container: libreoffice-writer:2002)
   • Loki - http://localhost:3100 [otel stack]
   • Mailpit - https://mailpit.dss.localhost (SMTP: localhost:1025)
   • MariaDB 11 - localhost:3307
