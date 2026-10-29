@@ -1,7 +1,7 @@
 services:
   litellm:
     container_name: litellm
-    image: ${LITELLM_IMAGE:-ghcr.io/berriai/litellm:v1.90.2}
+    image: ${LITELLM_IMAGE:-ghcr.io/berriai/litellm:v1.106.6}
     restart: "${RESTART_POLICY:-unless-stopped}"
     entrypoint: ["/bin/bash", "-c"]
     command:
