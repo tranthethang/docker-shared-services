@@ -1,0 +1,43 @@
+services:
+  garage-webui:
+    container_name: garage-webui
+    image: khairul169/garage-webui:1.1.0
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.http.routers.garage-ui.rule=Host(`garage-ui.dss.localhost`)"
+      - "traefik.http.routers.garage-ui.entrypoints=websecure"
+      - "traefik.http.routers.garage-ui.tls=true"
+      - "traefik.http.services.garage-ui.loadbalancer.server.port=3909"
+    environment:
+      - API_BASE_URL=http://garage:3903
+      - S3_ENDPOINT_URL=http://garage:3900
+      - S3_REGION=garage
+      - API_ADMIN_KEY=${GARAGE_ADMIN_TOKEN:?Set GARAGE_ADMIN_TOKEN in garage_ui/.env (copy from garage/.env)}
+      - AUTH_USER_PASS=${GARAGE_UI_AUTH_USER_PASS:?Set GARAGE_UI_AUTH_USER_PASS in garage_ui/.env (htpasswd -nbBC 10 user pass)}
+    deploy:
+      resources:
+        limits:
+          cpus: "${GARAGE_UI_CPUS_LIMIT:-0.5}"
+          memory: "${GARAGE_UI_MEMORY_LIMIT:-512M}"
+    networks:
+      - traefik_proxy
+      - backend_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3909/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  traefik_proxy:
+    external: true
+  backend_net:
+    external: true
