@@ -24,12 +24,8 @@ services:
     networks:
       - traefik_proxy
       - backend_net
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3909/ || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
+    # No Docker healthcheck: khairul169/garage-webui is a scratch image (no shell or wget).
+    # A failing healthcheck makes Traefik v3 omit the router (filters unhealthy containers).
     logging:
       driver: json-file
       options:
