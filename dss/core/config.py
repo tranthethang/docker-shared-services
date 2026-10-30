@@ -11,6 +11,7 @@ SERVICES = [
     "centrifugo",
     "dozzle",
     "garage",
+    "garage_ui",
     "gitea",
     "gotenberg",
     "hasura",
@@ -81,6 +82,7 @@ START_ORDER = [
 
 VALIDATION_RULES = {
     "garage": ["GARAGE_RPC_SECRET", "GARAGE_ADMIN_TOKEN"],
+    "garage_ui": ["GARAGE_ADMIN_TOKEN", "GARAGE_UI_AUTH_USER_PASS"],
     "hasura": ["HASURA_GRAPHQL_ADMIN_SECRET"],
     "hindsight": ["HINDSIGHT_API_LLM_API_KEY"],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
@@ -296,4 +298,5 @@ PACKAGE_REQUIRES: dict[str, list[str]] = {
     ],
     "pgvector": ["hindsight"],
     "redis": ["inngest", "redisinsight"],
+    "garage": ["garage_ui"],
 }
