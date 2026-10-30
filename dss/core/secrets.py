@@ -69,6 +69,7 @@ def fill_secrets(service_arg: str | None) -> None:
         print("✅ No empty auto-generated secrets to fill.")
     else:
         print(f"\n✅ Generated {filled} secret value(s).")
+    _sync_garage_ui_admin_token()
 
 
 def _fill_secret(s: str, env_path: Path, var: str, method: str, nbytes: int) -> bool:
@@ -158,6 +159,22 @@ def _should_overwrite(current: str | None, force: bool) -> bool:
         return True
     # Compound values from old .env files that still embed the legacy placeholder.
     return LEGACY_PLACEHOLDER_PASSWORD in current
+
+
+def _sync_garage_ui_admin_token() -> None:
+    """Copy Garage admin token into garage_ui when the UI env still has an empty value."""
+    garage_ui_env = _env_path("garage_ui")
+    garage_env = _env_path("garage")
+    if not garage_ui_env.exists() or not garage_env.exists():
+        return
+    token = read_env_value(garage_env, "GARAGE_ADMIN_TOKEN")
+    if not token:
+        return
+    current = read_env_value(garage_ui_env, "GARAGE_ADMIN_TOKEN")
+    if current:
+        return
+    set_env_value(garage_ui_env, "GARAGE_ADMIN_TOKEN", token)
+    success("garage_ui: copied GARAGE_ADMIN_TOKEN from garage/.env")
 
 
 def _env_path(service: str) -> Path:
