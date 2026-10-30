@@ -37,6 +37,7 @@ Below is the mapping for all container services in the repository:
 | **concourse**               | CI/CD Platform            |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL on data_net              |
 | **crawl4ai**                | Web Crawler API/UI        |       ✅        |      ✅       |     ❌     | Traefik Web UI/API + internal workers                |
 | **garage**                  | Distributed S3 Storage    |       ✅        |      ✅       |     ❌     | Traefik S3 / Admin + backend S3 clients              |
+| **garage-ui**               | Garage Admin Web UI       |       ✅        |      ✅       |     ❌     | Traefik Web UI + Garage APIs on backend_net          |
 | **gitea**                   | Git Service               |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL on data_net              |
 | **gotenberg**               | PDF Conversion Service    |       ❌        |      ✅       |     ❌     | Internal HTTP API / localhost:3030                   |
 | **hasura**                  | GraphQL Engine            |       ✅        |      ✅       |     ✅     | Traefik GraphQL API/Console + PostgreSQL on data_net |

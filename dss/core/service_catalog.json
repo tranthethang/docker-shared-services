@@ -146,6 +146,19 @@
       "Garage (S3) - https://s3.garage.dss.localhost (admin: https://admin.garage.dss.localhost)"
     ]
   },
+  "garage_ui": {
+    "category": "Admin UI",
+    "description": "Web admin dashboard for Garage clusters and buckets.",
+    "containers": [
+      "garage-webui"
+    ],
+    "web_ui": [
+      "https://garage-ui.dss.localhost"
+    ],
+    "info": [
+      "Garage Web UI - https://garage-ui.dss.localhost"
+    ]
+  },
   "gitea": {
     "category": "CI/CD",
     "description": "Self-hosted Git service with issues, pull requests, and Actions.",

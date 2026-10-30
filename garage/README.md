@@ -8,10 +8,13 @@ S3-compatible object store; deployed here in single-node mode (`replication_fact
 - Traefik: `https://s3.garage.dss.localhost` (S3 API), `https://admin.garage.dss.localhost` (admin API)
 - Config: directory mount `./config` → `/etc/garage` (`GARAGE_CONFIG_FILE=/etc/garage/garage.toml`)
 
-> **No web UI.** Garage has no MinIO-style console. Opening
-> `https://admin.garage.dss.localhost/` in a browser returns
-> `Unknown API endpoint: GET /` — that host is a REST Admin API (Bearer token),
-> not a dashboard. Manage the cluster with the CLI below.
+> **Browser admin UI:** use **[Garage Web UI](../garage_ui/README.md)** at
+> `https://garage-ui.dss.localhost` (`make up service=garage_ui`). Copy
+> `GARAGE_ADMIN_TOKEN` from this directory’s `.env` into `garage_ui/.env`.
+>
+> **`https://admin.garage.dss.localhost/`** is the REST Admin API only (Bearer token).
+> Opening it in a browser returns `Unknown API endpoint: GET /` — not a dashboard.
+> Use the Web UI above or the CLI below for administration.
 
 ## Setup
 

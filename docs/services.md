@@ -87,6 +87,7 @@ ______________________________________________________________________
 | RabbitMQ UI        | `https://rabbitmq.dss.localhost`                                                               | `admin` / `DSS_SHARED_PASSWORD`                                       |
 | Adminer            | `https://adminer.dss.localhost`                                                                | -                                                                     |
 | ChromaDB Admin     | `https://chromadb-admin.dss.localhost`                                                         | -                                                                     |
+| Garage Web UI      | `https://garage-ui.dss.localhost`                                                              | UI login: `GARAGE_UI_AUTH_USER_PASS` in `garage_ui/.env`; copy `GARAGE_ADMIN_TOKEN` from `garage/.env` |
 | Gitea              | `https://gitea.dss.localhost`                                                                  | -                                                                     |
 | Crawl4AI           | `https://crawl4ai.dss.localhost`                                                               | Bearer token from `crawl4ai/.env`                                     |
 | Hindsight API      | `https://hindsight.dss.localhost` (Traefik only; MCP `/mcp/<bank>/`)                           | Set `HINDSIGHT_API_LLM_API_KEY` in `hindsight/.env`                   |
