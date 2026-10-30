@@ -146,8 +146,7 @@ AUTO_GENERATED_SECRETS = {
     "zitadel": {"ZITADEL_MASTERKEY": ("hex", 16)},
 }
 
-# UI services that can attach Traefik middleware auth-default / auth-admin.
-# Public (default): AUTH_MIDDLEWARE=auth-none (or unset → compose default auth-none).
+# UI services with optional Traefik auth-default / auth-admin (default AUTH_MIDDLEWARE=auth-none).
 AUTH_GATEWAY_MIDDLEWARE_OFF = "auth-none"
 AUTH_GATEWAY_MIDDLEWARES_ON = frozenset({"auth-default", "auth-admin"})
 AUTH_OPT_IN_UI_SERVICES = ["chromadb", "kafka", "mermaid-live-editor", "qdrant", "temporal"]
@@ -280,9 +279,7 @@ PACKAGE_DEFAULT_SERVICES = [
     "garage",
 ]
 
-# Backend -> services that require it. Resolution is transitive, then ordered as SERVICES.
-# Zitadel's optional Redis cache URL does not require redis. Woodpecker and Supabase
-# do not require postgres. A compose file with traefik.enable=true also requires traefik.
+# Backend -> dependents (transitive, then SERVICES order). traefik.enable implies traefik.
 PACKAGE_REQUIRES: dict[str, list[str]] = {
     "postgres": [
         "bugsink",

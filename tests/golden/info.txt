@@ -20,6 +20,7 @@ Services:
   • Dockge - https://dockge.dss.localhost
   • Dozzle - https://dozzle.dss.localhost
   • Garage (S3) - https://s3.garage.dss.localhost (admin: https://admin.garage.dss.localhost)
+  • Garage Web UI - https://garage-ui.dss.localhost
   • Gitea - https://gitea.dss.localhost (SSH: localhost:2222)
   • Gotenberg - http://localhost:3030 (container: gotenberg:3000)
   • Grafana - https://grafana.dss.localhost [otel stack]

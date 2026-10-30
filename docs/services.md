@@ -76,42 +76,42 @@ ______________________________________________________________________
 
 ## 🌐 Service Access
 
-| Service            | Access Point                                                                                   | Credentials after `make setup`                                        |
-| :----------------- | :--------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
-| Postgres 16        | `localhost:5432`                                                                               | `postgres` / `DSS_SHARED_PASSWORD`                                    |
-| PgVector           | `localhost:5433` (shared backend for Hindsight)                                                | `postgres` / `DSS_SHARED_PASSWORD`                                    |
-| MySQL 8            | `localhost:3306`                                                                               | `uid` / `DSS_SHARED_PASSWORD`                                         |
-| MongoDB            | `localhost:27017`                                                                              | `root` / `DSS_SHARED_PASSWORD`                                        |
-| Redis              | `localhost:6379`                                                                               | - / `DSS_SHARED_PASSWORD`                                             |
-| RabbitMQ           | `localhost:5672`                                                                               | `admin` / `DSS_SHARED_PASSWORD`                                       |
-| RabbitMQ UI        | `https://rabbitmq.dss.localhost`                                                               | `admin` / `DSS_SHARED_PASSWORD`                                       |
-| Adminer            | `https://adminer.dss.localhost`                                                                | -                                                                     |
-| ChromaDB Admin     | `https://chromadb-admin.dss.localhost`                                                         | -                                                                     |
+| Service            | Access Point                                                                                   | Credentials after `make setup`                                                                         |
+| :----------------- | :--------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
+| Postgres 16        | `localhost:5432`                                                                               | `postgres` / `DSS_SHARED_PASSWORD`                                                                     |
+| PgVector           | `localhost:5433` (shared backend for Hindsight)                                                | `postgres` / `DSS_SHARED_PASSWORD`                                                                     |
+| MySQL 8            | `localhost:3306`                                                                               | `uid` / `DSS_SHARED_PASSWORD`                                                                          |
+| MongoDB            | `localhost:27017`                                                                              | `root` / `DSS_SHARED_PASSWORD`                                                                         |
+| Redis              | `localhost:6379`                                                                               | - / `DSS_SHARED_PASSWORD`                                                                              |
+| RabbitMQ           | `localhost:5672`                                                                               | `admin` / `DSS_SHARED_PASSWORD`                                                                        |
+| RabbitMQ UI        | `https://rabbitmq.dss.localhost`                                                               | `admin` / `DSS_SHARED_PASSWORD`                                                                        |
+| Adminer            | `https://adminer.dss.localhost`                                                                | -                                                                                                      |
+| ChromaDB Admin     | `https://chromadb-admin.dss.localhost`                                                         | -                                                                                                      |
 | Garage Web UI      | `https://garage-ui.dss.localhost`                                                              | UI login: `GARAGE_UI_AUTH_USER_PASS` in `garage_ui/.env`; copy `GARAGE_ADMIN_TOKEN` from `garage/.env` |
-| Gitea              | `https://gitea.dss.localhost`                                                                  | -                                                                     |
-| Crawl4AI           | `https://crawl4ai.dss.localhost`                                                               | Bearer token from `crawl4ai/.env`                                     |
-| Hindsight API      | `https://hindsight.dss.localhost` (Traefik only; MCP `/mcp/<bank>/`)                           | Set `HINDSIGHT_API_LLM_API_KEY` in `hindsight/.env`                   |
-| Hindsight UI       | `https://hindsight-ui.dss.localhost` (Traefik only)                                            | -                                                                     |
-| Hasura             | `https://hasura.dss.localhost`                                                                 | Admin secret: `DSS_SHARED_PASSWORD`                                   |
-| LiteLLM            | `https://litellm.dss.localhost` (`/ui`, `/v1`)                                                 | UI user `admin` / `LITELLM_MASTER_KEY` from `litellm/.env`            |
-| Inngest            | `https://inngest.dss.localhost`                                                                | -                                                                     |
-| Node-RED           | `https://node-red.dss.localhost`                                                               | -                                                                     |
-| SonarQube          | `https://sonarqube.dss.localhost`                                                              | `admin` / `admin`                                                     |
-| Jenkins            | `https://jenkins.dss.localhost`                                                                | -                                                                     |
-| MinIO              | `https://minio.dss.localhost`                                                                  | `admin` / `DSS_SHARED_PASSWORD`                                       |
-| MinIO Console      | `https://minio.dss.localhost`                                                                  | `admin` / `DSS_SHARED_PASSWORD`                                       |
-| Mailpit            | `https://mailpit.dss.localhost`                                                                | -                                                                     |
-| Concourse          | `https://concourse.dss.localhost`                                                              | `admin` / `DSS_SHARED_PASSWORD`                                       |
-| Redis Insight      | `https://redisinsight.dss.localhost`                                                           | -                                                                     |
-| Grafana            | `https://grafana.dss.localhost`                                                                | `admin` / `DSS_SHARED_PASSWORD`                                       |
-| Loki               | `http://localhost:3100`                                                                        | -                                                                     |
-| OTel Collector     | `localhost:4317` (gRPC), `localhost:4318` (HTTP)                                               | Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`          |
-| LibreOffice Writer | `127.0.0.1:2002` (UNO socket); containers: `libreoffice-writer:2002`                           | -                                                                     |
-| Temporal UI        | `https://temporal.dss.localhost`                                                               | Opt-in OIDC authentication via `AUTH_*` (off by default)              |
-| Traefik            | `https://traefik.dss.localhost/dashboard/`                                                     | `admin` / `DSS_SHARED_PASSWORD`                                       |
-| oauth2-proxy       | `https://auth.dss.localhost` (Traefik only)                                                    | OIDC issuer URL and client id/secret in `oauth2-proxy/.env`           |
-| Zitadel            | `https://zitadel.dss.localhost`                                                                | `zitadel-admin@zitadel.zitadel.dss.localhost` / `DSS_SHARED_PASSWORD` |
-| Verdaccio          | `https://verdaccio.dss.localhost`; npm: `127.0.0.1:4873`; containers: `http://verdaccio:4873/` | `admin` / `DSS_SHARED_PASSWORD`                                       |
+| Gitea              | `https://gitea.dss.localhost`                                                                  | -                                                                                                      |
+| Crawl4AI           | `https://crawl4ai.dss.localhost`                                                               | Bearer token from `crawl4ai/.env`                                                                      |
+| Hindsight API      | `https://hindsight.dss.localhost` (Traefik only; MCP `/mcp/<bank>/`)                           | Set `HINDSIGHT_API_LLM_API_KEY` in `hindsight/.env`                                                    |
+| Hindsight UI       | `https://hindsight-ui.dss.localhost` (Traefik only)                                            | -                                                                                                      |
+| Hasura             | `https://hasura.dss.localhost`                                                                 | Admin secret: `DSS_SHARED_PASSWORD`                                                                    |
+| LiteLLM            | `https://litellm.dss.localhost` (`/ui`, `/v1`)                                                 | UI user `admin` / `LITELLM_MASTER_KEY` from `litellm/.env`                                             |
+| Inngest            | `https://inngest.dss.localhost`                                                                | -                                                                                                      |
+| Node-RED           | `https://node-red.dss.localhost`                                                               | -                                                                                                      |
+| SonarQube          | `https://sonarqube.dss.localhost`                                                              | `admin` / `admin`                                                                                      |
+| Jenkins            | `https://jenkins.dss.localhost`                                                                | -                                                                                                      |
+| MinIO              | `https://minio.dss.localhost`                                                                  | `admin` / `DSS_SHARED_PASSWORD`                                                                        |
+| MinIO Console      | `https://minio.dss.localhost`                                                                  | `admin` / `DSS_SHARED_PASSWORD`                                                                        |
+| Mailpit            | `https://mailpit.dss.localhost`                                                                | -                                                                                                      |
+| Concourse          | `https://concourse.dss.localhost`                                                              | `admin` / `DSS_SHARED_PASSWORD`                                                                        |
+| Redis Insight      | `https://redisinsight.dss.localhost`                                                           | -                                                                                                      |
+| Grafana            | `https://grafana.dss.localhost`                                                                | `admin` / `DSS_SHARED_PASSWORD`                                                                        |
+| Loki               | `http://localhost:3100`                                                                        | -                                                                                                      |
+| OTel Collector     | `localhost:4317` (gRPC), `localhost:4318` (HTTP)                                               | Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`                                           |
+| LibreOffice Writer | `127.0.0.1:2002` (UNO socket); containers: `libreoffice-writer:2002`                           | -                                                                                                      |
+| Temporal UI        | `https://temporal.dss.localhost`                                                               | Opt-in OIDC authentication via `AUTH_*` (off by default)                                               |
+| Traefik            | `https://traefik.dss.localhost/dashboard/`                                                     | `admin` / `DSS_SHARED_PASSWORD`                                                                        |
+| oauth2-proxy       | `https://auth.dss.localhost` (Traefik only)                                                    | OIDC issuer URL and client id/secret in `oauth2-proxy/.env`                                            |
+| Zitadel            | `https://zitadel.dss.localhost`                                                                | `zitadel-admin@zitadel.zitadel.dss.localhost` / `DSS_SHARED_PASSWORD`                                  |
+| Verdaccio          | `https://verdaccio.dss.localhost`; npm: `127.0.0.1:4873`; containers: `http://verdaccio:4873/` | `admin` / `DSS_SHARED_PASSWORD`                                                                        |
 
 ______________________________________________________________________
 

@@ -15,7 +15,7 @@ services:
       - S3_ENDPOINT_URL=http://garage:3900
       - S3_REGION=garage
       - API_ADMIN_KEY=${GARAGE_ADMIN_TOKEN:?Set GARAGE_ADMIN_TOKEN in garage_ui/.env (copy from garage/.env)}
-      - AUTH_USER_PASS=${GARAGE_UI_AUTH_USER_PASS:?Set GARAGE_UI_AUTH_USER_PASS in garage_ui/.env (htpasswd -nbBC 10 user pass)}
+      - AUTH_USER_PASS=${GARAGE_UI_AUTH_USER_PASS:?Set GARAGE_UI_AUTH_USER_PASS in garage_ui/.env}
     deploy:
       resources:
         limits:
