@@ -17,6 +17,7 @@ from dss.core.config import (
 from dss.core.env_files import get_services
 from dss.core.utils import (
     error,
+    generate_bcrypt_auth_user_pass,
     generate_hs256_jwt,
     generate_password,
     generate_secret,
@@ -49,6 +50,12 @@ KNOWN_SECRET_PLACEHOLDERS = frozenset(
 
 # Supabase API keys are JWTs whose role claim comes from the variable name.
 JWT_ROLES = {"ANON_KEY": "anon", "SERVICE_ROLE_KEY": "service_role"}
+
+# .env.example bcrypt for password "password"; fill-shared-password replaces it.
+_GARAGE_UI_AUTH_PLACEHOLDER_MARKER = "N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+_SHARED_PASSWORD_BCRYPT_AUTH: dict[str, tuple[str, str]] = {
+    "garage_ui": ("GARAGE_UI_AUTH_USER_PASS", "admin"),
+}
 
 
 def fill_secrets(service_arg: str | None) -> None:
@@ -161,6 +168,12 @@ def _should_overwrite(current: str | None, force: bool) -> bool:
     return LEGACY_PLACEHOLDER_PASSWORD in current
 
 
+def _should_overwrite_shared_key(key: str, current: str | None, force: bool) -> bool:
+    if key == "GARAGE_UI_AUTH_USER_PASS" and _GARAGE_UI_AUTH_PLACEHOLDER_MARKER in (current or ""):
+        return True
+    return _should_overwrite(current, force)
+
+
 def _sync_garage_ui_admin_token() -> None:
     """Copy Garage admin token into garage_ui when the UI env still has an empty value."""
     garage_ui_env = _env_path("garage_ui")
@@ -211,6 +224,10 @@ def _shared_password_targets(password: str) -> Iterator[tuple[Path, str, str]]:
         env_path = _env_path(service)
         if env_path.exists():
             yield env_path, key, template.format(password=password)
+    for service, (key, username) in _SHARED_PASSWORD_BCRYPT_AUTH.items():
+        env_path = _env_path(service)
+        if env_path.exists():
+            yield env_path, key, generate_bcrypt_auth_user_pass(username, password)
 
 
 def fill_shared_password(
@@ -249,7 +266,8 @@ def fill_shared_password(
     updated = 0
     skipped = 0
     for env_path, key, value in _shared_password_targets(resolved):
-        if not _should_overwrite(read_env_value(env_path, key), force):
+        current = read_env_value(env_path, key)
+        if not _should_overwrite_shared_key(key, current, force):
             skipped += 1
             continue
         _apply_value(env_path, key, value, dry_run)
@@ -262,5 +280,8 @@ def fill_shared_password(
             "Unique secrets (Garage, Woodpecker agent, Zitadel masterkey) "
             "are handled separately by fill-secrets."
         )
-        print("\nTraefik dashboard login: admin + DSS_SHARED_PASSWORD from root .env.\n")
+        print(
+            "\nTraefik dashboard: admin + DSS_SHARED_PASSWORD. "
+            "Garage Web UI: admin + DSS_SHARED_PASSWORD.\n"
+        )
     return resolved

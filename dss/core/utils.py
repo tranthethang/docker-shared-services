@@ -82,6 +82,17 @@ def generate_secret(method: str, nbytes: int = 32, password: str | None = None) 
     raise ValueError(f"Unsupported secret method: {method}")
 
 
+def generate_bcrypt_auth_user_pass(username: str, password: str) -> str:
+    """Return ``username:bcrypt_hash`` with ``$`` doubled for Docker Compose ``.env`` files."""
+    res = subprocess.run(  # noqa: S603
+        ["htpasswd", "-nbBC", "10", username, password],  # noqa: S607
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return res.stdout.strip().replace("$", "$$")
+
+
 JWT_LIFETIME_SECONDS = 10 * 365 * 24 * 3600
 
 

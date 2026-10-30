@@ -26,15 +26,15 @@ If the token in `garage_ui/.env` does not match `garage/.env`, cluster data will
 
 garage-webui uses **`AUTH_USER_PASS`**: a `username:bcrypt_hash` string (not Traefik basic auth).
 
-Generate a hash (install `apache2-utils` / `httpd-tools` if `htpasswd` is missing):
+**Default (after `make setup`):** user **`admin`**, password **`DSS_SHARED_PASSWORD`** from the root `.env` — same as Traefik, Grafana, RabbitMQ, and the other stack UIs.
+
+`make setup` / `fill-shared-password` writes `GARAGE_UI_AUTH_USER_PASS` as a bcrypt line derived from that password (requires `htpasswd` on the host, e.g. macOS `/usr/sbin/htpasswd`).
+
+To use a different password, generate a hash and set `GARAGE_UI_AUTH_USER_PASS` manually (escape each `$` as `$$` for Docker Compose):
 
 ```bash
 htpasswd -nbBC 10 "admin" "your-password"
 ```
-
-Put the full line in `garage_ui/.env` as `GARAGE_UI_AUTH_USER_PASS`.
-
-In `.env`, escape each `$` in the hash as `$$` so Docker Compose does not treat `$2y` as a variable.
 
 ## Configuration
 

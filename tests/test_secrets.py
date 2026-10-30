@@ -65,11 +65,19 @@ def test_resolve_rejects_weak_explicit_password(tree: Path) -> None:
 
 
 def test_fill_shared_password_writes_keys_and_templates(
-    tree: Path, capsys: pytest.CaptureFixture[str]
+    tree: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _write(tree / ".env.example", "DSS_SHARED_PASSWORD=\nCONCOURSE_ADD_LOCAL_USER=\n")
     _write(tree / "redis" / ".env", "REDIS_PASSWORD=\n")
     _write(tree / "mongodb" / ".env", "MONGO_ROOT_PASSWORD=custom-value\n")
+    _write(
+        tree / "garage_ui" / ".env",
+        "GARAGE_UI_AUTH_USER_PASS=admin:$$2y$$10$$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy\n",
+    )
+    monkeypatch.setattr(
+        "dss.core.secrets.generate_bcrypt_auth_user_pass",
+        lambda username, password: f"{username}:bcrypt:{password}",
+    )
 
     assert fill_shared_password(STRONG) == STRONG
 
@@ -77,6 +85,7 @@ def test_fill_shared_password_writes_keys_and_templates(
     assert read_env_value(".env", "CONCOURSE_ADD_LOCAL_USER") == f"admin:{STRONG}"
     assert read_env_value("redis/.env", "REDIS_PASSWORD") == STRONG
     assert read_env_value("mongodb/.env", "MONGO_ROOT_PASSWORD") == "custom-value"
+    assert read_env_value("garage_ui/.env", "GARAGE_UI_AUTH_USER_PASS") == f"admin:bcrypt:{STRONG}"
     out = capsys.readouterr().out
     assert "Using password from --password" in out
     assert "Created ./.env from .env.example" in out
