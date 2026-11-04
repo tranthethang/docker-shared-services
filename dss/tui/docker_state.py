@@ -11,6 +11,7 @@ from typing import Any
 
 from dss.core.config import SERVICES
 from dss.core.container_state import is_completed_oneshot
+from dss.core.stack import stack_name
 from dss.tui.models import ContainerInfo, ServiceStatus
 
 COMPOSE_PROJECT_LABEL = "com.docker.compose.project"
@@ -90,6 +91,7 @@ def _aggregate_health(containers: list[ContainerInfo]) -> str:
 def list_service_statuses(client: Any) -> list[ServiceStatus]:
     """Map Engine containers to configured Compose stacks (one row per service)."""
     by_project: dict[str, list[ContainerInfo]] = {name: [] for name in SERVICES}
+    prefix = f"{stack_name()}-" if stack_name() else ""
 
     try:
         containers = client.containers.list(all=True)
@@ -98,7 +100,11 @@ def list_service_statuses(client: Any) -> list[ServiceStatus]:
 
     for container in containers:
         labels = container.labels or {}
-        project = labels.get(COMPOSE_PROJECT_LABEL)
+        project = labels.get(COMPOSE_PROJECT_LABEL) or ""
+        if prefix:
+            if not project.startswith(prefix):
+                continue
+            project = project.removeprefix(prefix)
         if project not in by_project:
             continue
         try:

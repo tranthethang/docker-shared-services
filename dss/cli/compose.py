@@ -8,14 +8,8 @@ from pathlib import Path
 from dss.core.config import SERVICES, START_ORDER
 from dss.core.dependencies import startup_queue
 from dss.core.service_catalog import catalog_problems, load_catalog
+from dss.core.stack import network_pairs, project_name, stack_name
 from dss.core.utils import error, read_env_value, success, warning
-
-# Bridges cannot share one CIDR; adjacent /16s in 10/8.
-SHARED_NETWORKS = (
-    ("traefik_proxy", "10.0.0.0/16"),
-    ("backend_net", "10.1.0.0/16"),
-    ("data_net", "10.2.0.0/16"),
-)
 
 
 def _docker_network_exists(name: str) -> bool:
@@ -30,7 +24,8 @@ def _docker_network_exists(name: str) -> bool:
 
 
 def ensure_network() -> None:
-    for name, subnet in SHARED_NETWORKS:
+    for pair in network_pairs():
+        name, subnet = pair.split(":", 1)
         if _docker_network_exists(name):
             continue
 
@@ -103,9 +98,10 @@ def _env_file_args(service: str) -> list[str]:
 
 
 def get_compose_cmd(service: str) -> list[str]:
-    cmd = [
-        "docker",
-        "compose",
+    cmd = ["docker", "compose"]
+    if stack_name():
+        cmd += ["-p", project_name(service)]
+    cmd += [
         "--project-directory",
         service,
         *_env_file_args(service),
