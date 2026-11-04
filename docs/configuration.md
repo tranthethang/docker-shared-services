@@ -32,6 +32,36 @@ An existing `.env` keeps its explicit host values, such as `ZITADEL_HOSTNAME=zit
 
 Some files are not interpolated by Compose and keep `dss.localhost`: `garage/config/garage.toml`. Edit that file by hand for another domain. The smoke scripts `otel/test-otel.sh` and `hindsight/smoke-test.sh` read `DOMAIN` from the shell environment, so export it before you run them. The Caddy certificate in the proxy repo must also cover the new domain.
 
+### Several stacks on one host
+
+`DSS_NAME` and `DSS_SUBNET_BASE` in the root `.env` let several DSS stacks share one Docker host. Both are optional. With `DSS_NAME` empty, every name stays as before.
+
+| Item                 | Default (`DSS_NAME` empty) | With `DSS_NAME=projb`  |
+| -------------------- | -------------------------- | ---------------------- |
+| Compose project      | `postgres`                 | `projb-postgres`       |
+| Container            | `postgres`                 | `projb-postgres`       |
+| Shared networks      | `data_net`                 | `projb_data_net`       |
+| Traefik socket net   | `traefik_docker`           | `projb_traefik_docker` |
+| Traefik router label | `dss.stack=dss`            | `dss.stack=projb`      |
+
+`DSS_NAME` accepts lowercase letters, digits, `_`, and `-`, and must start with a letter or digit. `DSS_SUBNET_BASE` (0 to 253, default 0) sets the subnets `10.<base>.0.0/16`, `10.<base+1>.0.0/16`, and `10.<base+2>.0.0/16` for `traefik_proxy`, `backend_net`, and `data_net`. Services still reach each other by Compose service name, such as `postgres`, in every stack.
+
+Example for a second stack:
+
+```env
+# root .env of the second checkout
+DSS_NAME=projb
+DSS_SUBNET_BASE=10
+```
+
+`make setup` then creates `projb_traefik_proxy` (`10.10.0.0/16`), `projb_backend_net` (`10.11.0.0/16`), and `projb_data_net` (`10.12.0.0/16`).
+
+- Give each stack its own checkout or its own root `.env`, so each reads its own `DSS_NAME`.
+- Subnets must not overlap. Give each stack a `DSS_SUBNET_BASE` at least 3 higher than the previous one.
+- Each Traefik only routes containers with its own `dss.stack` label, so two stacks never list each other's routers.
+- Data volumes are not shared or migrated between stacks.
+- Set the same `DSS_NAME` in the root `.env` before the first `make up`. Changing it later creates new containers and networks next to the old ones.
+
 ### Shared password (recommended)
 
 `make setup` applies **one** shared password to every service password field that
