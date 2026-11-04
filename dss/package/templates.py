@@ -77,7 +77,7 @@ def render_readme(
         "## Quick start",
         "",
         "```bash",
-        "make setup   # networks, .env files, shared password, secrets, optional certificates",
+        "make setup   # networks, .env files, shared password, secrets",
         "make up      # validate compose, then start every service in dependency order",
         "make down    # stop and remove containers (volumes are kept)",
         "```",

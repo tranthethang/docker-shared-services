@@ -1,4 +1,4 @@
-.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage tui package sync format format-check lint typecheck test test-update check hooks
+.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs validate manage tui package sync format format-check lint typecheck test test-update check hooks
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -45,7 +45,7 @@ help: ## Show this help message
 		awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
-setup: ## Setup env files, networks, certs (optional: password='your-secure-password')
+setup: ## Setup env files and networks (optional: password='your-secure-password')
 	@echo "Checking shared Docker networks (traefik_proxy, backend_net, data_net)..."
 	@scripts/ensure-networks.sh $(SHARED_NETWORKS)
 	@echo "Checking environment files..."
@@ -68,20 +68,11 @@ setup: ## Setup env files, networks, certs (optional: password='your-secure-pass
 	@$(PYTHON_ENV_MGR) validate all || true
 	@$(PYTHON_ENV_MGR) summary all
 	@echo ""
-	@read -p "Do you want to generate SSL certificates? (y/n) " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		$(MAKE) cert; \
-	fi
-	@echo ""
 
 passwords: ## Apply ONE shared password to all services (optional: password='…' force=1)
 	@$(PYTHON_ENV_MGR) fill-shared-password \
 		$(if $(password),--password "$(password)",) \
 		$(if $(filter 1 true yes,$(force)),--force,)
-
-cert: ## Generate SSL certificates for Traefik
-	@scripts/gen-certs.sh traefik/certs
 
 up: ## Start services (usage: make up [service=pgvector])
 	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
