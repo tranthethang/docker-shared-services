@@ -10,8 +10,14 @@ from pathlib import Path
 from typing import Any, TypeGuard
 
 from dss.core.config import SERVICES
+from dss.core.utils import read_env_value
 
 CATALOG_PATH = Path(__file__).resolve().parent / "service_catalog.json"
+
+# ``web_ui`` and ``info`` strings use ``{domain}``; ``load_catalog`` fills it from DOMAIN.
+DOMAIN_PLACEHOLDER = "{domain}"
+DEFAULT_DOMAIN = "dss.localhost"
+ROOT_ENV_PATH = Path(".env")
 
 # Display order of categories in the wizard and README.
 CATEGORIES = [
@@ -30,10 +36,24 @@ CATEGORIES = [
 _FIELDS = {"category", "description", "containers", "web_ui", "info"}
 
 
-def load_catalog(path: Path | None = None) -> dict[str, dict[str, Any]]:
+def root_domain(env_path: Path = ROOT_ENV_PATH) -> str:
+    """DOMAIN from the root ``.env``; ``dss.localhost`` when the file or value is missing."""
+    value = read_env_value(env_path, "DOMAIN") if env_path.is_file() else None
+    return value or DEFAULT_DOMAIN
+
+
+def load_catalog(path: Path | None = None, domain: str | None = None) -> dict[str, dict[str, Any]]:
     with (path or CATALOG_PATH).open(encoding="utf-8") as handle:
         data: dict[str, dict[str, Any]] = json.load(handle)
-        return data
+    resolved = domain or root_domain()
+    for entry in data.values():
+        if not isinstance(entry, dict):
+            continue
+        for field in ("web_ui", "info"):
+            values = entry.get(field)
+            if _is_str_list(values):
+                entry[field] = [item.replace(DOMAIN_PLACEHOLDER, resolved) for item in values]
+    return data
 
 
 def _is_str_list(value: object) -> TypeGuard[list[str]]:

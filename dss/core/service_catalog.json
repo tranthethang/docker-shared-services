@@ -15,10 +15,10 @@
       "adminer"
     ],
     "web_ui": [
-      "https://adminer.dss.localhost"
+      "https://adminer.{domain}"
     ],
     "info": [
-      "Adminer - https://adminer.dss.localhost"
+      "Adminer - https://adminer.{domain}"
     ]
   },
   "appsmith": {
@@ -28,10 +28,10 @@
       "appsmith"
     ],
     "web_ui": [
-      "https://appsmith.dss.localhost"
+      "https://appsmith.{domain}"
     ],
     "info": [
-      "Appsmith - https://appsmith.dss.localhost"
+      "Appsmith - https://appsmith.{domain}"
     ]
   },
   "bugsink": {
@@ -41,10 +41,10 @@
       "bugsink"
     ],
     "web_ui": [
-      "https://bugsink.dss.localhost"
+      "https://bugsink.{domain}"
     ],
     "info": [
-      "Bugsink - https://bugsink.dss.localhost"
+      "Bugsink - https://bugsink.{domain}"
     ]
   },
   "chromadb": {
@@ -55,7 +55,7 @@
     ],
     "web_ui": [],
     "info": [
-      "ChromaDB - https://chromadb.dss.localhost"
+      "ChromaDB - https://chromadb.{domain}"
     ]
   },
   "chromadb_admin": {
@@ -65,10 +65,10 @@
       "chromadb-admin"
     ],
     "web_ui": [
-      "https://chromadb-admin.dss.localhost"
+      "https://chromadb-admin.{domain}"
     ],
     "info": [
-      "ChromaDB Admin - https://chromadb-admin.dss.localhost"
+      "ChromaDB Admin - https://chromadb-admin.{domain}"
     ]
   },
   "concourse": {
@@ -78,10 +78,10 @@
       "concourse"
     ],
     "web_ui": [
-      "https://concourse.dss.localhost"
+      "https://concourse.{domain}"
     ],
     "info": [
-      "Concourse - https://concourse.dss.localhost"
+      "Concourse - https://concourse.{domain}"
     ]
   },
   "crawl4ai": {
@@ -91,10 +91,10 @@
       "crawl4ai"
     ],
     "web_ui": [
-      "https://crawl4ai.dss.localhost/playground"
+      "https://crawl4ai.{domain}/playground"
     ],
     "info": [
-      "Crawl4AI - https://crawl4ai.dss.localhost"
+      "Crawl4AI - https://crawl4ai.{domain}"
     ]
   },
   "dockge": {
@@ -104,10 +104,10 @@
       "dockge"
     ],
     "web_ui": [
-      "https://dockge.dss.localhost"
+      "https://dockge.{domain}"
     ],
     "info": [
-      "Dockge - https://dockge.dss.localhost"
+      "Dockge - https://dockge.{domain}"
     ]
   },
   "centrifugo": {
@@ -129,10 +129,10 @@
       "socket-proxy"
     ],
     "web_ui": [
-      "https://dozzle.dss.localhost"
+      "https://dozzle.{domain}"
     ],
     "info": [
-      "Dozzle - https://dozzle.dss.localhost"
+      "Dozzle - https://dozzle.{domain}"
     ]
   },
   "garage": {
@@ -144,7 +144,7 @@
     ],
     "web_ui": [],
     "info": [
-      "Garage (S3) - https://s3.garage.dss.localhost (admin: https://admin.garage.dss.localhost)"
+      "Garage (S3) - https://s3.garage.{domain} (admin: https://admin.garage.{domain})"
     ]
   },
   "garage_ui": {
@@ -154,10 +154,10 @@
       "garage-webui"
     ],
     "web_ui": [
-      "https://garage-ui.dss.localhost"
+      "https://garage-ui.{domain}"
     ],
     "info": [
-      "Garage Web UI - https://garage-ui.dss.localhost"
+      "Garage Web UI - https://garage-ui.{domain}"
     ]
   },
   "gitea": {
@@ -167,10 +167,10 @@
       "gitea"
     ],
     "web_ui": [
-      "https://gitea.dss.localhost"
+      "https://gitea.{domain}"
     ],
     "info": [
-      "Gitea - https://gitea.dss.localhost (SSH: localhost:2222)"
+      "Gitea - https://gitea.{domain} (SSH: localhost:2222)"
     ]
   },
   "gotenberg": {
@@ -191,10 +191,10 @@
       "hasura"
     ],
     "web_ui": [
-      "https://hasura.dss.localhost"
+      "https://hasura.{domain}"
     ],
     "info": [
-      "Hasura - https://hasura.dss.localhost"
+      "Hasura - https://hasura.{domain}"
     ]
   },
   "hindsight": {
@@ -204,7 +204,7 @@
       "hindsight"
     ],
     "web_ui": [
-      "https://hindsight-ui.dss.localhost"
+      "https://hindsight-ui.{domain}"
     ],
     "info": []
   },
@@ -215,10 +215,10 @@
       "inngest"
     ],
     "web_ui": [
-      "https://inngest.dss.localhost"
+      "https://inngest.{domain}"
     ],
     "info": [
-      "Inngest - https://inngest.dss.localhost"
+      "Inngest - https://inngest.{domain}"
     ]
   },
   "jenkins": {
@@ -228,10 +228,10 @@
       "jenkins"
     ],
     "web_ui": [
-      "https://jenkins.dss.localhost"
+      "https://jenkins.{domain}"
     ],
     "info": [
-      "Jenkins - https://jenkins.dss.localhost (agent: localhost:50000)"
+      "Jenkins - https://jenkins.{domain} (agent: localhost:50000)"
     ]
   },
   "kafka": {
@@ -242,11 +242,11 @@
       "kafka-ui"
     ],
     "web_ui": [
-      "https://kafka-ui.dss.localhost"
+      "https://kafka-ui.{domain}"
     ],
     "info": [
       "Kafka - localhost:9092",
-      "Kafka UI - https://kafka-ui.dss.localhost"
+      "Kafka UI - https://kafka-ui.{domain}"
     ]
   },
   "libreoffice-writer": {
@@ -267,7 +267,7 @@
       "litellm"
     ],
     "web_ui": [
-      "https://litellm.dss.localhost/ui"
+      "https://litellm.{domain}/ui"
     ],
     "info": []
   },
@@ -278,10 +278,10 @@
       "mailpit"
     ],
     "web_ui": [
-      "https://mailpit.dss.localhost"
+      "https://mailpit.{domain}"
     ],
     "info": [
-      "Mailpit - https://mailpit.dss.localhost (SMTP: localhost:1025)"
+      "Mailpit - https://mailpit.{domain} (SMTP: localhost:1025)"
     ]
   },
   "mariadb": {
@@ -313,10 +313,10 @@
       "mermaid-live-editor"
     ],
     "web_ui": [
-      "https://mermaid.dss.localhost"
+      "https://mermaid.{domain}"
     ],
     "info": [
-      "Mermaid Live Editor - https://mermaid.dss.localhost"
+      "Mermaid Live Editor - https://mermaid.{domain}"
     ]
   },
   "minio": {
@@ -326,10 +326,10 @@
       "minio"
     ],
     "web_ui": [
-      "https://minio.dss.localhost"
+      "https://minio.{domain}"
     ],
     "info": [
-      "MinIO - https://minio.dss.localhost (S3: localhost:9002)"
+      "MinIO - https://minio.{domain} (S3: localhost:9002)"
     ]
   },
   "mongodb": {
@@ -361,10 +361,10 @@
       "n8n"
     ],
     "web_ui": [
-      "https://n8n.dss.localhost"
+      "https://n8n.{domain}"
     ],
     "info": [
-      "n8n - https://n8n.dss.localhost"
+      "n8n - https://n8n.{domain}"
     ]
   },
   "node-red": {
@@ -374,10 +374,10 @@
       "node-red"
     ],
     "web_ui": [
-      "https://node-red.dss.localhost"
+      "https://node-red.{domain}"
     ],
     "info": [
-      "Node-RED - https://node-red.dss.localhost"
+      "Node-RED - https://node-red.{domain}"
     ]
   },
   "oauth2-proxy": {
@@ -388,10 +388,10 @@
       "oauth2-proxy-probe"
     ],
     "web_ui": [
-      "https://auth.dss.localhost"
+      "https://auth.{domain}"
     ],
     "info": [
-      "oauth2-proxy (auth gateway) - https://auth.dss.localhost (Traefik only; needs OIDC client)"
+      "oauth2-proxy (auth gateway) - https://auth.{domain} (Traefik only; needs OIDC client)"
     ]
   },
   "otel": {
@@ -406,10 +406,10 @@
       "otel-collector-probe"
     ],
     "web_ui": [
-      "https://grafana.dss.localhost"
+      "https://grafana.{domain}"
     ],
     "info": [
-      "Grafana - https://grafana.dss.localhost [otel stack]",
+      "Grafana - https://grafana.{domain} [otel stack]",
       "Loki - http://localhost:3100 [otel stack]",
       "OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP) [otel stack]"
     ]
@@ -432,10 +432,10 @@
       "pocketbase"
     ],
     "web_ui": [
-      "https://pocketbase.dss.localhost/_/"
+      "https://pocketbase.{domain}/_/"
     ],
     "info": [
-      "PocketBase - https://pocketbase.dss.localhost"
+      "PocketBase - https://pocketbase.{domain}"
     ]
   },
   "postgres": {
@@ -456,10 +456,10 @@
       "portainer"
     ],
     "web_ui": [
-      "https://portainer.dss.localhost"
+      "https://portainer.{domain}"
     ],
     "info": [
-      "Portainer - https://portainer.dss.localhost"
+      "Portainer - https://portainer.{domain}"
     ]
   },
   "qdrant": {
@@ -469,7 +469,7 @@
       "qdrant"
     ],
     "web_ui": [
-      "https://qdrant.dss.localhost/dashboard"
+      "https://qdrant.{domain}/dashboard"
     ],
     "info": []
   },
@@ -480,10 +480,10 @@
       "rabbitmq"
     ],
     "web_ui": [
-      "https://rabbitmq.dss.localhost"
+      "https://rabbitmq.{domain}"
     ],
     "info": [
-      "RabbitMQ - https://rabbitmq.dss.localhost (AMQP: localhost:5672)"
+      "RabbitMQ - https://rabbitmq.{domain} (AMQP: localhost:5672)"
     ]
   },
   "redis": {
@@ -504,10 +504,10 @@
       "redisinsight"
     ],
     "web_ui": [
-      "https://redisinsight.dss.localhost"
+      "https://redisinsight.{domain}"
     ],
     "info": [
-      "Redis Insight - https://redisinsight.dss.localhost"
+      "Redis Insight - https://redisinsight.{domain}"
     ]
   },
   "sonarqube": {
@@ -517,10 +517,10 @@
       "sonarqube"
     ],
     "web_ui": [
-      "https://sonarqube.dss.localhost"
+      "https://sonarqube.{domain}"
     ],
     "info": [
-      "SonarQube - https://sonarqube.dss.localhost"
+      "SonarQube - https://sonarqube.{domain}"
     ]
   },
   "supabase": {
@@ -536,10 +536,10 @@
       "supabase-db"
     ],
     "web_ui": [
-      "https://studio.dss.localhost"
+      "https://studio.{domain}"
     ],
     "info": [
-      "Supabase - https://studio.dss.localhost (API: https://supabase.dss.localhost, DB: localhost:5434)"
+      "Supabase - https://studio.{domain} (API: https://supabase.{domain}, DB: localhost:5434)"
     ]
   },
   "temporal": {
@@ -550,24 +550,24 @@
       "temporal-ui"
     ],
     "web_ui": [
-      "https://temporal.dss.localhost"
+      "https://temporal.{domain}"
     ],
     "info": [
-      "Temporal - localhost:7233 (UI: https://temporal.dss.localhost)"
+      "Temporal - localhost:7233 (UI: https://temporal.{domain})"
     ]
   },
   "traefik": {
     "category": "Auth & Gateway",
-    "description": "Reverse proxy and TLS termination for every *.dss.localhost UI.",
+    "description": "Reverse proxy and TLS termination for every *.{domain} UI.",
     "containers": [
       "traefik",
       "socket-proxy"
     ],
     "web_ui": [
-      "https://traefik.dss.localhost/dashboard/"
+      "https://traefik.{domain}/dashboard/"
     ],
     "info": [
-      "Traefik (Reverse Proxy) - https://traefik.dss.localhost (BasicAuth)"
+      "Traefik (Reverse Proxy) - https://traefik.{domain} (BasicAuth)"
     ]
   },
   "verdaccio": {
@@ -577,7 +577,7 @@
       "verdaccio"
     ],
     "web_ui": [
-      "https://verdaccio.dss.localhost"
+      "https://verdaccio.{domain}"
     ],
     "info": []
   },
@@ -590,10 +590,10 @@
       "woodpecker-agent"
     ],
     "web_ui": [
-      "https://woodpecker.dss.localhost"
+      "https://woodpecker.{domain}"
     ],
     "info": [
-      "Woodpecker CI - https://woodpecker.dss.localhost"
+      "Woodpecker CI - https://woodpecker.{domain}"
     ]
   },
   "zitadel": {
@@ -604,10 +604,10 @@
       "zitadel-login"
     ],
     "web_ui": [
-      "https://zitadel.dss.localhost/ui/console"
+      "https://zitadel.{domain}/ui/console"
     ],
     "info": [
-      "Zitadel - https://zitadel.dss.localhost"
+      "Zitadel - https://zitadel.{domain}"
     ]
   }
 }
