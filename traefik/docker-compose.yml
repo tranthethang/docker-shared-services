@@ -46,9 +46,6 @@ services:
         condition: service_healthy
     networks:
       traefik_proxy:
-        aliases:
-          - minio.dss.localhost
-          - s3.minio.dss.localhost
       traefik_docker:
 
   # Read-only Docker API for the provider. A :ro socket mount does not limit the API.
