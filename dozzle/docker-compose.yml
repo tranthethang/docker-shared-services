@@ -2,10 +2,11 @@ services:
   dozzle:
     labels:
       - "traefik.enable=true"
+      - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.http.routers.dozzle.rule=Host(`dozzle.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.dozzle.entrypoints=web"
       - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
-    container_name: dozzle
+    container_name: ${DSS_NAME:+${DSS_NAME}-}dozzle
     image: amir20/dozzle:v10.6
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -40,7 +41,7 @@ services:
   # Read-only Docker API. Dozzle calls /info at startup and exits without it.
   socket-proxy:
     image: tecnativa/docker-socket-proxy:v0.5.0
-    container_name: dozzle-socket-proxy
+    container_name: ${DSS_NAME:+${DSS_NAME}-}dozzle-socket-proxy
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -53,7 +54,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - dozzle_docker
+      dozzle_docker:
+        # Dozzle reaches the proxy by its unprefixed name in every stack.
+        aliases:
+          - dozzle-socket-proxy
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:2375/_ping"]
       interval: 10s
@@ -71,5 +75,5 @@ networks:
     external: true
   # Only Dozzle may reach its socket proxy. Do not attach this network elsewhere.
   dozzle_docker:
-    name: dozzle_docker
+    name: ${DSS_NAME:+${DSS_NAME}_}dozzle_docker
     internal: true

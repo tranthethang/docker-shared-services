@@ -1,9 +1,10 @@
 services:
   traefik:
     image: "traefik:v3.7"
-    container_name: "traefik"
+    container_name: "${DSS_NAME:+${DSS_NAME}-}traefik"
     labels:
       - "traefik.enable=true"
+      - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.dashboard.entrypoints=web"
       - "traefik.http.routers.dashboard.service=api@internal"
@@ -26,7 +27,8 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.endpoint=tcp://traefik-socket-proxy:2375"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=traefik_proxy"
+      - "--providers.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "--providers.docker.constraints=Label(`dss.stack`,`${DSS_NAME:-dss}`)"
       - "--providers.docker.defaultRule=Host(`{{ normalize .Name }}.${DOMAIN:-dss.localhost}`)"
       - "--log.level=${LOG_LEVEL:-INFO}"
     logging:
@@ -51,7 +53,7 @@ services:
   # Read-only Docker API for the provider. A :ro socket mount does not limit the API.
   socket-proxy:
     image: tecnativa/docker-socket-proxy:v0.5.0
-    container_name: traefik-socket-proxy
+    container_name: ${DSS_NAME:+${DSS_NAME}-}traefik-socket-proxy
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -63,7 +65,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - traefik_docker
+      traefik_docker:
+        # Traefik reaches the proxy by its unprefixed name in every stack.
+        aliases:
+          - traefik-socket-proxy
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:2375/_ping"]
       interval: 10s
@@ -81,5 +86,5 @@ networks:
     external: true
   # Only Traefik may reach its socket proxy. Do not attach this network elsewhere.
   traefik_docker:
-    name: traefik_docker
+    name: ${DSS_NAME:+${DSS_NAME}_}traefik_docker
     internal: true

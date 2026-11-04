@@ -11,7 +11,7 @@
 services:
 
   supabase-studio:
-    container_name: supabase-studio
+    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-studio
     image: supabase/studio:2026.08.03-sha-022b374
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -65,7 +65,7 @@ services:
         max-file: "3"
 
   supabase-kong:
-    container_name: supabase-kong
+    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-kong
     image: kong/kong:3.9.3
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -78,7 +78,8 @@ services:
           memory: "${SUPABASE_KONG_MEMORY_RESERVED:-128M}"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.services.supabase.loadbalancer.server.port=8000"
       # Public APIs (clients use anon/service keys)
       - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN:-dss.localhost}`) && (PathPrefix(`/auth`)\
@@ -152,7 +153,7 @@ services:
         max-file: "3"
 
   supabase-auth:
-    container_name: supabase-auth
+    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-auth
     image: supabase/gotrue:v2.189.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -213,7 +214,7 @@ services:
         max-file: "3"
 
   supabase-storage:
-    container_name: supabase-storage
+    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-storage
     image: supabase/storage-api:v1.60.4
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -264,7 +265,7 @@ services:
         max-size: "10m"
         max-file: "3"
   realtime:
-    container_name: realtime-dev.supabase-realtime
+    container_name: ${DSS_NAME:+${DSS_NAME}-}realtime-dev.supabase-realtime
     image: supabase/realtime:v2.102.3
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -304,8 +305,13 @@ services:
       RUN_JANITOR: "true"
       DISABLE_HEALTHCHECK_LOGGING: "true"
     networks:
-      - backend_net
-      - data_net
+      # Kong and Realtime derive the tenant from this host name, so keep it in a named stack.
+      backend_net:
+        aliases:
+          - realtime-dev.supabase-realtime
+      data_net:
+        aliases:
+          - realtime-dev.supabase-realtime
     logging:
       driver: json-file
       options:
@@ -313,7 +319,7 @@ services:
         max-file: "3"
 
   supabase-meta:
-    container_name: supabase-meta
+    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-meta
     image: supabase/postgres-meta:v0.96.6
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -353,7 +359,7 @@ services:
         max-size: "10m"
         max-file: "3"
   supabase-db:
-    container_name: supabase-db
+    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-db
     image: supabase/postgres:17.6.1.136
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
