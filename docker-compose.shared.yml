@@ -1,10 +1,10 @@
 networks:
   traefik_proxy:
-    name: traefik_proxy
+    name: ${DSS_NAME:+${DSS_NAME}_}traefik_proxy
     external: true
   backend_net:
-    name: backend_net
+    name: ${DSS_NAME:+${DSS_NAME}_}backend_net
     external: true
   data_net:
-    name: data_net
+    name: ${DSS_NAME:+${DSS_NAME}_}data_net
     external: true

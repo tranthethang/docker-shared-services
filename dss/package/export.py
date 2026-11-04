@@ -32,6 +32,7 @@ _PACKAGE_DSS_FILES = (
     "dss/core/env_files.py",
     "dss/core/secrets.py",
     "dss/core/env_report.py",
+    "dss/core/stack.py",
     "dss/cli/__init__.py",
     "dss/cli/env.py",
 )

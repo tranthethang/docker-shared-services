@@ -10,8 +10,8 @@ Create each missing Docker bridge network with its preferred subnet. When the
 subnet overlaps another Docker address pool (OrbStack/Docker Desktop), create
 the network with an auto-assigned subnet instead.
 
-Example:
-  scripts/ensure-networks.sh traefik_proxy:10.0.0.0/16 backend_net:10.1.0.0/16
+Example (the root .env sets DSS_NAME and DSS_SUBNET_BASE):
+  scripts/ensure-networks.sh $(python -m dss.core.stack)
 EOF
 }
 

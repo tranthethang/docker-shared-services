@@ -24,11 +24,10 @@ password ?=
 # -f arguments for every service compose file, shared networks first.
 COMPOSE_FILES = -f docker-compose.shared.yml \
 	$(shell find . -maxdepth 2 -name "docker-compose.yml" -not -path "./docker-compose.shared.yml" | LC_ALL=C sort | sed 's|^./|-f |')
+# DSS_NAME from the root .env prefixes the project name of the all-services command.
+DSS_NAME = $(shell $(PY) -m dss.core.stack name 2>/dev/null)
 # Dynamic DOCKER_COMPOSE command that includes all services
-DOCKER_COMPOSE = docker compose $(COMPOSE_FILES)
-
-# Shared bridge networks (name:subnet). Bridges cannot share one CIDR; adjacent /16s in 10/8.
-SHARED_NETWORKS = traefik_proxy:10.0.0.0/16 backend_net:10.1.0.0/16 data_net:10.2.0.0/16
+DOCKER_COMPOSE = docker compose $(if $(DSS_NAME),-p $(DSS_NAME) )$(COMPOSE_FILES)
 
 help: ## Show this help message
 	@echo "╔════════════════════════════════════════════════════════════════╗"
@@ -46,8 +45,8 @@ help: ## Show this help message
 	@echo ""
 
 setup: ## Setup env files and networks (optional: password='your-secure-password')
-	@echo "Checking shared Docker networks (traefik_proxy, backend_net, data_net)..."
-	@scripts/ensure-networks.sh $(SHARED_NETWORKS)
+	@echo "Checking shared Docker networks (names and subnets from DSS_NAME and DSS_SUBNET_BASE)..."
+	@scripts/ensure-networks.sh $$($(PY) -m dss.core.stack)
 	@echo "Checking environment files..."
 	@$(PYTHON_ENV_MGR) check all
 	@echo ""

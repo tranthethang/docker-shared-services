@@ -159,6 +159,9 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 PYTHON_ENV_MGR := uv run --frozen --no-dev python -m dss.cli.env
+PYTHON_STACK := uv run --frozen --no-dev python -m dss.core.stack
+# DSS_NAME in the root .env prefixes every Compose project and network.
+DSS_NAME = $(shell $(PYTHON_STACK) name 2>/dev/null)
 password ?=
 
 # One compose project per service, like dss/cli/service.py: --project-directory
@@ -169,7 +172,7 @@ SHUTDOWN_SERVICES := {" ".join(reversed(startup))}
 # consumer:backend. up/recreate wait until each backend is running and healthy.
 SERVICE_DEPS := {_dependency_tokens(services)}
 READY_TIMEOUT ?= 300
-COMPOSE = docker compose --project-directory $$s {env_files} -f docker-compose.shared.yml -f $$s/docker-compose.yml {traefik_publish}
+COMPOSE = docker compose $(if $(DSS_NAME),-p $(DSS_NAME)-$$s) --project-directory $$s {env_files} -f docker-compose.shared.yml -f $$s/docker-compose.yml {traefik_publish}
 """
     body += _make_lines(
         r"""
@@ -187,8 +190,8 @@ help: ## Show this help message
 >@echo ""
 
 setup: ## Create env files and fill secrets
->@echo "Checking shared Docker networks (traefik_proxy, backend_net, data_net)..."
->@for pair in "traefik_proxy:10.0.0.0/16" "backend_net:10.1.0.0/16" "data_net:10.2.0.0/16"; do \
+>@echo "Checking shared Docker networks (names and subnets from DSS_NAME and DSS_SUBNET_BASE)..."
+>@for pair in $$($(PYTHON_STACK)); do \
 >name=$${pair%%:*}; subnet=$${pair#*:}; \
 >if docker network inspect $$name >/dev/null 2>&1; then \
 >echo "  $$name: already exists"; \
