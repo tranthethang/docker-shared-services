@@ -2,12 +2,13 @@ services:
   gitea:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.gitea.rule=Host(`gitea.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.gitea.entrypoints=web"
       - "traefik.http.services.gitea.loadbalancer.server.port=3000"
     image: gitea/gitea:1.25.2
-    container_name: gitea
+    container_name: ${DSS_NAME:+${DSS_NAME}-}gitea
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:

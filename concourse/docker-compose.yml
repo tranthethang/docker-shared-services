@@ -2,12 +2,13 @@ services:
   concourse:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.concourse.rule=Host(`concourse.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.concourse.entrypoints=web"
       - "traefik.http.services.concourse.loadbalancer.server.port=8080"
     image: concourse/concourse:7.14.3
-    container_name: concourse
+    container_name: ${DSS_NAME:+${DSS_NAME}-}concourse
     restart: "${RESTART_POLICY:-unless-stopped}"
     command: quickstart
     volumes:

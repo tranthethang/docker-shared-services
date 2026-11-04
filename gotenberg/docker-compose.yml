@@ -1,6 +1,6 @@
 services:
   gotenberg:
-    container_name: gotenberg
+    container_name: ${DSS_NAME:+${DSS_NAME}-}gotenberg
     image: gotenberg/gotenberg:8.37.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

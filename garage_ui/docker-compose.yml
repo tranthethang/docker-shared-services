@@ -1,11 +1,12 @@
 services:
   garage-webui:
-    container_name: garage-webui
+    container_name: ${DSS_NAME:+${DSS_NAME}-}garage-webui
     image: khairul169/garage-webui:1.1.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.garage-ui.rule=Host(`garage-ui.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.garage-ui.entrypoints=web"
       - "traefik.http.services.garage-ui.loadbalancer.server.port=3909"

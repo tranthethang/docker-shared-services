@@ -2,11 +2,12 @@ services:
   crawl4ai:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.crawl4ai.rule=Host(`crawl4ai.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.crawl4ai.entrypoints=web"
       - "traefik.http.services.crawl4ai.loadbalancer.server.port=11235"
-    container_name: crawl4ai
+    container_name: ${DSS_NAME:+${DSS_NAME}-}crawl4ai
     # Pin patch version for reproducibility (was :latest).
     image: "unclecode/crawl4ai:0.7.8"
     restart: "${RESTART_POLICY:-unless-stopped}"

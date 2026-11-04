@@ -2,10 +2,11 @@ services:
   dockge:
     labels:
       - "traefik.enable=true"
+      - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.http.routers.dockge.rule=Host(`dockge.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.dockge.entrypoints=web"
       - "traefik.http.services.dockge.loadbalancer.server.port=5001"
-    container_name: dockge
+    container_name: ${DSS_NAME:+${DSS_NAME}-}dockge
     image: louislam/dockge:1.5.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

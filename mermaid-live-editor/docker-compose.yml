@@ -2,12 +2,13 @@ services:
   mermaid-live-editor:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.mermaid-live-editor.entrypoints=web"
       - "traefik.http.routers.mermaid-live-editor.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080"
-    container_name: mermaid-live-editor
+    container_name: ${DSS_NAME:+${DSS_NAME}-}mermaid-live-editor
     # GHCR only publishes latest (master/stable) and nightly (develop).
     # Pinned digest = app package 2.0.67 (master @ 2026-07-14).
     image: ghcr.io/mermaid-js/mermaid-live-editor:latest@sha256:836616adc144fdc0f711a8fb149cc572eed63fe4de347c2ab6448831c8992c28

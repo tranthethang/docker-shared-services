@@ -1,6 +1,6 @@
 services:
   inngest:
-    container_name: inngest
+    container_name: ${DSS_NAME:+${DSS_NAME}-}inngest
     # Pin version for reproducibility (was :latest). Matches previously running OCI label 1.45.1.
     image: inngest/inngest:v1.45.1
     restart: "${RESTART_POLICY:-unless-stopped}"
@@ -54,7 +54,8 @@ services:
       retries: 5
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.inngest.rule=Host(`inngest.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.inngest.entrypoints=web"
       - "traefik.http.services.inngest.loadbalancer.server.port=8288"

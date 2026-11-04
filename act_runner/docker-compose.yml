@@ -1,7 +1,7 @@
 services:
   act_runner:
     image: gitea/act_runner:0.2.13
-    container_name: act_runner
+    container_name: ${DSS_NAME:+${DSS_NAME}-}act_runner
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:

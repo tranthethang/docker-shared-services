@@ -2,12 +2,13 @@ services:
   chromadb:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.chromadb.rule=Host(`chromadb.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.chromadb.entrypoints=web"
       - "traefik.http.routers.chromadb.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.chromadb.loadbalancer.server.port=8000"
-    container_name: chromadb
+    container_name: ${DSS_NAME:+${DSS_NAME}-}chromadb
     image: chromadb/chroma:0.5.23
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

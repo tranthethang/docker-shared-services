@@ -2,11 +2,12 @@ services:
   appsmith:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.appsmith.rule=Host(`appsmith.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.appsmith.entrypoints=web"
       - "traefik.http.services.appsmith.loadbalancer.server.port=80"
-    container_name: appsmith
+    container_name: ${DSS_NAME:+${DSS_NAME}-}appsmith
     image: appsmith/appsmith-ce:v2.5.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
