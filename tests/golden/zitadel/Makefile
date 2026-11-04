@@ -7,13 +7,14 @@ PYTHON_ENV_MGR := uv run --frozen --no-dev python -m dss.cli.env
 password ?=
 
 # One compose project per service, like dss/cli/service.py: --project-directory
-# loads <service>/.env for interpolation and resolves ./ paths inside <service>/.
+# resolves ./ paths inside <service>/. The root .env, then <service>/.env, feed
+# interpolation, so DOMAIN in the root .env sets every hostname.
 STARTUP_SERVICES := traefik postgres zitadel
 SHUTDOWN_SERVICES := zitadel postgres traefik
 # consumer:backend. up/recreate wait until each backend is running and healthy.
 SERVICE_DEPS := zitadel:postgres
 READY_TIMEOUT ?= 300
-COMPOSE = docker compose --project-directory $$s -f docker-compose.shared.yml -f $$s/docker-compose.yml $$(if [ "$$s" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi)
+COMPOSE = docker compose --project-directory $$s $$(if [ -f .env ]; then echo --env-file .env; fi) $$(if [ -f "$$s/.env" ]; then echo --env-file "$$s/.env"; fi) -f docker-compose.shared.yml -f $$s/docker-compose.yml $$(if [ "$$s" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi)
 
 help: ## Show this help message
 	@echo "Packaged Docker Shared Services stack"
@@ -71,7 +72,7 @@ up: ## Validate compose, then start the packaged stack in dependency order
 	deadline=$$((SECONDS + $(READY_TIMEOUT))); \
 	echo "  Waiting until $$dep is ready..."; \
 	while [ "$$SECONDS" -lt "$$deadline" ]; do \
-	ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" $$(if [ "$$dep" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi) ps -aq); \
+	ids=$$(docker compose --project-directory "$$dep" $$(if [ -f .env ]; then echo --env-file .env; fi) $$(if [ -f "$$dep/.env" ]; then echo --env-file "$$dep/.env"; fi) -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" $$(if [ "$$dep" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi) ps -aq); \
 	if [ -z "$$ids" ]; then \
 	echo "  ERROR: $$dep has no containers" >&2; \
 	return 1; \
@@ -122,7 +123,7 @@ recreate: ## Recreate the packaged stack in dependency order
 	deadline=$$((SECONDS + $(READY_TIMEOUT))); \
 	echo "  Waiting until $$dep is ready..."; \
 	while [ "$$SECONDS" -lt "$$deadline" ]; do \
-	ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" $$(if [ "$$dep" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi) ps -aq); \
+	ids=$$(docker compose --project-directory "$$dep" $$(if [ -f .env ]; then echo --env-file .env; fi) $$(if [ -f "$$dep/.env" ]; then echo --env-file "$$dep/.env"; fi) -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" $$(if [ "$$dep" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi) ps -aq); \
 	if [ -z "$$ids" ]; then \
 	echo "  ERROR: $$dep has no containers" >&2; \
 	return 1; \

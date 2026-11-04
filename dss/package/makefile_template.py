@@ -42,6 +42,17 @@ def _traefik_publish_make_shell(service_var: str) -> str:
     )
 
 
+def _env_file_make_shell(service_var: str) -> str:
+    """Shell words for ``--env-file``: root ``.env`` first, then ``<service>/.env``.
+
+    Same order as ``dss.cli.compose.get_compose_cmd``, so a service value overrides a root value.
+    """
+    return (
+        "$$(if [ -f .env ]; then echo --env-file .env; fi) "
+        f'$$(if [ -f "$${service_var}/.env" ]; then echo --env-file "$${service_var}/.env"; fi)'
+    )
+
+
 _QUEUE_SHELL = r"""
 >@set -e; \
 >wait_ready() { \
@@ -49,7 +60,7 @@ _QUEUE_SHELL = r"""
 >deadline=$$((SECONDS + $(READY_TIMEOUT))); \
 >echo "  Waiting until $$dep is ready..."; \
 >while [ "$$SECONDS" -lt "$$deadline" ]; do \
->ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" __TRAEFIK_DEP_PUBLISH__ ps -aq); \
+>ids=$$(docker compose --project-directory "$$dep" __DEP_ENV_FILES__ -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" __TRAEFIK_DEP_PUBLISH__ ps -aq); \
 >if [ -z "$$ids" ]; then \
 >echo "  ERROR: $$dep has no containers" >&2; \
 >return 1; \
@@ -92,6 +103,7 @@ def _queue_recipe(flags: str) -> str:
         _QUEUE_SHELL.lstrip("\n")
         .replace("__FLAGS__", suffix)
         .replace("__TRAEFIK_DEP_PUBLISH__", dep_publish)
+        .replace("__DEP_ENV_FILES__", _env_file_make_shell("dep"))
     )
     return _make_lines(text)
 
@@ -109,6 +121,7 @@ def _dependency_tokens(services: list[str]) -> str:
 def render_makefile(services: list[str]) -> str:
     startup = _startup_order(services)
     traefik_publish = _traefik_publish_make_shell("s")
+    env_files = _env_file_make_shell("s")
     dozzle = ""
     if "dozzle" in services:
         dozzle = _make_lines(
@@ -149,13 +162,14 @@ PYTHON_ENV_MGR := uv run --frozen --no-dev python -m dss.cli.env
 password ?=
 
 # One compose project per service, like dss/cli/service.py: --project-directory
-# loads <service>/.env for interpolation and resolves ./ paths inside <service>/.
+# resolves ./ paths inside <service>/. The root .env, then <service>/.env, feed
+# interpolation, so DOMAIN in the root .env sets every hostname.
 STARTUP_SERVICES := {" ".join(startup)}
 SHUTDOWN_SERVICES := {" ".join(reversed(startup))}
 # consumer:backend. up/recreate wait until each backend is running and healthy.
 SERVICE_DEPS := {_dependency_tokens(services)}
 READY_TIMEOUT ?= 300
-COMPOSE = docker compose --project-directory $$s -f docker-compose.shared.yml -f $$s/docker-compose.yml {traefik_publish}
+COMPOSE = docker compose --project-directory $$s {env_files} -f docker-compose.shared.yml -f $$s/docker-compose.yml {traefik_publish}
 """
     body += _make_lines(
         r"""

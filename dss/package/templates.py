@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from dss.core.service_catalog import CATEGORIES, load_catalog
+from dss.core.service_catalog import CATEGORIES, DEFAULT_DOMAIN, load_catalog
 
 PACKAGE_PYPROJECT = """[project]
 name = "docker-shared-services"
@@ -68,7 +68,8 @@ def render_readme(
     name: str, services: list[str], catalog: dict[str, dict[str, Any]] | None = None
 ) -> str:
     """README for the packaged tree: quick start plus services grouped by category."""
-    catalog = load_catalog() if catalog is None else catalog
+    # The export ships DOMAIN=dss.localhost, so the README must not use the exporter's DOMAIN.
+    catalog = load_catalog(domain=DEFAULT_DOMAIN) if catalog is None else catalog
     lines = [
         f"# {name}",
         "",
