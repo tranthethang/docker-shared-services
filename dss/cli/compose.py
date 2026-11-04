@@ -8,7 +8,7 @@ from pathlib import Path
 from dss.core.config import SERVICES, START_ORDER
 from dss.core.dependencies import startup_queue
 from dss.core.service_catalog import catalog_problems, load_catalog
-from dss.core.utils import error, success, warning
+from dss.core.utils import error, read_env_value, success, warning
 
 # Bridges cannot share one CIDR; adjacent /16s in 10/8.
 SHARED_NETWORKS = (
@@ -80,8 +80,18 @@ def ensure_network() -> None:
         )
 
 
+TRAEFIK_PUBLISH_FILE = "traefik/docker-compose.publish.yml"
+
+
+def _traefik_publishes_port() -> bool:
+    env_path = Path("traefik") / ".env"
+    if not env_path.is_file():
+        return False
+    return bool(read_env_value(env_path, "TRAEFIK_HTTP_PORT"))
+
+
 def get_compose_cmd(service: str) -> list[str]:
-    return [
+    cmd = [
         "docker",
         "compose",
         "--project-directory",
@@ -91,6 +101,9 @@ def get_compose_cmd(service: str) -> list[str]:
         "-f",
         f"{service}/docker-compose.yml",
     ]
+    if service == "traefik" and _traefik_publishes_port():
+        cmd += ["-f", TRAEFIK_PUBLISH_FILE]
+    return cmd
 
 
 def _check_compose_config(service: str) -> tuple[bool, bool]:
