@@ -32,7 +32,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       # Define the domain
-      - "traefik.http.routers.my-api.rule=Host(`sitexxx.dss.localhost`)"
+      - "traefik.http.routers.my-api.rule=Host(`sitexxx.${DOMAIN:-dss.localhost}`)"
       # (Optional) Specify the port if your container exposes more than one
       - "traefik.http.services.my-api.loadbalancer.server.port=8080"
       - "traefik.http.routers.my-api.entrypoints=web"
@@ -49,6 +49,7 @@ networks:
 
 - **`traefik.enable=true`**: Tells Traefik to process this container.
 - **`traefik.http.routers.<name>.rule`**: Defines the matching rule (Host, Path, etc.).
+- **`${DOMAIN:-dss.localhost}`**: Compose fills it from `DOMAIN` in your project's environment or `.env`. Your project does not read the DSS root `.env`, so set `DOMAIN` there to match it, or write the host literally.
 - **`traefik.http.services.<name>.loadbalancer.server.port`**: The internal port your app listens on inside the container.
 - **`entrypoints=web`**: HTTP router behind Caddy; do not set `tls=true`.
 

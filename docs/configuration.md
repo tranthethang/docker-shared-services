@@ -15,6 +15,23 @@ cp pgvector/.env.example pgvector/.env
 # Edit pgvector/.env with your values
 ```
 
+### Domain
+
+`DOMAIN` in the root `.env` sets the base domain of every DSS hostname. The default is `dss.localhost`, so Adminer is at `https://adminer.dss.localhost`.
+
+```env
+# root .env
+DOMAIN=dev.example.test
+```
+
+`make up` passes the root `.env` to Compose first and the service `.env` second. A value in a service `.env` overrides the root value. Traefik labels, the Traefik default rule, the per-service URLs, and `make info` all follow `DOMAIN`.
+
+Per-service host and URL variables are empty in the `.env.example` files. Each one has a `# Default:` comment that shows the value built from `DOMAIN`, for example `ZITADEL_HOSTNAME` defaults to `zitadel.${DOMAIN}`. Set one only to give that service a different host.
+
+An existing `.env` keeps its explicit host values, such as `ZITADEL_HOSTNAME=zitadel.dss.localhost` or `GITEA_ROOT_URL=https://gitea.dss.localhost/`. Clear those values to follow `DOMAIN`. `DOMAIN_NAME` is no longer read; move a custom value to `DOMAIN`.
+
+Some files are not interpolated by Compose and keep `dss.localhost`: `garage/config/garage.toml`. Edit that file by hand for another domain. The smoke scripts `otel/test-otel.sh` and `hindsight/smoke-test.sh` read `DOMAIN` from the shell environment, so export it before you run them. The Caddy certificate in the proxy repo must also cover the new domain.
+
 ### Shared password (recommended)
 
 `make setup` applies **one** shared password to every service password field that
