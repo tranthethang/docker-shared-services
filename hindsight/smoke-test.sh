@@ -13,8 +13,10 @@ if [[ -f "${ENV_FILE}" ]]; then
   set +a
 fi
 
-GW_BASE="${GW_BASE:-https://openai.dss.localhost}"
-HS_BASE="${HS_BASE:-${HINDSIGHT_PUBLIC_URL:-https://hindsight.dss.localhost}}"
+# Base domain of DSS hostnames; matches DOMAIN in the root .env.
+DOMAIN="${DOMAIN:-dss.localhost}"
+GW_BASE="${GW_BASE:-https://openai.${DOMAIN}}"
+HS_BASE="${HS_BASE:-${HINDSIGHT_PUBLIC_URL:-https://hindsight.${DOMAIN}}}"
 GW_KEY="${GW_KEY:-${HINDSIGHT_API_LLM_API_KEY:-}}"
 CHAT_MODEL="${CHAT_MODEL:-${HINDSIGHT_API_LLM_MODEL:-gemma-4-26b-a4b-it}}"
 EMBED_MODEL_RAW="${EMBED_MODEL:-${HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL:-openai/gemini-embedding-2}}"

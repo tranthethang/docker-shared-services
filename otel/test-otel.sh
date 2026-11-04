@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Base domain of DSS hostnames; matches DOMAIN in the root .env.
+DOMAIN="${DOMAIN:-dss.localhost}"
+
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
@@ -34,8 +37,8 @@ else
   echo -e "${RED}DOWN${NC}"
 fi
 
-echo -n "Checking Grafana health (grafana.dss.localhost)... "
-if curl -skf https://grafana.dss.localhost/api/health >/dev/null; then
+echo -n "Checking Grafana health (grafana.${DOMAIN})... "
+if curl -skf "https://grafana.${DOMAIN}/api/health" >/dev/null; then
   echo -e "${GREEN}UP${NC}"
 else
   echo -e "${RED}DOWN${NC}"
@@ -69,7 +72,7 @@ curl -s -X POST "http://localhost:4318/v1/logs" \
 }"
 
 echo ""
-echo -e "${GREEN}Log sent.${NC} Explore in Grafana: https://grafana.dss.localhost"
+echo -e "${GREEN}Log sent.${NC} Explore in Grafana: https://grafana.${DOMAIN}"
 echo "  LogQL hint: {service_name=\"test-script\"} or {container=~\".+\"}"
 echo ""
 echo "Trace/metric OTLP is accepted by the collector but dropped (nop) until Tempo/Prometheus are added."
