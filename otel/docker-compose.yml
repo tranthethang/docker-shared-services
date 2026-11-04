@@ -210,7 +210,7 @@ networks:
     external: true
   # Only Alloy may reach its socket proxy. Do not attach this network elsewhere.
   otel_docker:
-    name: otel_docker
+    name: ${DSS_NAME:+${DSS_NAME}_}otel_docker
     internal: true
 
 volumes:

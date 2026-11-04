@@ -35,7 +35,7 @@ services:
 
 volumes:
   appsmith_data:
-    name: appsmith_data
+    name: ${DSS_NAME:+${DSS_NAME}_}appsmith_data
 
 networks:
   traefik_proxy:

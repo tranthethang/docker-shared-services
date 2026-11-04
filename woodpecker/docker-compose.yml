@@ -136,7 +136,7 @@ services:
 
 volumes:
   woodpecker_data:
-    name: woodpecker_data
+    name: ${DSS_NAME:+${DSS_NAME}_}woodpecker_data
 
 networks:
   traefik_proxy:

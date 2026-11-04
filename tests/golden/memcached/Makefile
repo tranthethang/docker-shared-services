@@ -34,7 +34,8 @@ help: ## Show this help message
 
 setup: ## Create env files and fill secrets
 	@echo "Checking shared Docker networks (names and subnets from DSS_NAME and DSS_SUBNET_BASE)..."
-	@for pair in $$($(PYTHON_STACK)); do \
+	@pairs=$$($(PYTHON_STACK)) || exit 1; \
+	for pair in $$pairs; do \
 	name=$${pair%%:*}; subnet=$${pair#*:}; \
 	if docker network inspect $$name >/dev/null 2>&1; then \
 	echo "  $$name: already exists"; \

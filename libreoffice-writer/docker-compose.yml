@@ -32,7 +32,7 @@ services:
 
 volumes:
   libreoffice-writer-data:
-    name: libreoffice-writer-data
+    name: ${DSS_NAME:+${DSS_NAME}_}libreoffice-writer-data
 
 networks:
   backend_net:

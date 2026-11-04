@@ -56,6 +56,6 @@ networks:
 
 volumes:
   qdrant_data:
-    name: qdrant_data
+    name: ${DSS_NAME:+${DSS_NAME}_}qdrant_data
   qdrant_snapshots:
-    name: qdrant_snapshots
+    name: ${DSS_NAME:+${DSS_NAME}_}qdrant_snapshots

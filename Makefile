@@ -118,7 +118,7 @@ health: ## Check health status of all services (usage: make health [service=pgve
 	@echo "Service Health:"
 	@echo ""
 	@if [ -n "$(service)" ]; then \
-		docker compose --project-directory $(service) -f docker-compose.shared.yml -f $(service)/docker-compose.yml ps; \
+		docker compose $(if $(DSS_NAME),-p $(DSS_NAME)-$(service) )--project-directory $(service) -f docker-compose.shared.yml -f $(service)/docker-compose.yml ps; \
 	else \
 		$(DOCKER_COMPOSE) ps --format "table {{.Name}}\t{{.Status}}"; \
 	fi

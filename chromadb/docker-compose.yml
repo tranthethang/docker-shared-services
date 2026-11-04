@@ -39,7 +39,7 @@ services:
 
 volumes:
   chromadb_data:
-    name: chromadb_data
+    name: ${DSS_NAME:+${DSS_NAME}_}chromadb_data
 
 networks:
   data_net:

@@ -410,9 +410,9 @@ services:
 
 volumes:
   supabase_db_config:
-    name: supabase_db_config
+    name: ${DSS_NAME:+${DSS_NAME}_}supabase_db_config
   supabase_db_data:
-    name: supabase_db_data
+    name: ${DSS_NAME:+${DSS_NAME}_}supabase_db_data
 
 networks:
   traefik_proxy:

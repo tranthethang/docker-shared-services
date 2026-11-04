@@ -59,7 +59,7 @@ DSS_SUBNET_BASE=10
 - Give each stack its own checkout or its own root `.env`, so each reads its own `DSS_NAME`.
 - Subnets must not overlap. Give each stack a `DSS_SUBNET_BASE` at least 3 higher than the previous one.
 - Each Traefik only routes containers with its own `dss.stack` label, so two stacks never list each other's routers.
-- Data volumes are not shared or migrated between stacks.
+- Data volumes are not shared or migrated between stacks. A volume with a fixed `name:` (for example `supabase_db_data`) becomes `<DSS_NAME>_<name>`, such as `projb_supabase_db_data`.
 - Set the same `DSS_NAME` in the root `.env` before the first `make up`. Changing it later creates new containers and networks next to the old ones.
 
 ### Shared password (recommended)

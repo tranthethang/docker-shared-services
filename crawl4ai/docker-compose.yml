@@ -47,7 +47,7 @@ services:
 
 volumes:
   crawl4ai_data:
-    name: crawl4ai_data
+    name: ${DSS_NAME:+${DSS_NAME}_}crawl4ai_data
 
 networks:
   traefik_proxy:
