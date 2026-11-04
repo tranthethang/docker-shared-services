@@ -10,6 +10,7 @@ from collections.abc import Callable
 from typing import Any
 
 from dss.core.config import SERVICES
+from dss.core.container_state import is_completed_oneshot
 from dss.tui.models import ContainerInfo, ServiceStatus
 
 COMPOSE_PROJECT_LABEL = "com.docker.compose.project"
@@ -50,6 +51,15 @@ def _health_from_attrs(attrs: dict[str, Any]) -> str:
     if state.get("Running"):
         return "none"
     return "-"
+
+
+def _completed_from_attrs(status: str, attrs: dict[str, Any]) -> bool:
+    state = attrs.get("State") or {}
+    policy = (attrs.get("HostConfig") or {}).get("RestartPolicy") or {}
+    exit_code = state.get("ExitCode") if isinstance(state, dict) else None
+    if not isinstance(exit_code, int) or not isinstance(policy, dict):
+        return False
+    return is_completed_oneshot(status, exit_code, str(policy.get("Name") or ""))
 
 
 def _state_label(running: int, total: int) -> str:
@@ -98,26 +108,30 @@ def list_service_statuses(client: Any) -> list[ServiceStatus]:
             continue
         attrs = container.attrs or {}
         compose_svc = labels.get(COMPOSE_SERVICE_LABEL) or container.name
+        status = container.status or "unknown"
         by_project[project].append(
             ContainerInfo(
                 name=container.name,
-                status=container.status or "unknown",
+                status=status,
                 health=_health_from_attrs(attrs),
                 image=str((attrs.get("Config") or {}).get("Image") or ""),
                 compose_service=str(compose_svc),
+                completed=_completed_from_attrs(status, attrs),
             )
         )
 
     rows: list[ServiceStatus] = []
     for name in SERVICES:
         containers = by_project[name]
-        running = sum(1 for c in containers if c.status == "running")
+        # A finished one-shot init container is neither running nor missing.
+        active = [c for c in containers if not c.completed]
+        running = sum(1 for c in active if c.status == "running")
         rows.append(
             ServiceStatus(
                 name=name,
-                state=_state_label(running, len(containers)),
-                health=_aggregate_health(containers),
-                container_count=len(containers),
+                state=_state_label(running, len(active)),
+                health=_aggregate_health(active),
+                container_count=len(active),
                 running_count=running,
                 containers=containers,
             )

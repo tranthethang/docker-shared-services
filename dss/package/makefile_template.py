@@ -36,7 +36,8 @@ def _traefik_publish_make_shell(service_var: str) -> str:
     """Shell words appended to compose when ``service_var`` is traefik and port is set."""
     return (
         f'$$(if [ "$${service_var}" = traefik ] && [ -f traefik/.env ]; then '
-        "port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2-); "
+        "port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- "
+        "| tr -d '\"\\047 \\r'); "
         'if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi)'
     )
 
@@ -55,10 +56,11 @@ _QUEUE_SHELL = r"""
 >fi; \
 >ready=1; \
 >for id in $$ids; do \
->state=$$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$$id"); \
->status="$${state%% *}"; \
->health="$${state#* }"; \
->if [ "$$status" != "running" ] || { [ "$$health" != "none" ] && [ "$$health" != "healthy" ]; }; then \
+>set -- $$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} {{.State.ExitCode}} {{or .HostConfig.RestartPolicy.Name "no"}}' "$$id"); \
+>if [ "$${1:-}" = exited ] && [ "$${3:-}" = 0 ] && [ "$${4:-}" = no ]; then \
+>continue; \
+>fi; \
+>if [ "$${1:-}" != running ] || { [ "$${2:-}" != none ] && [ "$${2:-}" != healthy ]; }; then \
 >ready=0; \
 >fi; \
 >done; \

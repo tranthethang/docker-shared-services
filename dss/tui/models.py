@@ -12,6 +12,8 @@ class ContainerInfo:
     health: str
     image: str
     compose_service: str
+    # A one-shot init container that exited 0. It does not count toward the stack state.
+    completed: bool = False
 
 
 @dataclass(slots=True)

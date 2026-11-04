@@ -13,7 +13,7 @@ SHUTDOWN_SERVICES := memcached
 # consumer:backend. up/recreate wait until each backend is running and healthy.
 SERVICE_DEPS := 
 READY_TIMEOUT ?= 300
-COMPOSE = docker compose --project-directory $$s -f docker-compose.shared.yml -f $$s/docker-compose.yml $$(if [ "$$s" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2-); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi)
+COMPOSE = docker compose --project-directory $$s -f docker-compose.shared.yml -f $$s/docker-compose.yml $$(if [ "$$s" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi)
 
 help: ## Show this help message
 	@echo "Packaged Docker Shared Services stack"
@@ -71,17 +71,18 @@ up: ## Validate compose, then start the packaged stack in dependency order
 	deadline=$$((SECONDS + $(READY_TIMEOUT))); \
 	echo "  Waiting until $$dep is ready..."; \
 	while [ "$$SECONDS" -lt "$$deadline" ]; do \
-	ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" $$(if [ "$$dep" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2-); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi) ps -aq); \
+	ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" $$(if [ "$$dep" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi) ps -aq); \
 	if [ -z "$$ids" ]; then \
 	echo "  ERROR: $$dep has no containers" >&2; \
 	return 1; \
 	fi; \
 	ready=1; \
 	for id in $$ids; do \
-	state=$$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$$id"); \
-	status="$${state%% *}"; \
-	health="$${state#* }"; \
-	if [ "$$status" != "running" ] || { [ "$$health" != "none" ] && [ "$$health" != "healthy" ]; }; then \
+	set -- $$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} {{.State.ExitCode}} {{or .HostConfig.RestartPolicy.Name "no"}}' "$$id"); \
+	if [ "$${1:-}" = exited ] && [ "$${3:-}" = 0 ] && [ "$${4:-}" = no ]; then \
+	continue; \
+	fi; \
+	if [ "$${1:-}" != running ] || { [ "$${2:-}" != none ] && [ "$${2:-}" != healthy ]; }; then \
 	ready=0; \
 	fi; \
 	done; \
@@ -121,17 +122,18 @@ recreate: ## Recreate the packaged stack in dependency order
 	deadline=$$((SECONDS + $(READY_TIMEOUT))); \
 	echo "  Waiting until $$dep is ready..."; \
 	while [ "$$SECONDS" -lt "$$deadline" ]; do \
-	ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" $$(if [ "$$dep" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2-); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi) ps -aq); \
+	ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" $$(if [ "$$dep" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi) ps -aq); \
 	if [ -z "$$ids" ]; then \
 	echo "  ERROR: $$dep has no containers" >&2; \
 	return 1; \
 	fi; \
 	ready=1; \
 	for id in $$ids; do \
-	state=$$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$$id"); \
-	status="$${state%% *}"; \
-	health="$${state#* }"; \
-	if [ "$$status" != "running" ] || { [ "$$health" != "none" ] && [ "$$health" != "healthy" ]; }; then \
+	set -- $$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} {{.State.ExitCode}} {{or .HostConfig.RestartPolicy.Name "no"}}' "$$id"); \
+	if [ "$${1:-}" = exited ] && [ "$${3:-}" = 0 ] && [ "$${4:-}" = no ]; then \
+	continue; \
+	fi; \
+	if [ "$${1:-}" != running ] || { [ "$${2:-}" != none ] && [ "$${2:-}" != healthy ]; }; then \
 	ready=0; \
 	fi; \
 	done; \
