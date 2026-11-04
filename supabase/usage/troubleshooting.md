@@ -25,7 +25,7 @@ Check:
 ## `supabase.dss.localhost` does not resolve / TLS fails
 
 1. Start Traefik: `make up service=traefik`
-1. Confirm `SUPABASE_SUBDOMAIN` / `DOMAIN_NAME` / `SUPABASE_PUBLIC_URL` match your Traefik host rule.
+1. Confirm `SUPABASE_SUBDOMAIN` / `DOMAIN` / `SUPABASE_PUBLIC_URL` match your Traefik host rule.
 1. Use the API domain: https://supabase.dss.localhost
 
 ## Auth or Storage cannot connect to the database

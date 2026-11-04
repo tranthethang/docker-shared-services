@@ -16,7 +16,7 @@ services:
           memory: "${ZITADEL_MEMORY_RESERVED:-256M}"
     environment:
       - ZITADEL_MASTERKEY=${ZITADEL_MASTERKEY:?Set ZITADEL_MASTERKEY in .env — run make setup}
-      - ZITADEL_EXTERNALDOMAIN=${ZITADEL_HOSTNAME:-zitadel.dss.localhost}
+      - ZITADEL_EXTERNALDOMAIN=${ZITADEL_HOSTNAME:-zitadel.${DOMAIN:-dss.localhost}}
       - ZITADEL_EXTERNALPORT=443
       - ZITADEL_EXTERNALSECURE=true
       - ZITADEL_TLS_ENABLED=false
@@ -37,10 +37,10 @@ services:
       - ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE=${LOGIN_CLIENT_PAT_EXPIRATION:-2099-01-01T00:00:00Z}
       # Login V2 is required when using the separate zitadel-login container (Zitadel v4+)
       - ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=true
-      - ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI=https://${ZITADEL_HOSTNAME:-zitadel.dss.localhost}/ui/v2/login/
-      - ZITADEL_OIDC_DEFAULTLOGINURLV2=https://${ZITADEL_HOSTNAME:-zitadel.dss.localhost}/ui/v2/login/login?authRequest=
-      - ZITADEL_OIDC_DEFAULTLOGOUTURLV2=https://${ZITADEL_HOSTNAME:-zitadel.dss.localhost}/ui/v2/login/logout?post_logout_redirect=
-      - ZITADEL_SAML_DEFAULTLOGINURLV2=https://${ZITADEL_HOSTNAME:-zitadel.dss.localhost}/ui/v2/login/login?samlRequest=
+      - ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI=https://${ZITADEL_HOSTNAME:-zitadel.${DOMAIN:-dss.localhost}}/ui/v2/login/
+      - ZITADEL_OIDC_DEFAULTLOGINURLV2=https://${ZITADEL_HOSTNAME:-zitadel.${DOMAIN:-dss.localhost}}/ui/v2/login/login?authRequest=
+      - ZITADEL_OIDC_DEFAULTLOGOUTURLV2=https://${ZITADEL_HOSTNAME:-zitadel.${DOMAIN:-dss.localhost}}/ui/v2/login/logout?post_logout_redirect=
+      - ZITADEL_SAML_DEFAULTLOGINURLV2=https://${ZITADEL_HOSTNAME:-zitadel.${DOMAIN:-dss.localhost}}/ui/v2/login/login?samlRequest=
       # Optional Redis cache (off by default; set ENABLED=true after `make up service=redis`)
       - ZITADEL_CACHES_CONNECTORS_REDIS_ENABLED=${ZITADEL_CACHES_CONNECTORS_REDIS_ENABLED:-false}
       - ZITADEL_CACHES_CONNECTORS_REDIS_URL=${ZITADEL_CACHES_CONNECTORS_REDIS_URL:-}
@@ -52,7 +52,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.zitadel-api.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.dss.localhost}`) && !PathPrefix(`/ui/v2/login`)"
+      - "traefik.http.routers.zitadel-api.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.${DOMAIN:-dss.localhost}}`) && !PathPrefix(`/ui/v2/login`)"
       - "traefik.http.routers.zitadel-api.entrypoints=web"
       - "traefik.http.routers.zitadel-api.priority=10"
       - "traefik.http.routers.zitadel-api.service=zitadel-api"
@@ -92,19 +92,19 @@ services:
       - NEXT_PUBLIC_BASE_PATH=/ui/v2/login
       - ZITADEL_SERVICE_USER_TOKEN_FILE=/machinekey/login-client.pat
       # Host must match EXTERNALDOMAIN or API returns "Instance not found"
-      - CUSTOM_REQUEST_HEADERS=Host:${ZITADEL_HOSTNAME:-zitadel.dss.localhost},X-Forwarded-Proto:https
+      - CUSTOM_REQUEST_HEADERS=Host:${ZITADEL_HOSTNAME:-zitadel.${DOMAIN:-dss.localhost}},X-Forwarded-Proto:https
     volumes:
       - zitadel-machinekey:/machinekey:ro
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.middlewares.zitadel-root-rewrite.replacepath.path=/ui/v2/login/"
-      - "traefik.http.routers.zitadel-root.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.dss.localhost}`) && Path(`/`)"
+      - "traefik.http.routers.zitadel-root.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.${DOMAIN:-dss.localhost}}`) && Path(`/`)"
       - "traefik.http.routers.zitadel-root.entrypoints=web"
       - "traefik.http.routers.zitadel-root.priority=400"
       - "traefik.http.routers.zitadel-root.middlewares=zitadel-root-rewrite"
       - "traefik.http.routers.zitadel-root.service=zitadel-login"
-      - "traefik.http.routers.zitadel-login.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.dss.localhost}`) && PathPrefix(`/ui/v2/login`)"
+      - "traefik.http.routers.zitadel-login.rule=Host(`${ZITADEL_HOSTNAME:-zitadel.${DOMAIN:-dss.localhost}}`) && PathPrefix(`/ui/v2/login`)"
       - "traefik.http.routers.zitadel-login.entrypoints=web"
       - "traefik.http.routers.zitadel-login.priority=100"
       - "traefik.http.routers.zitadel-login.service=zitadel-login"
