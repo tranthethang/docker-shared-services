@@ -7,6 +7,7 @@ To make your containers from other `docker-compose.yml` files accessible via Tra
 - Shared networks from DSS `make setup` (`traefik_proxy`, `backend_net`, `data_net`).
 - **Caddy** running from [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) (`make cert` + `make up`) for HTTPS in the browser.
 - **Traefik** running (`make up service=traefik`). Traefik routes HTTP on `traefik_proxy` only; Caddy terminates TLS and forwards to `http://traefik:80`.
+- **Other proxies**: to put a different or remote HTTPS proxy in front of Traefik, follow the [Proxy contract](../docs/configuration.md#proxy-contract).
 
 ## 1. Connect to the shared network
 

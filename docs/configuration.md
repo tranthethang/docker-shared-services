@@ -177,7 +177,7 @@ ______________________________________________________________________
 
 ## 🔒 HTTPS edge (Caddy)
 
-TLS and host ports **80/443** live in the companion repo [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy). Traefik in this repo listens on **HTTP port 80** inside `traefik_proxy` only; it does not mount server certificates or publish 80/443 on the Docker host.
+TLS and host ports **80/443** live in the companion repo [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy). Traefik in this repo listens on **HTTP port 80** inside `traefik_proxy` only; it does not mount server certificates or publish 80/443 on the Docker host by default. See [Proxy contract](#proxy-contract) for the optional published port.
 
 Public hostnames still use `*.dss.localhost` (for example `https://mailpit.dss.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `dss.localhost`.
 
@@ -219,6 +219,16 @@ openssl x509 -in caddy/certs/server.crt -noout -dates
 Do not browse Traefik directly on host ports; use `https://traefik.dss.localhost/dashboard/` through Caddy.
 
 ______________________________________________________________________
+
+## Proxy contract
+
+Any HTTPS proxy can sit in front of Traefik, local Caddy or a remote proxy. The proxy must follow these rules:
+
+- Traefik speaks HTTP on port 80 only. The proxy terminates TLS.
+- The proxy sends the original `Host` header and `X-Forwarded-Proto: https`.
+- The proxy address is inside `TRAEFIK_TRUSTED_IPS`. Traefik ignores `X-Forwarded-*` headers from other addresses. The default is `10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`.
+- A remote proxy reaches Traefik through `TRAEFIK_BIND` and `TRAEFIK_HTTP_PORT` in `traefik/.env`. When `TRAEFIK_HTTP_PORT` is set, `make up service=traefik` adds `traefik/docker-compose.publish.yml` and publishes `${TRAEFIK_BIND}:${TRAEFIK_HTTP_PORT}:80`. When it is empty, Traefik publishes no port.
+- `TRAEFIK_BIND` must be a private address. With private ranges in `TRAEFIK_TRUSTED_IPS`, any host in the VPC can forge forwarded headers. Narrow `TRAEFIK_TRUSTED_IPS` to the proxy address when other hosts share that network.
 
 ## 🔗 Quick Links
 
