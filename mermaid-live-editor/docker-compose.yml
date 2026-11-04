@@ -4,8 +4,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.dss.localhost`)"
-      - "traefik.http.routers.mermaid-live-editor.entrypoints=websecure"
-      - "traefik.http.routers.mermaid-live-editor.tls=true"
+      - "traefik.http.routers.mermaid-live-editor.entrypoints=web"
       - "traefik.http.routers.mermaid-live-editor.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080"
     container_name: mermaid-live-editor

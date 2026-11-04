@@ -4,8 +4,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.mailpit.rule=Host(`mailpit.dss.localhost`)"
-      - "traefik.http.routers.mailpit.entrypoints=websecure"
-      - "traefik.http.routers.mailpit.tls=true"
+      - "traefik.http.routers.mailpit.entrypoints=web"
       - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
     container_name: mailpit
     image: axllent/mailpit:v1.27.11

@@ -51,8 +51,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.temporal.rule=Host(`temporal.dss.localhost`)"
-      - "traefik.http.routers.temporal.entrypoints=websecure"
-      - "traefik.http.routers.temporal.tls=true"
+      - "traefik.http.routers.temporal.entrypoints=web"
       - "traefik.http.routers.temporal.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.temporal.loadbalancer.server.port=8080"
     container_name: temporal-ui

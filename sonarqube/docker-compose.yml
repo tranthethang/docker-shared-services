@@ -4,8 +4,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.sonarqube.rule=Host(`sonarqube.dss.localhost`)"
-      - "traefik.http.routers.sonarqube.entrypoints=websecure"
-      - "traefik.http.routers.sonarqube.tls=true"
+      - "traefik.http.routers.sonarqube.entrypoints=web"
       - "traefik.http.services.sonarqube.loadbalancer.server.port=9000"
     container_name: sonarqube
     image: sonarqube:26.9.0.129388-community

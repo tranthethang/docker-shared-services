@@ -4,8 +4,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.bugsink.rule=Host(`bugsink.dss.localhost`)"
-      - "traefik.http.routers.bugsink.entrypoints=websecure"
-      - "traefik.http.routers.bugsink.tls=true"
+      - "traefik.http.routers.bugsink.entrypoints=web"
       - "traefik.http.services.bugsink.loadbalancer.server.port=8000"
     container_name: bugsink
     image: bugsink/bugsink:2.6.1

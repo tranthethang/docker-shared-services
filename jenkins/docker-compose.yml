@@ -4,8 +4,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.jenkins.rule=Host(`jenkins.dss.localhost`)"
-      - "traefik.http.routers.jenkins.entrypoints=websecure"
-      - "traefik.http.routers.jenkins.tls=true"
+      - "traefik.http.routers.jenkins.entrypoints=web"
       - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
     # Pin LTS patch (was floating lts-alpine channel tag).
     image: jenkins/jenkins:2.580.1-lts-alpine

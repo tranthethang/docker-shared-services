@@ -4,8 +4,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.concourse.rule=Host(`concourse.dss.localhost`)"
-      - "traefik.http.routers.concourse.entrypoints=websecure"
-      - "traefik.http.routers.concourse.tls=true"
+      - "traefik.http.routers.concourse.entrypoints=web"
       - "traefik.http.services.concourse.loadbalancer.server.port=8080"
     image: concourse/concourse:7.14.3
     container_name: concourse

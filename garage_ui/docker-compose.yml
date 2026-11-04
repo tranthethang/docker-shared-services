@@ -7,8 +7,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.garage-ui.rule=Host(`garage-ui.dss.localhost`)"
-      - "traefik.http.routers.garage-ui.entrypoints=websecure"
-      - "traefik.http.routers.garage-ui.tls=true"
+      - "traefik.http.routers.garage-ui.entrypoints=web"
       - "traefik.http.services.garage-ui.loadbalancer.server.port=3909"
     environment:
       - API_BASE_URL=http://garage:3903

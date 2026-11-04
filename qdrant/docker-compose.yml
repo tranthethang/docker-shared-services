@@ -4,8 +4,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.qdrant.rule=Host(`qdrant.dss.localhost`)"
-      - "traefik.http.routers.qdrant.entrypoints=websecure"
-      - "traefik.http.routers.qdrant.tls=true"
+      - "traefik.http.routers.qdrant.entrypoints=web"
       - "traefik.http.routers.qdrant.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     container_name: qdrant

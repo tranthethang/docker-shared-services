@@ -4,8 +4,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.routers.pocketbase.rule=Host(`pocketbase.dss.localhost`)"
-      - "traefik.http.routers.pocketbase.entrypoints=websecure"
-      - "traefik.http.routers.pocketbase.tls=true"
+      - "traefik.http.routers.pocketbase.entrypoints=web"
       - "traefik.http.services.pocketbase.loadbalancer.server.port=8090"
     container_name: pocketbase
     image: "ghcr.io/muchobien/pocketbase:0.39.4"

@@ -84,14 +84,12 @@ services:
       - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-dss.localhost}`) && (PathPrefix(`/auth`)\
         \ || PathPrefix(`/storage`) || PathPrefix(`/realtime`) || PathPrefix(`/pg`) || PathPrefix(`/.well-known`) || PathPrefix(`/api/mcp`)\
         \ || PathPrefix(`/mcp`))"
-      - "traefik.http.routers.supabase-api.entrypoints=websecure"
-      - "traefik.http.routers.supabase-api.tls=true"
+      - "traefik.http.routers.supabase-api.entrypoints=web"
       - "traefik.http.routers.supabase-api.priority=100"
       - "traefik.http.routers.supabase-api.service=supabase"
       # Studio UI (un-gated local dev)
       - "traefik.http.routers.supabase-studio.rule=Host(`${SUPABASE_STUDIO_HOSTNAME:-studio.dss.localhost}`)"
-      - "traefik.http.routers.supabase-studio.entrypoints=websecure"
-      - "traefik.http.routers.supabase-studio.tls=true"
+      - "traefik.http.routers.supabase-studio.entrypoints=web"
       - "traefik.http.routers.supabase-studio.priority=50"
       - "traefik.http.routers.supabase-studio.service=supabase"
       # Legacy Studio on supabase.dss.localhost → redirect to studio.dss.localhost
@@ -99,8 +97,7 @@ services:
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.replacement=https://${SUPABASE_STUDIO_HOSTNAME:-studio.dss.localhost}/$${1}"
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.permanent=false"
       - "traefik.http.routers.supabase-ui-redirect.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-dss.localhost}`)"
-      - "traefik.http.routers.supabase-ui-redirect.entrypoints=websecure"
-      - "traefik.http.routers.supabase-ui-redirect.tls=true"
+      - "traefik.http.routers.supabase-ui-redirect.entrypoints=web"
       - "traefik.http.routers.supabase-ui-redirect.priority=1"
       - "traefik.http.routers.supabase-ui-redirect.middlewares=supabase-to-studio"
       - "traefik.http.routers.supabase-ui-redirect.service=supabase"
