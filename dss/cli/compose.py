@@ -90,12 +90,25 @@ def _traefik_publishes_port() -> bool:
     return bool(read_env_value(env_path, "TRAEFIK_HTTP_PORT"))
 
 
+ROOT_ENV_FILE = ".env"
+
+
+def _env_file_args(service: str) -> list[str]:
+    """Root .env first, then <service>/.env, so a service value overrides a root value."""
+    args: list[str] = []
+    for env_path in (Path(ROOT_ENV_FILE), Path(service) / ".env"):
+        if env_path.is_file():
+            args += ["--env-file", env_path.as_posix()]
+    return args
+
+
 def get_compose_cmd(service: str) -> list[str]:
     cmd = [
         "docker",
         "compose",
         "--project-directory",
         service,
+        *_env_file_args(service),
         "-f",
         "docker-compose.shared.yml",
         "-f",

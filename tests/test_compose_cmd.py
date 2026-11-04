@@ -1,4 +1,4 @@
-"""get_compose_cmd adds the Traefik publish file only when TRAEFIK_HTTP_PORT is set."""
+"""get_compose_cmd env files (root, then service) and the Traefik publish file."""
 
 from __future__ import annotations
 
@@ -51,3 +51,42 @@ def test_other_services_ignore_traefik_port(
         "-f",
         "postgres/docker-compose.yml",
     ]
+
+
+def _env_args(cmd: list[str]) -> list[str]:
+    return [cmd[i + 1] for i, arg in enumerate(cmd) if arg == "--env-file"]
+
+
+def _write(path: Path, text: str = "A=1\n") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def test_env_files_root_before_service(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _write(tmp_path / ".env")
+    _write(tmp_path / "adminer" / ".env")
+
+    cmd = get_compose_cmd("adminer")
+    assert _env_args(cmd) == [".env", "adminer/.env"]
+    assert cmd.index("--env-file") < cmd.index("-f")
+
+
+def test_env_files_root_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _write(tmp_path / ".env")
+
+    assert _env_args(get_compose_cmd("adminer")) == [".env"]
+
+
+def test_env_files_service_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _write(tmp_path / "adminer" / ".env")
+
+    assert _env_args(get_compose_cmd("adminer")) == ["adminer/.env"]
+
+
+def test_env_files_neither(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    assert "--env-file" not in get_compose_cmd("adminer")
