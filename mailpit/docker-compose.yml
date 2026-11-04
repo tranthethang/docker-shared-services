@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.mailpit.rule=Host(`mailpit.dss.localhost`)"
+      - "traefik.http.routers.mailpit.rule=Host(`mailpit.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.mailpit.entrypoints=web"
       - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
     container_name: mailpit

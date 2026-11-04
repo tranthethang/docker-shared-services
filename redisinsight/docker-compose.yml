@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.redisinsight.rule=Host(`redisinsight.dss.localhost`)"
+      - "traefik.http.routers.redisinsight.rule=Host(`redisinsight.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.redisinsight.entrypoints=web"
       - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"
     container_name: redisinsight

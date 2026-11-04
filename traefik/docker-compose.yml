@@ -4,7 +4,7 @@ services:
     container_name: "traefik"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`traefik.dss.localhost`)"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.dashboard.entrypoints=web"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
@@ -27,7 +27,7 @@ services:
       - "--providers.docker.endpoint=tcp://traefik-socket-proxy:2375"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=traefik_proxy"
-      - "--providers.docker.defaultRule=Host(`{{ normalize .Name }}.dss.localhost`)"
+      - "--providers.docker.defaultRule=Host(`{{ normalize .Name }}.${DOMAIN:-dss.localhost}`)"
       - "--log.level=${LOG_LEVEL:-INFO}"
     logging:
       driver: json-file

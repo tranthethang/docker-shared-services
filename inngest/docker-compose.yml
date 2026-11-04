@@ -55,7 +55,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.inngest.rule=Host(`inngest.dss.localhost`)"
+      - "traefik.http.routers.inngest.rule=Host(`inngest.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.inngest.entrypoints=web"
       - "traefik.http.services.inngest.loadbalancer.server.port=8288"
     logging:

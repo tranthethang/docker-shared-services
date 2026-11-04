@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.dss.localhost`)"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.rabbitmq.entrypoints=web"
       - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
     container_name: rabbitmq

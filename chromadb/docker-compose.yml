@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.chromadb.rule=Host(`chromadb.dss.localhost`)"
+      - "traefik.http.routers.chromadb.rule=Host(`chromadb.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.chromadb.entrypoints=web"
       - "traefik.http.routers.chromadb.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.chromadb.loadbalancer.server.port=8000"

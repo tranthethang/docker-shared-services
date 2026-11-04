@@ -38,7 +38,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.verdaccio.rule=Host(`${VERDACCIO_HOSTNAME:-verdaccio.dss.localhost}`)"
+      - "traefik.http.routers.verdaccio.rule=Host(`${VERDACCIO_HOSTNAME:-verdaccio.${DOMAIN:-dss.localhost}}`)"
       - "traefik.http.routers.verdaccio.entrypoints=web"
       - "traefik.http.services.verdaccio.loadbalancer.server.port=4873"
     healthcheck:

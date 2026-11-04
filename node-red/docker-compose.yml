@@ -3,7 +3,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.node-red.rule=Host(`node-red.dss.localhost`)"
+      - "traefik.http.routers.node-red.rule=Host(`node-red.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.node-red.entrypoints=web"
       - "traefik.http.services.node-red.loadbalancer.server.port=1880"
     container_name: node-red
