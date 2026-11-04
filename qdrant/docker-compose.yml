@@ -2,12 +2,13 @@ services:
   qdrant:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.qdrant.entrypoints=web"
       - "traefik.http.routers.qdrant.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
-    container_name: qdrant
+    container_name: ${DSS_NAME:+${DSS_NAME}-}qdrant
     image: qdrant/qdrant:v1.18.3
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

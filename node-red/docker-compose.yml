@@ -2,11 +2,12 @@ services:
   node-red:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.node-red.rule=Host(`node-red.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.node-red.entrypoints=web"
       - "traefik.http.services.node-red.loadbalancer.server.port=1880"
-    container_name: node-red
+    container_name: ${DSS_NAME:+${DSS_NAME}-}node-red
     image: nodered/node-red:4.0.9
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

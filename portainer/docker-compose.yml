@@ -2,10 +2,11 @@ services:
   portainer:
     labels:
       - "traefik.enable=true"
+      - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.portainer.entrypoints=web"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-    container_name: portainer
+    container_name: ${DSS_NAME:+${DSS_NAME}-}portainer
     image: portainer/portainer-ce:2.33.6
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

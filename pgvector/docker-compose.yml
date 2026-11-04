@@ -1,6 +1,6 @@
 services:
   pgvector:
-    container_name: pgvector
+    container_name: ${DSS_NAME:+${DSS_NAME}-}pgvector
     image: pgvector/pgvector:0.8.7-pg17
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

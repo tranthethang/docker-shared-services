@@ -2,11 +2,12 @@ services:
   rabbitmq:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.rabbitmq.entrypoints=web"
       - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
-    container_name: rabbitmq
+    container_name: ${DSS_NAME:+${DSS_NAME}-}rabbitmq
     image: "rabbitmq:4.2.1-management-alpine"
     restart: "${RESTART_POLICY:-unless-stopped}"
     stop_grace_period: 60s

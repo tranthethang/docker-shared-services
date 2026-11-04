@@ -2,11 +2,12 @@ services:
   pocketbase:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.pocketbase.rule=Host(`pocketbase.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.pocketbase.entrypoints=web"
       - "traefik.http.services.pocketbase.loadbalancer.server.port=8090"
-    container_name: pocketbase
+    container_name: ${DSS_NAME:+${DSS_NAME}-}pocketbase
     image: "ghcr.io/muchobien/pocketbase:0.39.4"
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

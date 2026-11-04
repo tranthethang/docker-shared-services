@@ -2,11 +2,12 @@ services:
   sonarqube:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.sonarqube.rule=Host(`sonarqube.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.sonarqube.entrypoints=web"
       - "traefik.http.services.sonarqube.loadbalancer.server.port=9000"
-    container_name: sonarqube
+    container_name: ${DSS_NAME:+${DSS_NAME}-}sonarqube
     image: sonarqube:26.9.0.129388-community
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

@@ -2,12 +2,13 @@ services:
   n8n:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_SUBDOMAIN:-n8n}.${DOMAIN:-dss.localhost}`)"
       - "traefik.http.routers.n8n.entrypoints=web"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
     image: docker.n8n.io/n8nio/n8n:1.76.1
-    container_name: n8n
+    container_name: ${DSS_NAME:+${DSS_NAME}-}n8n
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:

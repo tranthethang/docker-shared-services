@@ -1,6 +1,6 @@
 services:
   verdaccio:
-    container_name: verdaccio
+    container_name: ${DSS_NAME:+${DSS_NAME}-}verdaccio
     image: verdaccio/verdaccio:6.10.5
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -37,7 +37,8 @@ services:
       - node /opt/verdaccio/render-config.mjs && exec verdaccio --config /verdaccio/conf/config.yaml
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "dss.stack=${DSS_NAME:-dss}"
+      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.routers.verdaccio.rule=Host(`${VERDACCIO_HOSTNAME:-verdaccio.${DOMAIN:-dss.localhost}}`)"
       - "traefik.http.routers.verdaccio.entrypoints=web"
       - "traefik.http.services.verdaccio.loadbalancer.server.port=4873"
