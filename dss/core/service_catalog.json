@@ -139,6 +139,7 @@
     "category": "Storage",
     "description": "Lightweight S3-compatible object storage.",
     "containers": [
+      "garage-config-init",
       "garage"
     ],
     "web_ui": [],

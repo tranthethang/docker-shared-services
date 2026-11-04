@@ -32,6 +32,15 @@ def _startup_order(services: list[str]) -> list[str]:
     return startup_queue(services)
 
 
+def _traefik_publish_make_shell(service_var: str) -> str:
+    """Shell words appended to compose when ``service_var`` is traefik and port is set."""
+    return (
+        f'$$(if [ "$${service_var}" = traefik ] && [ -f traefik/.env ]; then '
+        "port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2-); "
+        'if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi)'
+    )
+
+
 _QUEUE_SHELL = r"""
 >@set -e; \
 >wait_ready() { \
@@ -39,7 +48,7 @@ _QUEUE_SHELL = r"""
 >deadline=$$((SECONDS + $(READY_TIMEOUT))); \
 >echo "  Waiting until $$dep is ready..."; \
 >while [ "$$SECONDS" -lt "$$deadline" ]; do \
->ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" ps -aq); \
+>ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" __TRAEFIK_DEP_PUBLISH__ ps -aq); \
 >if [ -z "$$ids" ]; then \
 >echo "  ERROR: $$dep has no containers" >&2; \
 >return 1; \
@@ -76,7 +85,12 @@ _QUEUE_SHELL = r"""
 
 def _queue_recipe(flags: str) -> str:
     suffix = f" {flags}" if flags else ""
-    text = _QUEUE_SHELL.lstrip("\n").replace("__FLAGS__", suffix)
+    dep_publish = _traefik_publish_make_shell("dep")
+    text = (
+        _QUEUE_SHELL.lstrip("\n")
+        .replace("__FLAGS__", suffix)
+        .replace("__TRAEFIK_DEP_PUBLISH__", dep_publish)
+    )
     return _make_lines(text)
 
 
@@ -92,6 +106,7 @@ def _dependency_tokens(services: list[str]) -> str:
 
 def render_makefile(services: list[str]) -> str:
     startup = _startup_order(services)
+    traefik_publish = _traefik_publish_make_shell("s")
     dozzle = ""
     if "dozzle" in services:
         dozzle = _make_lines(
@@ -138,7 +153,7 @@ SHUTDOWN_SERVICES := {" ".join(reversed(startup))}
 # consumer:backend. up/recreate wait until each backend is running and healthy.
 SERVICE_DEPS := {_dependency_tokens(services)}
 READY_TIMEOUT ?= 300
-COMPOSE = docker compose --project-directory $$s -f docker-compose.shared.yml -f $$s/docker-compose.yml
+COMPOSE = docker compose --project-directory $$s -f docker-compose.shared.yml -f $$s/docker-compose.yml {traefik_publish}
 """
     body += _make_lines(
         r"""
