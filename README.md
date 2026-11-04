@@ -11,21 +11,26 @@ Local Docker Compose stack for common infra: databases, cache, messaging, CI/CD,
 ## Quick start
 
 ```bash
-# 1) Networks, .env files, shared password, optional TLS certs
+# 1) Networks, .env files, shared password
 make setup
 # Or choose a secure shared password:
 #   make setup password='your-secure-password'
 
-# 2) Start what you need
+# 2) TLS edge (sibling docker-shared-services-proxy repo)
+#    make setup && make cert && make up
+
+# 3) Start what you need
 make up                        # interactive
 make up service=postgres       # one service (folder name)
 
-# 3) Check
+# 4) Check
 make ps
 make info                      # URLs / ports
 ```
 
-Access via Traefik: `https://<service>.dss.localhost` (needs `make cert` / mkcert once).
+HTTPS uses **Caddy** in the companion [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) repo (`make cert` + `make up` there). Traefik in this repo routes **HTTP only** on `traefik_proxy`; start Caddy before Traefik for browser access.
+
+Access UIs at `https://<service>.dss.localhost` when Caddy and Traefik are running.
 Use the domain names for browser UIs. Verdaccio also exposes `http://127.0.0.1:4873/` for host package managers.
 Run `make setup` before any direct `docker compose up`; Compose requires the generated `.env` files and credentials.
 The Traefik dashboard is at `https://traefik.dss.localhost/dashboard/` with username `admin` and the shared password in the root `.env`.
@@ -47,13 +52,12 @@ Value is stored as `DSS_SHARED_PASSWORD` in the root `.env`.
 
 | Command                                 | What it does                                                   |
 | --------------------------------------- | -------------------------------------------------------------- |
-| `make setup`                            | Networks, `.env`, shared password, Dozzle user, optional certs |
+| `make setup`                            | Networks, `.env`, shared password, Dozzle user                 |
 | `make passwords`                        | Apply / rotate the shared password                             |
 | `make up` / `down` / `stop` / `restart` | Lifecycle (`service=<folder>` optional)                        |
 | `make manage`                           | Interactive multi-select start/stop                            |
 | `make tui`                              | Optional Textual dashboard (needs `uv` + interactive TTY)      |
 | `make logs` / `ps` / `health` / `info`  | Observe                                                        |
-| `make cert`                             | TLS for `*.dss.localhost` (requires mkcert)                    |
 | `make validate`                         | Validate all compose files                                     |
 | `make remove-config`                    | Delete generated `.env` files (confirm)                        |
 | `make remove-all`                       | **Wipe containers + volumes** (confirm)                        |
@@ -85,7 +89,7 @@ Press `?` inside the TUI for key bindings. Status updates automatically from Doc
 | CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                            |
 | Storage     | MinIO, Garage                                                                                   |
 | Dev tools   | Verdaccio npm registry                                                                          |
-| Edge / obs  | Traefik, OTel (Collector + Loki + Alloy + Grafana )                                             |
+| Edge / obs  | Caddy (proxy repo), Traefik, OTel (Collector + Loki + Alloy + Grafana )                       |
 
 Full catalog: [docs/services.md](docs/services.md).
 
@@ -96,7 +100,7 @@ docker-compose.shared.yml   # networks: traefik_proxy, backend_net, data_net
 Makefile                    # day-to-day commands
 dss/                        # Python: core logic, CLIs, packager, TUI
 tools/                      # dev tooling (formatter, file-size check)
-scripts/                    # shell called by Makefile recipes (networks, certs, Dozzle users, cleanup)
+scripts/                    # shell called by Makefile recipes (networks, Dozzle users, cleanup)
 <service>/                  # docker-compose.yml + .env.example
 docs/                       # deeper guides
 ```
@@ -122,7 +126,7 @@ Details: [docs/configuration.md](docs/configuration.md#opt-in-oidc-ui-authentica
 
 ## Requirements
 
-Docker Engine 20.10+, Compose v2+, Make, and [uv](https://docs.astral.sh/uv/) (it runs every Python target on Python 3.12). Optional: [mkcert](https://github.com/FiloSottile/mkcert) for local HTTPS.
+Docker Engine 20.10+, Compose v2+, Make, and [uv](https://docs.astral.sh/uv/) (it runs every Python target on Python 3.12). For HTTPS in the browser, clone [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) and install [mkcert](https://github.com/FiloSottile/mkcert) there.
 
 ## License
 

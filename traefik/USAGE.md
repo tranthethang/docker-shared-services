@@ -2,6 +2,12 @@
 
 To make your containers from other `docker-compose.yml` files accessible via Traefik with a custom domain (e.g., `sitexxx.dss.localhost`), follow these steps:
 
+## Prerequisites
+
+- Shared networks from DSS `make setup` (`traefik_proxy`, `backend_net`, `data_net`).
+- **Caddy** running from [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) (`make cert` + `make up`) for HTTPS in the browser.
+- **Traefik** running (`make up service=traefik`). Traefik routes HTTP on `traefik_proxy` only; Caddy terminates TLS and forwards to `http://traefik:80`.
+
 ## 1. Connect to the shared network
 
 Your service must join the `traefik_proxy` network, which is used by Traefik.
@@ -28,8 +34,7 @@ services:
       - "traefik.http.routers.my-api.rule=Host(`sitexxx.dss.localhost`)"
       # (Optional) Specify the port if your container exposes more than one
       - "traefik.http.services.my-api.loadbalancer.server.port=8080"
-      - "traefik.http.routers.my-api.entrypoints=websecure"
-      - "traefik.http.routers.my-api.tls=true"
+      - "traefik.http.routers.my-api.entrypoints=web"
 
 networks:
   traefik_proxy:
@@ -44,8 +49,9 @@ networks:
 - **`traefik.enable=true`**: Tells Traefik to process this container.
 - **`traefik.http.routers.<name>.rule`**: Defines the matching rule (Host, Path, etc.).
 - **`traefik.http.services.<name>.loadbalancer.server.port`**: The internal port your app listens on inside the container.
+- **`entrypoints=web`**: HTTP router behind Caddy; do not set `tls=true`.
 
 ## Troubleshooting
 
 - Ensure the container is actually running and joined to the `traefik_proxy` network: `docker network inspect traefik_proxy`.
-- Check the Traefik dashboard at [https://traefik.dss.localhost/dashboard/](https://traefik.dss.localhost/dashboard/) to see if your router appears. Log in as `admin` with `DSS_SHARED_PASSWORD` from the root `.env`.
+- Check the Traefik dashboard at [https://traefik.dss.localhost/dashboard/](https://traefik.dss.localhost/dashboard/) (via Caddy) to see if your router appears. Log in as `admin` with `DSS_SHARED_PASSWORD` from the root `.env`.

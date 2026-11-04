@@ -2,6 +2,8 @@
 
 > Detailed catalog of available containerized services, their access points, default credentials, and statistical overview.
 
+Browser URLs use **`https://`** through **Caddy** ([docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy)) into Traefik on `traefik_proxy`. Start Caddy and Traefik before opening a link below.
+
 ______________________________________________________________________
 
 ## 📦 Available Services

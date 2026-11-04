@@ -1,6 +1,6 @@
 # Configuration & Networking Guide
 
-> Guide on how to configure environment variables, change default passwords, customize ports, adjust resource limits, set up internal Docker networks, and generate SSL/TLS certificates for Traefik.
+> Guide on how to configure environment variables, change default passwords, customize ports, adjust resource limits, set up internal Docker networks, and terminate HTTPS with Caddy at the edge.
 
 ______________________________________________________________________
 
@@ -175,51 +175,48 @@ Full gateway details: [oauth2-proxy/README.md](../oauth2-proxy/README.md).
 
 ______________________________________________________________________
 
-## 🔒 SSL/TLS Certificate Setup (Traefik)
+## 🔒 HTTPS edge (Caddy)
 
-Traefik requires SSL/TLS certificates for HTTPS support. The easiest way is using `mkcert`.
+TLS and host ports **80/443** live in the companion repo [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy). Traefik in this repo listens on **HTTP port 80** inside `traefik_proxy` only; it does not mount server certificates or publish 80/443 on the Docker host.
 
-Public Traefik hostnames use the `*.dss.localhost` pattern (for example `https://mailpit.dss.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `dss.localhost`.
+Public hostnames still use `*.dss.localhost` (for example `https://mailpit.dss.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `dss.localhost`.
 
-Nested app hosts (one extra label) need an extra wildcard SAN — `make cert` (`scripts/gen-certs.sh`) also issues `*.tts.dss.localhost` (for `api.tts.dss.localhost`, `proxy.tts.dss.localhost`), plus `*.minio.dss.localhost` and `*.garage.dss.localhost`. Re-run `make cert` and restart Traefik after changing SANs.
+Nested app hosts (one extra label) need extra wildcard SANs on the Caddy certificate — the proxy repo `make cert` script issues `*.tts.dss.localhost`, `*.minio.dss.localhost`, and `*.garage.dss.localhost` in addition to `*.dss.localhost`. Re-run `make cert` in the proxy repo and restart Caddy after changing SANs.
 
-### Option 1: Using Makefile (Recommended)
+### Startup order
 
 ```bash
-# 1. Install mkcert (and trust the local CA)
-# macOS: brew install mkcert nss && mkcert -install
-# Linux: Follow mkcert installation guide, then mkcert -install
+# 1. This repo — networks and env
+make setup
 
-# 2. Run the make command
+# 2. docker-shared-services-proxy — TLS edge
+make setup && make cert && make up
+
+# 3. This repo — internal router and services
+make up service=traefik
+make up service=<name>
+```
+
+### Generate certificates (proxy repo)
+
+```bash
+# Install mkcert and trust the local CA once
+# macOS: brew install mkcert nss && mkcert -install
+
+cd ../docker-shared-services-proxy   # or your clone path
 make cert
 ```
 
-### Option 2: Manual Setup
+Certificate files are written to `caddy/certs/server.crt` and `server.key` in the proxy repo. They are gitignored and are **not** committed.
+
+### Verify certificates
 
 ```bash
-mkdir -p traefik/certs
-
-openssl req -x509 -newkey rsa:4096 -keyout traefik/certs/server.key \
-  -out traefik/certs/server.crt -days 365 -nodes \
-  -subj "/CN=localhost"
+openssl x509 -in caddy/certs/server.crt -text -noout    # run from proxy repo
+openssl x509 -in caddy/certs/server.crt -noout -dates
 ```
 
-### Important Notes
-
-- **Certificate files are in `.gitignore`** - They are NOT committed to the repository.
-- **Generate fresh certificates** for each environment (development, staging, production).
-- Certificates are located in: `traefik/certs/server.crt` and `traefik/certs/server.key`.
-- Update certificate validity period in the mkcert command in `scripts/gen-certs.sh` as needed (default: 2 years).
-
-### Verify Certificates
-
-```bash
-# Check certificate details
-openssl x509 -in traefik/certs/server.crt -text -noout
-
-# Check expiration
-openssl x509 -in traefik/certs/server.crt -noout -dates
-```
+Do not browse Traefik directly on host ports; use `https://traefik.dss.localhost/dashboard/` through Caddy.
 
 ______________________________________________________________________
 

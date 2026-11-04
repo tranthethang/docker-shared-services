@@ -34,8 +34,8 @@ ______________________________________________________________________
 ## Prerequisites
 
 - Shared networks exist (`make setup` from the repo root creates `traefik_proxy`, `backend_net`, and `data_net`).
-- **Traefik** running (`make up service=traefik`) for browser access via `*.dss.localhost` (same pattern as Zitadel).
-- TLS certs for `*.dss.localhost` (`make cert` / `make setup`).
+- **Caddy** edge from [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) (`make cert` + `make up`) for HTTPS on `*.dss.localhost`.
+- **Traefik** running (`make up service=traefik`) for browser access via Traefik routing on `traefik_proxy`.
 
 ______________________________________________________________________
 
@@ -47,7 +47,7 @@ From the **repository root**:
 # Ensure env files exist (also done by make setup)
 cp otel/.env.example otel/.env
 
-make up service=traefik   # if not already running
+make up service=traefik   # if not already running (after Caddy is up)
 make up service=otel
 make health service=otel
 ```
