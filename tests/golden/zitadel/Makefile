@@ -1,4 +1,4 @@
-.PHONY: help setup passwords cert validate up down restart recreate
+.PHONY: help setup passwords validate up down restart recreate
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -28,7 +28,7 @@ help: ## Show this help message
 	awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
-setup: ## Create env files, fill secrets, and optionally generate certificates
+setup: ## Create env files and fill secrets
 	@echo "Checking shared Docker networks (traefik_proxy, backend_net, data_net)..."
 	@for pair in "traefik_proxy:10.0.0.0/16" "backend_net:10.1.0.0/16" "data_net:10.2.0.0/16"; do \
 	name=$${pair%%:*}; subnet=$${pair#*:}; \
@@ -50,41 +50,11 @@ setup: ## Create env files, fill secrets, and optionally generate certificates
 	@$(PYTHON_ENV_MGR) validate all || true
 	@$(PYTHON_ENV_MGR) summary all
 	@echo ""
-	@read -p "Do you want to generate SSL certificates? (y/n) " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-	$(MAKE) cert; \
-	fi
-	@echo ""
 
 passwords: ## Fill the shared password only (optional: password='…' force=1)
 	@$(PYTHON_ENV_MGR) fill-shared-password \
 	$(if $(password),--password "$(password)",) \
 	$(if $(filter 1 true yes,$(force)),--force,)
-
-cert: ## Generate SSL certificates for Traefik
-	@echo "Detecting local IP..."
-	@CURRENT_IP=$$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' \
-	  | grep -v '127.0.0.1' | awk '{print $$2}' | sed 's/addr://' | head -n 1); \
-	echo "Local IP detected: $$CURRENT_IP"; \
-	mkdir -p traefik/certs; \
-	if command -v mkcert >/dev/null 2>&1; then \
-	mkcert -cert-file traefik/certs/server.crt \
-	       -key-file traefik/certs/server.key \
-	       "$$CURRENT_IP" \
-	       "*.dss.localhost" \
-	       "*.minio.dss.localhost" \
-	       "*.garage.dss.localhost" \
-	       "*.tts.dss.localhost" \
-	       "dss.localhost" \
-	       localhost \
-	       127.0.0.1 \
-	       ::1; \
-	echo "Success: Certificates are generated in traefik/certs/"; \
-	else \
-	echo "Error: mkcert is not installed. Please install it first."; \
-	exit 1; \
-	fi
 
 validate: ## Validate every packaged Compose project
 	@set -e; for s in $(STARTUP_SERVICES); do \

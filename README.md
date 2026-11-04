@@ -50,17 +50,17 @@ Value is stored as `DSS_SHARED_PASSWORD` in the root `.env`.
 
 ## Common commands
 
-| Command                                 | What it does                                                   |
-| --------------------------------------- | -------------------------------------------------------------- |
-| `make setup`                            | Networks, `.env`, shared password, Dozzle user                 |
-| `make passwords`                        | Apply / rotate the shared password                             |
-| `make up` / `down` / `stop` / `restart` | Lifecycle (`service=<folder>` optional)                        |
-| `make manage`                           | Interactive multi-select start/stop                            |
-| `make tui`                              | Optional Textual dashboard (needs `uv` + interactive TTY)      |
-| `make logs` / `ps` / `health` / `info`  | Observe                                                        |
-| `make validate`                         | Validate all compose files                                     |
-| `make remove-config`                    | Delete generated `.env` files (confirm)                        |
-| `make remove-all`                       | **Wipe containers + volumes** (confirm)                        |
+| Command                                 | What it does                                              |
+| --------------------------------------- | --------------------------------------------------------- |
+| `make setup`                            | Networks, `.env`, shared password, Dozzle user            |
+| `make passwords`                        | Apply / rotate the shared password                        |
+| `make up` / `down` / `stop` / `restart` | Lifecycle (`service=<folder>` optional)                   |
+| `make manage`                           | Interactive multi-select start/stop                       |
+| `make tui`                              | Optional Textual dashboard (needs `uv` + interactive TTY) |
+| `make logs` / `ps` / `health` / `info`  | Observe                                                   |
+| `make validate`                         | Validate all compose files                                |
+| `make remove-config`                    | Delete generated `.env` files (confirm)                   |
+| `make remove-all`                       | **Wipe containers + volumes** (confirm)                   |
 
 ```bash
 make up service=redis
@@ -89,7 +89,7 @@ Press `?` inside the TUI for key bindings. Status updates automatically from Doc
 | CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                            |
 | Storage     | MinIO, Garage                                                                                   |
 | Dev tools   | Verdaccio npm registry                                                                          |
-| Edge / obs  | Caddy (proxy repo), Traefik, OTel (Collector + Loki + Alloy + Grafana )                       |
+| Edge / obs  | Caddy (proxy repo), Traefik, OTel (Collector + Loki + Alloy + Grafana )                         |
 
 Full catalog: [docs/services.md](docs/services.md).
 
