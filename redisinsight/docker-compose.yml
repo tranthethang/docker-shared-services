@@ -2,12 +2,12 @@ services:
   redisinsight:
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.routers.redisinsight.rule=Host(`redisinsight.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.redisinsight.entrypoints=web"
       - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"
-    container_name: ${DSS_NAME:+${DSS_NAME}-}redisinsight
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}redisinsight
     image: "redis/redisinsight:2.70.1"
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

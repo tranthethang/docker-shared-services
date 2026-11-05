@@ -10,7 +10,7 @@ Create each missing Docker bridge network with its preferred subnet. When the
 subnet overlaps another Docker address pool (OrbStack/Docker Desktop), create
 the network with an auto-assigned subnet instead.
 
-Example (the root .env sets DSS_NAME and DSS_SUBNET_BASE):
+Example (the root .env sets SANDBOX_NAME and SANDBOX_SUBNET_BASE):
   scripts/ensure-networks.sh $(python -m dss.core.stack)
 EOF
 }

@@ -1,6 +1,6 @@
 services:
   hasura:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}hasura
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}hasura
     image: hasura/graphql-engine:${HASURA_VERSION:-v2.50.3}
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -25,8 +25,8 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "${HASURA_GRAPHQL_UNAUTHORIZED_ROLE:-anonymous}"
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.routers.hasura.rule=Host(`${HASURA_HOSTNAME:-hasura.${DOMAIN:-sandbox.localhost}}`)"
       - "traefik.http.routers.hasura.entrypoints=web"
       - "traefik.http.services.hasura.loadbalancer.server.port=8080"

@@ -1,6 +1,6 @@
-"""Stack identity: ``DSS_NAME`` prefix and shared network names/subnets from the root ``.env``.
+"""Stack identity: ``SANDBOX_NAME`` prefix and shared network names/subnets from the root ``.env``.
 
-An empty ``DSS_NAME`` keeps every historic name. A named stack gets its own Compose
+An empty ``SANDBOX_NAME`` keeps every historic name. A named stack gets its own Compose
 projects, networks, and subnets so several checkouts can share one Docker host.
 """
 
@@ -28,27 +28,29 @@ def _root_value(key: str) -> str:
 
 
 def stack_name() -> str:
-    """The validated ``DSS_NAME``, or an empty string for the unnamed stack."""
-    name = _root_value("DSS_NAME")
+    """The validated ``SANDBOX_NAME``, or an empty string for the unnamed stack."""
+    name = _root_value("SANDBOX_NAME")
     if name and not _NAME_PATTERN.match(name):
-        raise ValueError(f"DSS_NAME={name!r} is invalid; use lowercase letters, digits, '_' or '-'")
+        raise ValueError(
+            f"SANDBOX_NAME={name!r} is invalid; use lowercase letters, digits, '_' or '-'"
+        )
     return name
 
 
 def subnet_base() -> int:
-    """The validated ``DSS_SUBNET_BASE`` (default 0)."""
-    raw = _root_value("DSS_SUBNET_BASE") or "0"
+    """The validated ``SANDBOX_SUBNET_BASE`` (default 0)."""
+    raw = _root_value("SANDBOX_SUBNET_BASE") or "0"
     try:
         base = int(raw)
     except ValueError:
-        raise ValueError(f"DSS_SUBNET_BASE={raw!r} is invalid; use an integer") from None
+        raise ValueError(f"SANDBOX_SUBNET_BASE={raw!r} is invalid; use an integer") from None
     if not 0 <= base <= MAX_SUBNET_BASE:
-        raise ValueError(f"DSS_SUBNET_BASE={base} is invalid; use 0 to {MAX_SUBNET_BASE}")
+        raise ValueError(f"SANDBOX_SUBNET_BASE={base} is invalid; use 0 to {MAX_SUBNET_BASE}")
     return base
 
 
 def project_name(service: str) -> str:
-    """Compose project for a service: ``<DSS_NAME>-<service>`` or the bare service name."""
+    """Compose project for a service: ``<SANDBOX_NAME>-<service>`` or the bare service name."""
     name = stack_name()
     return f"{name}-{service}" if name else service
 

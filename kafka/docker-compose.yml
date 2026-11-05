@@ -1,7 +1,7 @@
 services:
   kafka:
     image: apache/kafka:3.8.0
-    container_name: ${DSS_NAME:+${DSS_NAME}-}kafka
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}kafka
     deploy:
       resources:
         limits:
@@ -49,7 +49,7 @@ services:
       start_period: 30s
   kafka-ui:
     image: provectuslabs/kafka-ui:v0.7.2
-    container_name: ${DSS_NAME:+${DSS_NAME}-}kafka-ui
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}kafka-ui
     deploy:
       resources:
         limits:
@@ -71,8 +71,8 @@ services:
       - data_net
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.kafka-ui.entrypoints=web"
       - "traefik.http.routers.kafka-ui.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
@@ -92,7 +92,7 @@ services:
 
 volumes:
   kafka_data:
-    name: ${DSS_NAME:+${DSS_NAME}_}kafka_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}kafka_data
 
 networks:
   traefik_proxy:

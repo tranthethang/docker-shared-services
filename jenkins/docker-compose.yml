@@ -2,14 +2,14 @@ services:
   jenkins:
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.routers.jenkins.rule=Host(`jenkins.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.jenkins.entrypoints=web"
       - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
     # Pin LTS patch (was floating lts-alpine channel tag).
     image: jenkins/jenkins:2.580.1-lts-alpine
-    container_name: ${DSS_NAME:+${DSS_NAME}-}jenkins
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}jenkins
     restart: "${RESTART_POLICY:-unless-stopped}"
     ports:
       - "127.0.0.1:${JENKINS_AGENT_PORT:-50000}:50000"

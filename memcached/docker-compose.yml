@@ -1,6 +1,6 @@
 services:
   memcached:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}memcached
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}memcached
     image: memcached:1.6.39-alpine
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

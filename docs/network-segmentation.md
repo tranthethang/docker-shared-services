@@ -10,7 +10,7 @@ Docker Shared Services uses a three-tier network segmentation model that isolate
 
 ## Network Topology & Addressing
 
-The names and subnets below are the defaults. With `DSS_NAME` set in the root `.env`, every network name gets the prefix `<DSS_NAME>_` (for example `projb_data_net`), and `DSS_SUBNET_BASE` moves the subnets to `10.<base>.0.0/16`, `10.<base+1>.0.0/16`, and `10.<base+2>.0.0/16`. See [Several stacks on one host](configuration.md#several-stacks-on-one-host). The Compose files keep the network keys, so a service still lists `data_net`.
+The names and subnets below are the defaults. With `SANDBOX_NAME` set in the root `.env`, every network name gets the prefix `<SANDBOX_NAME>_` (for example `projb_data_net`), and `SANDBOX_SUBNET_BASE` moves the subnets to `10.<base>.0.0/16`, `10.<base+1>.0.0/16`, and `10.<base+2>.0.0/16`. See [Several stacks on one host](configuration.md#several-stacks-on-one-host). The Compose files keep the network keys, so a service still lists `data_net`.
 
 | Network Name    | Subnet        | Gateway    | Purpose                                           | Direct Traefik Ingress |
 | --------------- | ------------- | ---------- | ------------------------------------------------- | ---------------------- |

@@ -2,7 +2,7 @@ services:
   # Copy garage.toml into a named volume. Bind mounts (file or directory) to /etc/garage
   # are visible on the host but often ENOENT inside dxflrs/garage distroless (exec + healthcheck).
   garage-config-init:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}garage-config-init
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}garage-config-init
     image: alpine:3.21
     restart: "no"
     volumes:
@@ -16,7 +16,7 @@ services:
         chmod 444 /etc/garage/garage.toml
 
   garage:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}garage
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}garage
     # dxflrs/garage v2.4.1 — latest stable release (Sep 2026).
     # Pin explicitly; do NOT use ":latest" for a storage backend.
     image: dxflrs/garage:v2.4.1
@@ -46,8 +46,8 @@ services:
       - garage_data:/var/lib/garage/data
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.routers.garage-s3.rule=Host(`s3.garage.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.garage-s3.entrypoints=web"
       - "traefik.http.routers.garage-s3.service=garage-s3"

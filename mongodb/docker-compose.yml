@@ -1,6 +1,6 @@
 services:
   mongodb:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}mongodb
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}mongodb
     image: "mongo:8.0.16"
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

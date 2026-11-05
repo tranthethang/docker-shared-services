@@ -2,12 +2,12 @@ services:
   bugsink:
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.routers.bugsink.rule=Host(`bugsink.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.bugsink.entrypoints=web"
       - "traefik.http.services.bugsink.loadbalancer.server.port=8000"
-    container_name: ${DSS_NAME:+${DSS_NAME}-}bugsink
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}bugsink
     image: bugsink/bugsink:2.6.1
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

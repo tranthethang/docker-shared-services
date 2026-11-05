@@ -1,6 +1,6 @@
 services:
   minio:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}minio
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}minio
     image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
     restart: "${RESTART_POLICY:-unless-stopped}"
     command: server /data --console-address ":9001"
@@ -25,8 +25,8 @@ services:
       - minio_data:/data
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.routers.minio.rule=Host(`minio.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.minio.entrypoints=web"
       - "traefik.http.routers.minio.service=minio"

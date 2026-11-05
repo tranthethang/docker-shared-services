@@ -1,4 +1,4 @@
-"""Compose files keep names stack-scoped: DSS_NAME prefixes and the dss.stack router label."""
+"""Compose files keep stack-scoped names: SANDBOX_NAME prefix and sandbox.stack label."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 COMPOSE_FILES = sorted(ROOT.glob("*/docker-compose.yml"))
 CONTAINER_NAME = re.compile(r'^\s+container_name:\s*"?(.+?)"?\s*$')
-PREFIX = "${DSS_NAME:+${DSS_NAME}-}"
-STACK_LABEL = '"dss.stack=${DSS_NAME:-dss}"'
+PREFIX = "${SANDBOX_NAME:+${SANDBOX_NAME}-}"
+STACK_LABEL = '"sandbox.stack=${SANDBOX_NAME:-sandbox}"'
 
 
 @pytest.mark.parametrize("compose", COMPOSE_FILES, ids=lambda p: p.parent.name)
@@ -31,7 +31,7 @@ def test_routed_services_carry_the_stack_label(compose: Path) -> None:
 
 TOP_LEVEL = re.compile(r"^([a-z_]+):")
 RESOURCE_NAME = re.compile(r'^    name:\s*"?(.+?)"?\s*$')
-RESOURCE_PREFIX = "${DSS_NAME:+${DSS_NAME}_}"
+RESOURCE_PREFIX = "${SANDBOX_NAME:+${SANDBOX_NAME}_}"
 
 
 @pytest.mark.parametrize("compose", COMPOSE_FILES, ids=lambda p: p.parent.name)

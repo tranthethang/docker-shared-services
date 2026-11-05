@@ -5,8 +5,8 @@ SHELL := /bin/bash
 
 PYTHON_ENV_MGR := uv run --frozen --no-dev python -m dss.cli.env
 PYTHON_STACK := uv run --frozen --no-dev python -m dss.core.stack
-# DSS_NAME in the root .env prefixes every Compose project and network.
-DSS_NAME = $(shell $(PYTHON_STACK) name 2>/dev/null)
+# SANDBOX_NAME in the root .env prefixes every Compose project and network.
+SANDBOX_NAME = $(shell $(PYTHON_STACK) name 2>/dev/null)
 password ?=
 
 # One compose project per service, like dss/cli/service.py: --project-directory
@@ -17,7 +17,7 @@ SHUTDOWN_SERVICES := memcached
 # consumer:backend. up/recreate wait until each backend is running and healthy.
 SERVICE_DEPS := 
 READY_TIMEOUT ?= 300
-COMPOSE = docker compose $(if $(DSS_NAME),-p $(DSS_NAME)-$$s) --project-directory $$s $$(if [ -f .env ]; then echo --env-file .env; fi) $$(if [ -f "$$s/.env" ]; then echo --env-file "$$s/.env"; fi) -f docker-compose.shared.yml -f $$s/docker-compose.yml $$(if [ "$$s" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi)
+COMPOSE = docker compose $(if $(SANDBOX_NAME),-p $(SANDBOX_NAME)-$$s) --project-directory $$s $$(if [ -f .env ]; then echo --env-file .env; fi) $$(if [ -f "$$s/.env" ]; then echo --env-file "$$s/.env"; fi) -f docker-compose.shared.yml -f $$s/docker-compose.yml $$(if [ "$$s" = traefik ] && [ -f traefik/.env ]; then port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- | tr -d '"\047 \r'); if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi)
 
 help: ## Show this help message
 	@echo "Packaged Docker Shared Services stack"
@@ -33,7 +33,7 @@ help: ## Show this help message
 	@echo ""
 
 setup: ## Create env files and fill secrets
-	@echo "Checking shared Docker networks (names and subnets from DSS_NAME and DSS_SUBNET_BASE)..."
+	@echo "Checking shared Docker networks (names and subnets from SANDBOX_NAME and SANDBOX_SUBNET_BASE)..."
 	@pairs=$$($(PYTHON_STACK)) || exit 1; \
 	for pair in $$pairs; do \
 	name=$${pair%%:*}; subnet=$${pair#*:}; \

@@ -43,7 +43,7 @@ def service_lines(catalog: dict[str, dict[str, Any]]) -> list[str]:
 
 
 def network_lines() -> list[str]:
-    """One line per shared network, with the ``DSS_NAME`` prefix and subnet in effect."""
+    """One line per shared network, with the ``SANDBOX_NAME`` prefix and subnet in effect."""
     pairs = [pair.split(":", 1) for pair in network_pairs()]
     width = max(len(name) for name, _ in pairs)
     return [

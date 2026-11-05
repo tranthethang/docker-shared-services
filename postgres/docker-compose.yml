@@ -1,6 +1,6 @@
 services:
   postgres:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}postgres
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}postgres
     image: postgres:16.15-alpine
     entrypoint: ["/bin/bash", "/usr/local/bin/dss-entrypoint.sh"]
     restart: "${RESTART_POLICY:-unless-stopped}"

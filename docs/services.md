@@ -60,7 +60,7 @@ ______________________________________________________________________
 
 ### LLM proxy
 
-- **LiteLLM** - OpenAI-compatible proxy and admin UI at `https://litellm.dss.localhost` (`/ui`, `/v1`). Uses shared Postgres 16 database `litellm`. On an existing Postgres volume, create the database once (in a stack with `DSS_NAME` set, use `docker exec <DSS_NAME>-postgres`): `docker exec postgres psql -U postgres -c "CREATE DATABASE litellm;"`
+- **LiteLLM** - OpenAI-compatible proxy and admin UI at `https://litellm.dss.localhost` (`/ui`, `/v1`). Uses shared Postgres 16 database `litellm`. On an existing Postgres volume, create the database once (in a stack with `SANDBOX_NAME` set, use `docker exec <SANDBOX_NAME>-postgres`): `docker exec postgres psql -U postgres -c "CREATE DATABASE litellm;"`
 
 ### Observability & Management
 

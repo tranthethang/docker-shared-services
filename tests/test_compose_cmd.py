@@ -94,7 +94,7 @@ def test_env_files_neither(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
 
 def test_named_stack_adds_project_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
-    _write(tmp_path / ".env", "DSS_NAME=projb\n")
+    _write(tmp_path / ".env", "SANDBOX_NAME=projb\n")
 
     cmd = get_compose_cmd("postgres")
     assert cmd[cmd.index("-p") + 1] == "projb-postgres"
@@ -102,6 +102,6 @@ def test_named_stack_adds_project_flag(tmp_path: Path, monkeypatch: pytest.Monke
 
 def test_unnamed_stack_has_no_project_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
-    _write(tmp_path / ".env", "DSS_NAME=\n")
+    _write(tmp_path / ".env", "SANDBOX_NAME=\n")
 
     assert "-p" not in get_compose_cmd("postgres")

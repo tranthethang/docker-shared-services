@@ -11,7 +11,7 @@
 services:
 
   supabase-studio:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-studio
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-studio
     image: supabase/studio:2026.08.03-sha-022b374
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -65,7 +65,7 @@ services:
         max-file: "3"
 
   supabase-kong:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-kong
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-kong
     image: kong/kong:3.9.3
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -78,8 +78,8 @@ services:
           memory: "${SUPABASE_KONG_MEMORY_RESERVED:-128M}"
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.services.supabase.loadbalancer.server.port=8000"
       # Public APIs (clients use anon/service keys)
       - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN:-sandbox.localhost}`) && (PathPrefix(`/auth`)\
@@ -153,7 +153,7 @@ services:
         max-file: "3"
 
   supabase-auth:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-auth
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-auth
     image: supabase/gotrue:v2.189.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -214,7 +214,7 @@ services:
         max-file: "3"
 
   supabase-storage:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-storage
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-storage
     image: supabase/storage-api:v1.60.4
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -265,7 +265,7 @@ services:
         max-size: "10m"
         max-file: "3"
   realtime:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}realtime-dev.supabase-realtime
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}realtime-dev.supabase-realtime
     image: supabase/realtime:v2.102.3
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -319,7 +319,7 @@ services:
         max-file: "3"
 
   supabase-meta:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-meta
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-meta
     image: supabase/postgres-meta:v0.96.6
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -359,7 +359,7 @@ services:
         max-size: "10m"
         max-file: "3"
   supabase-db:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}supabase-db
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-db
     image: supabase/postgres:17.6.1.136
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -410,9 +410,9 @@ services:
 
 volumes:
   supabase_db_config:
-    name: ${DSS_NAME:+${DSS_NAME}_}supabase_db_config
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}supabase_db_config
   supabase_db_data:
-    name: ${DSS_NAME:+${DSS_NAME}_}supabase_db_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}supabase_db_data
 
 networks:
   traefik_proxy:

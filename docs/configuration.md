@@ -34,33 +34,33 @@ Some files are not interpolated by Compose and keep `dss.localhost`: `garage/con
 
 ### Several stacks on one host
 
-`DSS_NAME` and `DSS_SUBNET_BASE` in the root `.env` let several DSS stacks share one Docker host. Both are optional. With `DSS_NAME` empty, every name stays as before.
+`SANDBOX_NAME` and `SANDBOX_SUBNET_BASE` in the root `.env` let several DSS stacks share one Docker host. Both are optional. With `SANDBOX_NAME` empty, every name stays as before.
 
-| Item                 | Default (`DSS_NAME` empty) | With `DSS_NAME=projb`  |
-| -------------------- | -------------------------- | ---------------------- |
-| Compose project      | `postgres`                 | `projb-postgres`       |
-| Container            | `postgres`                 | `projb-postgres`       |
-| Shared networks      | `data_net`                 | `projb_data_net`       |
-| Traefik socket net   | `traefik_docker`           | `projb_traefik_docker` |
-| Traefik router label | `dss.stack=dss`            | `dss.stack=projb`      |
+| Item                 | Default (`SANDBOX_NAME` empty) | With `SANDBOX_NAME=projb` |
+| -------------------- | ------------------------------ | ------------------------- |
+| Compose project      | `postgres`                     | `projb-postgres`          |
+| Container            | `postgres`                     | `projb-postgres`          |
+| Shared networks      | `data_net`                     | `projb_data_net`          |
+| Traefik socket net   | `traefik_docker`               | `projb_traefik_docker`    |
+| Traefik router label | `sandbox.stack=sandbox`        | `sandbox.stack=projb`     |
 
-`DSS_NAME` accepts lowercase letters, digits, `_`, and `-`, and must start with a letter or digit. `DSS_SUBNET_BASE` (0 to 253, default 0) sets the subnets `10.<base>.0.0/16`, `10.<base+1>.0.0/16`, and `10.<base+2>.0.0/16` for `traefik_proxy`, `backend_net`, and `data_net`. Services still reach each other by Compose service name, such as `postgres`, in every stack.
+`SANDBOX_NAME` accepts lowercase letters, digits, `_`, and `-`, and must start with a letter or digit. `SANDBOX_SUBNET_BASE` (0 to 253, default 0) sets the subnets `10.<base>.0.0/16`, `10.<base+1>.0.0/16`, and `10.<base+2>.0.0/16` for `traefik_proxy`, `backend_net`, and `data_net`. Services still reach each other by Compose service name, such as `postgres`, in every stack.
 
 Example for a second stack:
 
 ```env
 # root .env of the second checkout
-DSS_NAME=projb
-DSS_SUBNET_BASE=10
+SANDBOX_NAME=projb
+SANDBOX_SUBNET_BASE=10
 ```
 
 `make setup` then creates `projb_traefik_proxy` (`10.10.0.0/16`), `projb_backend_net` (`10.11.0.0/16`), and `projb_data_net` (`10.12.0.0/16`).
 
-- Give each stack its own checkout or its own root `.env`, so each reads its own `DSS_NAME`.
-- Subnets must not overlap. Give each stack a `DSS_SUBNET_BASE` at least 3 higher than the previous one.
-- Each Traefik only routes containers with its own `dss.stack` label, so two stacks never list each other's routers.
-- Data volumes are not shared or migrated between stacks. A volume with a fixed `name:` (for example `supabase_db_data`) becomes `<DSS_NAME>_<name>`, such as `projb_supabase_db_data`.
-- Set the same `DSS_NAME` in the root `.env` before the first `make up`. Changing it later creates new containers and networks next to the old ones.
+- Give each stack its own checkout or its own root `.env`, so each reads its own `SANDBOX_NAME`.
+- Subnets must not overlap. Give each stack a `SANDBOX_SUBNET_BASE` at least 3 higher than the previous one.
+- Each Traefik only routes containers with its own `sandbox.stack` label, so two stacks never list each other's routers.
+- Data volumes are not shared or migrated between stacks. A volume with a fixed `name:` (for example `supabase_db_data`) becomes `<SANDBOX_NAME>_<name>`, such as `projb_supabase_db_data`.
+- Set the same `SANDBOX_NAME` in the root `.env` before the first `make up`. Changing it later creates new containers and networks next to the old ones.
 
 ### Shared password (recommended)
 

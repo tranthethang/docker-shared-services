@@ -1,6 +1,6 @@
 services:
   redis:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}redis
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}redis
     image: "redis:7.4-alpine"
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

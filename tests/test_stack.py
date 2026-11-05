@@ -1,4 +1,4 @@
-"""dss.core.stack: DSS_NAME and DSS_SUBNET_BASE from the root .env."""
+"""dss.core.stack: SANDBOX_NAME and SANDBOX_SUBNET_BASE from the root .env."""
 
 from __future__ import annotations
 
@@ -31,13 +31,13 @@ def test_defaults_without_env_file(root: Path) -> None:
 
 
 def test_empty_values_keep_defaults(root: Path) -> None:
-    _env(root, "DSS_NAME=\nDSS_SUBNET_BASE=0\n")
+    _env(root, "SANDBOX_NAME=\nSANDBOX_SUBNET_BASE=0\n")
     assert stack.stack_name() == ""
     assert stack.network_name("data_net") == "data_net"
 
 
 def test_named_stack(root: Path) -> None:
-    _env(root, "DSS_NAME=projb\nDSS_SUBNET_BASE=10\n")
+    _env(root, "SANDBOX_NAME=projb\nSANDBOX_SUBNET_BASE=10\n")
     assert stack.project_name("postgres") == "projb-postgres"
     assert stack.network_pairs() == [
         "projb_traefik_proxy:10.10.0.0/16",
@@ -48,20 +48,20 @@ def test_named_stack(root: Path) -> None:
 
 @pytest.mark.parametrize("value", ["ProjB", "-x", "a b", "a.b"])
 def test_invalid_name(root: Path, value: str) -> None:
-    _env(root, f"DSS_NAME={value}\n")
-    with pytest.raises(ValueError, match="DSS_NAME"):
+    _env(root, f"SANDBOX_NAME={value}\n")
+    with pytest.raises(ValueError, match="SANDBOX_NAME"):
         stack.stack_name()
 
 
 @pytest.mark.parametrize("value", ["abc", "-1", "254", "256"])
 def test_invalid_subnet_base(root: Path, value: str) -> None:
-    _env(root, f"DSS_SUBNET_BASE={value}\n")
-    with pytest.raises(ValueError, match="DSS_SUBNET_BASE"):
+    _env(root, f"SANDBOX_SUBNET_BASE={value}\n")
+    with pytest.raises(ValueError, match="SANDBOX_SUBNET_BASE"):
         stack.subnet_base()
 
 
 def test_main_prints_pairs_and_name(root: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    _env(root, "DSS_NAME=projb\nDSS_SUBNET_BASE=4\n")
+    _env(root, "SANDBOX_NAME=projb\nSANDBOX_SUBNET_BASE=4\n")
     assert stack.main(["stack"]) == 0
     assert capsys.readouterr().out.splitlines()[0] == "projb_traefik_proxy:10.4.0.0/16"
     assert stack.main(["stack", "name"]) == 0
@@ -69,9 +69,9 @@ def test_main_prints_pairs_and_name(root: Path, capsys: pytest.CaptureFixture[st
 
 
 def test_main_reports_errors(root: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    _env(root, "DSS_NAME=BAD\n")
+    _env(root, "SANDBOX_NAME=BAD\n")
     assert stack.main(["stack"]) == 1
-    assert "DSS_NAME" in capsys.readouterr().err
+    assert "SANDBOX_NAME" in capsys.readouterr().err
     assert stack.main(["stack", "x"]) == stack.EXIT_USAGE
 
 
@@ -103,7 +103,7 @@ def _running(rows: list, name: str) -> int:
 
 
 def test_tui_maps_prefixed_project_to_service(root: Path) -> None:
-    _env(root, "DSS_NAME=projb\n")
+    _env(root, "SANDBOX_NAME=projb\n")
     rows = list_service_statuses(_Client(["projb-postgres", "postgres"]))
     assert _running(rows, "postgres") == 1
 

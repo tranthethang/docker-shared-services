@@ -1,6 +1,6 @@
 services:
   oauth2-proxy:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}oauth2-proxy
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}oauth2-proxy
     image: quay.io/oauth2-proxy/oauth2-proxy:${OAUTH2_PROXY_VERSION:-v7.12.0}
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -41,8 +41,8 @@ services:
       - "${OAUTH2_PROXY_OIDC_ISSUER_HOST:-unused.invalid}:host-gateway"
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.routers.oauth2-proxy.rule=Host(`${OAUTH2_PROXY_HOSTNAME:-auth.${DOMAIN:-sandbox.localhost}}`)"
       - "traefik.http.routers.oauth2-proxy.entrypoints=web"
       - "traefik.http.routers.oauth2-proxy.service=oauth2-proxy"
@@ -67,7 +67,7 @@ services:
         max-file: "3"
 
   oauth2-proxy-probe:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}oauth2-proxy-probe
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}oauth2-proxy-probe
     image: curlimages/curl:8.22.0
     entrypoint: ["sleep", "infinity"]
     network_mode: "service:oauth2-proxy"

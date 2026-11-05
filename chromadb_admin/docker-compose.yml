@@ -1,12 +1,12 @@
 services:
   chromadb-admin:
-    container_name: ${DSS_NAME:+${DSS_NAME}-}chromadb-admin
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}chromadb-admin
     image: fengzhichao/chromadb-admin:0.0.2
     restart: "${RESTART_POLICY:-unless-stopped}"
     labels:
       - "traefik.enable=true"
-      - "dss.stack=${DSS_NAME:-dss}"
-      - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.routers.chromadb-admin.rule=Host(`chromadb-admin.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.chromadb-admin.entrypoints=web"
       - "traefik.http.services.chromadb-admin.loadbalancer.server.port=3001"
