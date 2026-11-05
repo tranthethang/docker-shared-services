@@ -1,6 +1,6 @@
 services:
   memcached:
-    container_name: memcached
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}memcached
     image: memcached:1.6.39-alpine
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -11,10 +11,7 @@ services:
         reservations:
           cpus: "${MEMCACHED_CPUS_RESERVED:-0.25}"
           memory: "${MEMCACHED_MEMORY_RESERVED:-256M}"
-    ports:
-      - "127.0.0.1:${MEMCACHED_PORT:-11211}:11211"
     networks:
-      - backend_net
       - data_net
     stop_grace_period: 20s
     logging:
@@ -30,7 +27,5 @@ services:
       start_period: 5s
 
 networks:
-  backend_net:
-    external: true
   data_net:
     external: true

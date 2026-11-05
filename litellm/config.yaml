@@ -13,11 +13,12 @@ litellm_settings:
   request_timeout: 120
 
 router_settings:
-  # v1.90.2 applies only the counters below. 5xx, not-found, and other errors
-  # use num_retries. The image accepts InternalServerErrorRetries but never reads it.
+  # Unlisted error types use num_retries. InternalServerErrorRetries is applied
+  # on 5xx after v1.90.2.
   num_retries: 1
   retry_policy:
     RateLimitErrorRetries: 3
     TimeoutErrorRetries: 3
     AuthenticationErrorRetries: 0
     ContentPolicyViolationErrorRetries: 0
+    InternalServerErrorRetries: 1

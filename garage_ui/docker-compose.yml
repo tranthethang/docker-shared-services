@@ -1,0 +1,39 @@
+services:
+  garage-webui:
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}garage-webui
+    image: khairul169/garage-webui:1.1.0
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    labels:
+      - "traefik.enable=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.garage-ui.rule=Host(`garage-ui.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.garage-ui.entrypoints=web"
+      - "traefik.http.services.garage-ui.loadbalancer.server.port=3909"
+    environment:
+      - API_BASE_URL=http://garage:3903
+      - S3_ENDPOINT_URL=http://garage:3900
+      - S3_REGION=garage
+      - API_ADMIN_KEY=${GARAGE_ADMIN_TOKEN:?Set GARAGE_ADMIN_TOKEN in garage_ui/.env (copy from garage/.env)}
+      - AUTH_USER_PASS=${GARAGE_UI_AUTH_USER_PASS:?Set GARAGE_UI_AUTH_USER_PASS in garage_ui/.env}
+    deploy:
+      resources:
+        limits:
+          cpus: "${GARAGE_UI_CPUS_LIMIT:-0.5}"
+          memory: "${GARAGE_UI_MEMORY_LIMIT:-512M}"
+    networks:
+      - traefik_proxy
+      - backend_net
+    # No Docker healthcheck: khairul169/garage-webui is a scratch image (no shell or wget).
+    # A failing healthcheck makes Traefik v3 omit the router (filters unhealthy containers).
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  traefik_proxy:
+    external: true
+  backend_net:
+    external: true

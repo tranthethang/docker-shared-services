@@ -17,6 +17,8 @@ from dss.core.config import (
 from dss.core.env_files import get_services
 from dss.core.utils import (
     error,
+    generate_bcrypt_auth_user_pass,
+    generate_hs256_jwt,
     generate_password,
     generate_secret,
     read_env_value,
@@ -26,58 +28,94 @@ from dss.core.utils import (
     warning,
 )
 
+_LEGACY_DASHBOARD_HASH = "admin:$apr1$dsslocal$d6fWuAuh2eC9xV6eu7kMP."
+_LEGACY_DASHBOARD_HASHES = (_LEGACY_DASHBOARD_HASH, _LEGACY_DASHBOARD_HASH.replace("$", "$$"))
+
+# Former .env.example literals. Old .env files may still hold them; setup warns
+# instead of replacing them because some (ZITADEL_MASTERKEY, REALTIME_DB_ENC_KEY)
+# encrypt existing data and cannot change after first start.
+KNOWN_SECRET_PLACEHOLDERS = frozenset(
+    {
+        "MasterkeyNeedsToHave32Characters",
+        "change-me-generate-with-openssl-rand-base64-50",
+        "00000000000000000000000000000000",
+        "your-super-secret-jwt-token-with-at-least-32-characters-long",
+        "UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq",
+        "supabaserealtime",
+        "your-encryption-key-32-chars-min",
+        "625729a08b95bf1b7ff351a663f3a23c",
+        "850181e4652dd023b7a98c58ae0d2d34bd487ee0cc3254aed6eda37307425907",
+    }
+)
+
+# Supabase API keys are JWTs whose role claim comes from the variable name.
+JWT_ROLES = {"ANON_KEY": "anon", "SERVICE_ROLE_KEY": "service_role"}
+
+# .env.example bcrypt for password "password"; fill-shared-password replaces it.
+_GARAGE_UI_AUTH_PLACEHOLDER_MARKER = "N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+_SHARED_PASSWORD_BCRYPT_AUTH: dict[str, tuple[str, str]] = {
+    "garage_ui": ("GARAGE_UI_AUTH_USER_PASS", "admin"),
+}
+
 
 def fill_secrets(service_arg: str | None) -> None:
     """Fill empty secrets and replace the former default dashboard hash."""
     services = get_services(service_arg)
     print("\nFilling empty auto-generated secrets...\n")
     filled = 0
-    legacy_dashboard_hash = "admin:$apr1$dsslocal$d6fWuAuh2eC9xV6eu7kMP."
     for s in services:
         env_path = _env_path(s)
         specs = AUTO_GENERATED_SECRETS.get(s)
         if not specs or not env_path.exists():
             continue
         for var, (method, nbytes) in specs.items():
-            current = read_env_value(env_path, var)
-            if (
-                var == "TRAEFIK_DASHBOARD_AUTH"
-                and current
-                and current
-                not in (
-                    legacy_dashboard_hash,
-                    legacy_dashboard_hash.replace("$", "$$"),
-                )
-            ):
-                escaped = re.sub(r"(?<!\$)\$(?!\$)", "$$", current)
-                if escaped != current:
-                    set_env_value(env_path, var, escaped)
-                    success(f"{s}: escaped {var} for Docker Compose")
-                else:
-                    success(f"{s}: {var} already set (left unchanged)")
-                continue
-            if current and not (
-                var == "TRAEFIK_DASHBOARD_AUTH"
-                and current in (legacy_dashboard_hash, legacy_dashboard_hash.replace("$", "$$"))
-            ):
-                success(f"{s}: {var} already set (left unchanged)")
-                continue
-            if method == "htpasswd":
-                shared_password = read_env_value(".env", "DSS_SHARED_PASSWORD")
-                if not shared_password or shared_password in INVALID_PASSWORD_VALUES:
-                    error("Set a secure DSS_SHARED_PASSWORD first (run make setup).")
-                    raise SystemExit(1)
-                value = generate_secret(method, nbytes, password=shared_password)
-            else:
-                value = generate_secret(method, nbytes)
-            set_env_value(env_path, var, value)
-            success(f"{s}: generated {var}")
-            filled += 1
+            if _fill_secret(s, env_path, var, method, nbytes):
+                filled += 1
 
     if filled == 0:
         print("✅ No empty auto-generated secrets to fill.")
     else:
         print(f"\n✅ Generated {filled} secret value(s).")
+    _sync_garage_ui_admin_token()
+
+
+def _fill_secret(s: str, env_path: Path, var: str, method: str, nbytes: int) -> bool:
+    """Generate one secret when it is empty. Return True when a value was written."""
+    current = read_env_value(env_path, var)
+    if var == "TRAEFIK_DASHBOARD_AUTH" and current and current not in _LEGACY_DASHBOARD_HASHES:
+        escaped = re.sub(r"(?<!\$)\$(?!\$)", "$$", current)
+        if escaped != current:
+            set_env_value(env_path, var, escaped)
+            success(f"{s}: escaped {var} for Docker Compose")
+        else:
+            success(f"{s}: {var} already set (left unchanged)")
+        return False
+    if current and var != "TRAEFIK_DASHBOARD_AUTH":
+        if current in KNOWN_SECRET_PLACEHOLDERS:
+            warning(f"{s}: {var} still holds a public placeholder (left unchanged)")
+        else:
+            success(f"{s}: {var} already set (left unchanged)")
+        return False
+    set_env_value(env_path, var, _generate_value(env_path, var, method, nbytes))
+    success(f"{s}: generated {var}")
+    return True
+
+
+def _generate_value(env_path: Path, var: str, method: str, nbytes: int) -> str:
+    if method == "htpasswd":
+        shared_password = read_env_value(".env", "DSS_SHARED_PASSWORD")
+        if not shared_password or shared_password in INVALID_PASSWORD_VALUES:
+            error("Set a secure DSS_SHARED_PASSWORD first (run make setup).")
+            raise SystemExit(1)
+        return generate_secret(method, nbytes, password=shared_password)
+    if method == "jwt_hs256":
+        # Signed with the JWT_SECRET from the same .env; config lists it first.
+        jwt_secret = read_env_value(env_path, "JWT_SECRET")
+        if not jwt_secret:
+            error(f"{env_path}: set JWT_SECRET before generating {var}.")
+            raise SystemExit(1)
+        return generate_hs256_jwt(jwt_secret, JWT_ROLES[var])
+    return generate_secret(method, nbytes)
 
 
 def _require_strong(password: str, source: str) -> str:
@@ -130,6 +168,28 @@ def _should_overwrite(current: str | None, force: bool) -> bool:
     return LEGACY_PLACEHOLDER_PASSWORD in current
 
 
+def _should_overwrite_shared_key(key: str, current: str | None, force: bool) -> bool:
+    if key == "GARAGE_UI_AUTH_USER_PASS" and _GARAGE_UI_AUTH_PLACEHOLDER_MARKER in (current or ""):
+        return True
+    return _should_overwrite(current, force)
+
+
+def _sync_garage_ui_admin_token() -> None:
+    """Copy Garage admin token into garage_ui when the UI env still has an empty value."""
+    garage_ui_env = _env_path("garage_ui")
+    garage_env = _env_path("garage")
+    if not garage_ui_env.exists() or not garage_env.exists():
+        return
+    token = read_env_value(garage_env, "GARAGE_ADMIN_TOKEN")
+    if not token:
+        return
+    current = read_env_value(garage_ui_env, "GARAGE_ADMIN_TOKEN")
+    if current:
+        return
+    set_env_value(garage_ui_env, "GARAGE_ADMIN_TOKEN", token)
+    success("garage_ui: copied GARAGE_ADMIN_TOKEN from garage/.env")
+
+
 def _env_path(service: str) -> Path:
     return Path(service) / ".env"
 
@@ -164,6 +224,10 @@ def _shared_password_targets(password: str) -> Iterator[tuple[Path, str, str]]:
         env_path = _env_path(service)
         if env_path.exists():
             yield env_path, key, template.format(password=password)
+    for service, (key, username) in _SHARED_PASSWORD_BCRYPT_AUTH.items():
+        env_path = _env_path(service)
+        if env_path.exists():
+            yield env_path, key, generate_bcrypt_auth_user_pass(username, password)
 
 
 def fill_shared_password(
@@ -202,7 +266,8 @@ def fill_shared_password(
     updated = 0
     skipped = 0
     for env_path, key, value in _shared_password_targets(resolved):
-        if not _should_overwrite(read_env_value(env_path, key), force):
+        current = read_env_value(env_path, key)
+        if not _should_overwrite_shared_key(key, current, force):
             skipped += 1
             continue
         _apply_value(env_path, key, value, dry_run)
@@ -215,5 +280,8 @@ def fill_shared_password(
             "Unique secrets (Garage, Woodpecker agent, Zitadel masterkey) "
             "are handled separately by fill-secrets."
         )
-        print("\nTraefik dashboard login: admin + DSS_SHARED_PASSWORD from root .env.\n")
+        print(
+            "\nTraefik dashboard: admin + DSS_SHARED_PASSWORD. "
+            "Garage Web UI: admin + DSS_SHARED_PASSWORD.\n"
+        )
     return resolved

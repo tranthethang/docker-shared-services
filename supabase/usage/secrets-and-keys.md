@@ -2,6 +2,8 @@
 
 How to create and rotate credentials for the minimal stack. Run scripts from `supabase/` unless noted.
 
+`make setup` (repo root) fills these when they are empty in `supabase/.env`: `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY` (HS256 JWTs signed with that `JWT_SECRET`), `SECRET_KEY_BASE`, `REALTIME_DB_ENC_KEY`, `PG_META_CRYPTO_KEY`, and `S3_PROTOCOL_ACCESS_KEY_*`. Compose refuses to start while any of them is empty. Use the scripts below to rotate them.
+
 ## Overview
 
 | Kind                         | Variables                                                                                  | Script                                                                                        |

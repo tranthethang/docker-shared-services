@@ -12,10 +12,10 @@ make up service=traefik       # Reverse proxy / TLS termination
 make up service=zitadel       # Starts Zitadel API and Login UI
 ```
 
-| Resource      | URL                                         | Default Credentials                                                                   |
-| ------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Console UI    | `https://zitadel.dss.localhost/ui/console`  | User: `zitadel-admin@zitadel.zitadel.dss.localhost` / Password: `DSS_SHARED_PASSWORD` |
-| Login UI (v2) | `https://zitadel.dss.localhost/ui/v2/login` | Served by `zitadel-login`                                                             |
+| Resource      | URL                                             | Default Credentials                                                                       |
+| ------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Console UI    | `https://zitadel.sandbox.localhost/ui/console`  | User: `zitadel-admin@zitadel.zitadel.sandbox.localhost` / Password: `DSS_SHARED_PASSWORD` |
+| Login UI (v2) | `https://zitadel.sandbox.localhost/ui/v2/login` | Served by `zitadel-login`                                                                 |
 
 ## Database Dependency
 
@@ -29,7 +29,7 @@ Zitadel stores its schema in the `zitadel` database inside the shared `postgres`
 
 ## Architecture & Traefik Routing
 
-- **Traefik TLS**: Traefik terminates TLS for `zitadel.dss.localhost`.
+- **Traefik TLS**: Traefik terminates TLS for `zitadel.sandbox.localhost`.
 - **API Upstream (h2c)**: Non-login paths go to container port `8080` with scheme `h2c` (required for Console / gRPC).
 - **Login UI Upstream**: `/ui/v2/login` (and `/`) go to `zitadel-login` on port `3000`.
 - **Images**: API and Login must share the same `ZITADEL_VERSION` (default `v4.16.3`).

@@ -1,6 +1,6 @@
 # Hasura GraphQL Engine
 
-Hasura provides an instant GraphQL API over the shared Postgres 16 service. Metadata and the default data source both use the `hasura` database. The Console and GraphQL endpoint are available through Traefik TLS at `hasura.dss.localhost`.
+Hasura provides an instant GraphQL API over the shared Postgres 16 service. Metadata and the default data source both use the `hasura` database. The Console and GraphQL endpoint are available through Traefik TLS at `hasura.sandbox.localhost`.
 
 Upstream: [hasura/graphql-engine](https://github.com/hasura/graphql-engine).
 
@@ -14,10 +14,10 @@ make up service=traefik       # Optional: reverse proxy / TLS
 make up service=hasura
 ```
 
-| Resource         | URL                                       | Default Credentials                 |
-| ---------------- | ----------------------------------------- | ----------------------------------- |
-| Console (TLS)    | `https://hasura.dss.localhost/console`    | Admin secret: `DSS_SHARED_PASSWORD` |
-| GraphQL endpoint | `https://hasura.dss.localhost/v1/graphql` | Header `x-hasura-admin-secret`      |
+| Resource         | URL                                           | Default Credentials                 |
+| ---------------- | --------------------------------------------- | ----------------------------------- |
+| Console (TLS)    | `https://hasura.sandbox.localhost/console`    | Admin secret: `DSS_SHARED_PASSWORD` |
+| GraphQL endpoint | `https://hasura.sandbox.localhost/v1/graphql` | Header `x-hasura-admin-secret`      |
 
 ## Database Dependency
 
@@ -29,11 +29,10 @@ Hasura stores metadata (and uses `PG_DATABASE_URL` as the default Postgres sourc
   docker exec -it postgres psql -U postgres -c 'CREATE DATABASE hasura;'
   ```
 
-Connection defaults (override in `hasura/.env`):
+Connection defaults (override in `hasura/.env`; the in-network port is always 5432):
 
 ```text
 POSTGRES16_HOST=postgres
-POSTGRES16_PORT=5432
 POSTGRES16_USER=postgres
 POSTGRES16_PASSWORD=<DSS_SHARED_PASSWORD>
 POSTGRES16_DB=hasura

@@ -2,12 +2,12 @@ services:
   rabbitmq:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.dss.localhost`)"
-      - "traefik.http.routers.rabbitmq.entrypoints=websecure"
-      - "traefik.http.routers.rabbitmq.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.rabbitmq.entrypoints=web"
       - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
-    container_name: rabbitmq
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}rabbitmq
     image: "rabbitmq:4.2.1-management-alpine"
     restart: "${RESTART_POLICY:-unless-stopped}"
     stop_grace_period: 60s
@@ -23,11 +23,8 @@ services:
       # Align defaults with .env.example (avoid classic guest/guest).
       RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER:-admin}"
       RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env — run make setup}"
-    ports:
-      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
     networks:
       - traefik_proxy
-      - backend_net
       - data_net
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
@@ -44,11 +41,9 @@ services:
       start_period: 30s
 
 networks:
-  traefik_proxy:
-    external: true
-  backend_net:
-    external: true
   data_net:
+    external: true
+  traefik_proxy:
     external: true
 
 volumes:

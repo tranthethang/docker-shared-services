@@ -127,7 +127,7 @@ def test_show_summary_variants(tree: Path, capsys: pytest.CaptureFixture[str]) -
     show_summary("all")
 
     out = capsys.readouterr().out
-    assert "Service: traefik\n  Ports: 80, 443" in out
+    assert "Service: traefik\n  Routing: HTTP on traefik_proxy" in out
     assert "  MONGO_PORT=27017" in out
     assert "Service: gitea\n  (no specific ports configured in .env)" in out
     assert "AUTH gateway: on (AUTH_ENABLED=true, AUTH_MIDDLEWARE=auth-default)" in out

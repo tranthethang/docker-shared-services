@@ -2,14 +2,14 @@ services:
   jenkins:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.jenkins.rule=Host(`jenkins.dss.localhost`)"
-      - "traefik.http.routers.jenkins.entrypoints=websecure"
-      - "traefik.http.routers.jenkins.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.jenkins.rule=Host(`jenkins.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.jenkins.entrypoints=web"
       - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
     # Pin LTS patch (was floating lts-alpine channel tag).
     image: jenkins/jenkins:2.580.1-lts-alpine
-    container_name: jenkins
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}jenkins
     restart: "${RESTART_POLICY:-unless-stopped}"
     ports:
       - "127.0.0.1:${JENKINS_AGENT_PORT:-50000}:50000"
@@ -23,10 +23,10 @@ services:
           memory: "${JENKINS_MEMORY_RESERVED:-1G}"
     volumes:
       - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
@@ -38,7 +38,7 @@ services:
       - JENKINS_OPTS=--httpPort=8080
       - TZ="${TZ:-Asia/Ho_Chi_Minh}"
       - POSTGRES_HOST=${POSTGRES16_HOST:-postgres}
-      - POSTGRES_PORT=${POSTGRES16_PORT:-5432}
+      - POSTGRES_PORT=5432
       - JENKINS_DB_NAME=${JENKINS_DB_NAME:-jenkins}
       - POSTGRES_USER=${POSTGRES16_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}
@@ -49,6 +49,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

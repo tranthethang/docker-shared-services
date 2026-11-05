@@ -11,7 +11,7 @@
 services:
 
   supabase-studio:
-    container_name: supabase-studio
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-studio
     image: supabase/studio:2026.08.03-sha-022b374
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -31,7 +31,7 @@ services:
       start_period: 20s
     depends_on:
       supabase-meta:
-        condition: service_started
+        condition: service_healthy
     environment:
       HOSTNAME: "0.0.0.0"
       STUDIO_PG_META_URL: http://supabase-meta:8080
@@ -40,15 +40,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       POSTGRES_USER_READ_WRITE: postgres
-      PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+      PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY:?Set PG_META_CRYPTO_KEY in .env — run make setup}
       DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION:-Default Organization}
       DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT:-Default Project}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       SUPABASE_URL: http://supabase-kong:8000
-      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.dss.localhost}
-      SUPABASE_ANON_KEY: ${ANON_KEY}
-      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
-      AUTH_JWT_SECRET: ${JWT_SECRET}
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.${DOMAIN:-sandbox.localhost}}
+      SUPABASE_ANON_KEY: ${ANON_KEY:?Set ANON_KEY in .env — run make setup}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY:?Set SERVICE_ROLE_KEY in .env — run make setup}
+      AUTH_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
       ENABLED_FEATURES_LOGS_ALL: "false"
@@ -57,6 +57,7 @@ services:
       - ./volumes/snippets:/app/snippets:z
     networks:
       - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -64,7 +65,7 @@ services:
         max-file: "3"
 
   supabase-kong:
-    container_name: supabase-kong
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-kong
     image: kong/kong:3.9.3
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -77,29 +78,27 @@ services:
           memory: "${SUPABASE_KONG_MEMORY_RESERVED:-128M}"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
       - "traefik.http.services.supabase.loadbalancer.server.port=8000"
       # Public APIs (clients use anon/service keys)
-      - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-dss.localhost}`) && (PathPrefix(`/auth`)\
+      - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN:-sandbox.localhost}`) && (PathPrefix(`/auth`)\
         \ || PathPrefix(`/storage`) || PathPrefix(`/realtime`) || PathPrefix(`/pg`) || PathPrefix(`/.well-known`) || PathPrefix(`/api/mcp`)\
         \ || PathPrefix(`/mcp`))"
-      - "traefik.http.routers.supabase-api.entrypoints=websecure"
-      - "traefik.http.routers.supabase-api.tls=true"
+      - "traefik.http.routers.supabase-api.entrypoints=web"
       - "traefik.http.routers.supabase-api.priority=100"
       - "traefik.http.routers.supabase-api.service=supabase"
       # Studio UI (un-gated local dev)
-      - "traefik.http.routers.supabase-studio.rule=Host(`${SUPABASE_STUDIO_HOSTNAME:-studio.dss.localhost}`)"
-      - "traefik.http.routers.supabase-studio.entrypoints=websecure"
-      - "traefik.http.routers.supabase-studio.tls=true"
+      - "traefik.http.routers.supabase-studio.rule=Host(`${SUPABASE_STUDIO_HOSTNAME:-studio.${DOMAIN:-sandbox.localhost}}`)"
+      - "traefik.http.routers.supabase-studio.entrypoints=web"
       - "traefik.http.routers.supabase-studio.priority=50"
       - "traefik.http.routers.supabase-studio.service=supabase"
-      # Legacy Studio on supabase.dss.localhost → redirect to studio.dss.localhost
+      # Legacy Studio on supabase.sandbox.localhost → redirect to studio.sandbox.localhost
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.regex=^https?://[^/]+/(.*)"
-      - "traefik.http.middlewares.supabase-to-studio.redirectregex.replacement=https://${SUPABASE_STUDIO_HOSTNAME:-studio.dss.localhost}/$${1}"
+      - "traefik.http.middlewares.supabase-to-studio.redirectregex.replacement=https://${SUPABASE_STUDIO_HOSTNAME:-studio.${DOMAIN:-sandbox.localhost}}/$${1}"
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.permanent=false"
-      - "traefik.http.routers.supabase-ui-redirect.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN_NAME:-dss.localhost}`)"
-      - "traefik.http.routers.supabase-ui-redirect.entrypoints=websecure"
-      - "traefik.http.routers.supabase-ui-redirect.tls=true"
+      - "traefik.http.routers.supabase-ui-redirect.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.supabase-ui-redirect.entrypoints=web"
       - "traefik.http.routers.supabase-ui-redirect.priority=1"
       - "traefik.http.routers.supabase-ui-redirect.middlewares=supabase-to-studio"
       - "traefik.http.routers.supabase-ui-redirect.service=supabase"
@@ -118,7 +117,7 @@ services:
       realtime:
         condition: service_healthy
       supabase-meta:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
       - ./volumes/api/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro,z
@@ -133,8 +132,8 @@ services:
       KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
       KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
       KONG_PROXY_ACCESS_LOG: /dev/stdout combined
-      SUPABASE_ANON_KEY: ${ANON_KEY}
-      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_ANON_KEY: ${ANON_KEY:?Set ANON_KEY in .env — run make setup}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY:?Set SERVICE_ROLE_KEY in .env — run make setup}
       SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
       ANON_KEY_ASYMMETRIC: ${ANON_KEY_ASYMMETRIC:-}
@@ -154,7 +153,7 @@ services:
         max-file: "3"
 
   supabase-auth:
-    container_name: supabase-auth
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-auth
     image: supabase/gotrue:v2.189.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -176,19 +175,19 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://supabase.dss.localhost/auth/v1}
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://supabase.${DOMAIN:-sandbox.localhost}/auth/v1}
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make
         setup}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      GOTRUE_SITE_URL: ${SITE_URL:-https://supabase.dss.localhost}
+      GOTRUE_SITE_URL: ${SITE_URL:-https://supabase.${DOMAIN:-sandbox.localhost}}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS:-}
       GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP:-false}
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_AUD: authenticated
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
       GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
-      GOTRUE_JWT_SECRET: ${JWT_SECRET}
-      GOTRUE_JWT_ISSUER: ${API_EXTERNAL_URL:-https://supabase.dss.localhost/auth/v1}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
+      GOTRUE_JWT_ISSUER: ${API_EXTERNAL_URL:-https://supabase.${DOMAIN:-sandbox.localhost}/auth/v1}
       GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP:-true}
       GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS:-false}
       GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM:-false}
@@ -207,6 +206,7 @@ services:
       GOTRUE_SMS_AUTOCONFIRM: ${ENABLE_PHONE_AUTOCONFIRM:-true}
     networks:
       - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -214,7 +214,7 @@ services:
         max-file: "3"
 
   supabase-storage:
-    container_name: supabase-storage
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-storage
     image: supabase/storage-api:v1.60.4
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -235,11 +235,11 @@ services:
       retries: 3
       start_period: 10s
     environment:
-      ANON_KEY: ${ANON_KEY}
-      SERVICE_KEY: ${SERVICE_ROLE_KEY}
-      AUTH_JWT_SECRET: ${JWT_SECRET}
+      ANON_KEY: ${ANON_KEY:?Set ANON_KEY in .env — run make setup}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY:?Set SERVICE_ROLE_KEY in .env — run make setup}
+      AUTH_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.dss.localhost}
+      STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.${DOMAIN:-sandbox.localhost}}
       REQUEST_ALLOW_X_FORWARDED_PATH: "true"
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
@@ -248,12 +248,14 @@ services:
       TENANT_ID: ${STORAGE_TENANT_ID:-stub}
       REGION: ${REGION:-stub}
       ENABLE_IMAGE_TRANSFORMATION: "false"
-      S3_PROTOCOL_ACCESS_KEY_ID: ${S3_PROTOCOL_ACCESS_KEY_ID}
-      S3_PROTOCOL_ACCESS_KEY_SECRET: ${S3_PROTOCOL_ACCESS_KEY_SECRET}
+      S3_PROTOCOL_ACCESS_KEY_ID: ${S3_PROTOCOL_ACCESS_KEY_ID:?Set S3_PROTOCOL_ACCESS_KEY_ID in .env — run make setup}
+      S3_PROTOCOL_ACCESS_KEY_SECRET: ${S3_PROTOCOL_ACCESS_KEY_SECRET:?Set S3_PROTOCOL_ACCESS_KEY_SECRET in .env — run make
+        setup}
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     networks:
       - backend_net
+      - data_net
 
   # Container name is intentional: Realtime derives tenant id from the subdomain
   # (realtime-dev). Do not rename to supabase-realtime.
@@ -263,7 +265,7 @@ services:
         max-size: "10m"
         max-file: "3"
   realtime:
-    container_name: realtime-dev.supabase-realtime
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}realtime-dev.supabase-realtime
     image: supabase/realtime:v2.102.3
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -291,10 +293,10 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       DB_NAME: ${POSTGRES_DB:-postgres}
       DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
-      DB_ENC_KEY: ${REALTIME_DB_ENC_KEY:-supabaserealtime}
-      API_JWT_SECRET: ${JWT_SECRET}
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
-      METRICS_JWT_SECRET: ${JWT_SECRET}
+      DB_ENC_KEY: ${REALTIME_DB_ENC_KEY:?Set REALTIME_DB_ENC_KEY in .env — run make setup}
+      API_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Set SECRET_KEY_BASE in .env — run make setup}
+      METRICS_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       ERL_AFLAGS: -proto_dist inet_tcp
       DNS_NODES: "''"
       RLIMIT_NOFILE: "10000"
@@ -303,7 +305,13 @@ services:
       RUN_JANITOR: "true"
       DISABLE_HEALTHCHECK_LOGGING: "true"
     networks:
-      - backend_net
+      # Kong and Realtime derive the tenant from this host name, so keep it in a named stack.
+      backend_net:
+        aliases:
+          - realtime-dev.supabase-realtime
+      data_net:
+        aliases:
+          - realtime-dev.supabase-realtime
     logging:
       driver: json-file
       options:
@@ -311,7 +319,7 @@ services:
         max-file: "3"
 
   supabase-meta:
-    container_name: supabase-meta
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-meta
     image: supabase/postgres-meta:v0.96.6
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -339,9 +347,10 @@ services:
       PG_META_DB_NAME: ${POSTGRES_DB:-postgres}
       PG_META_DB_USER: postgres
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
-      CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+      CRYPTO_KEY: ${PG_META_CRYPTO_KEY:?Set PG_META_CRYPTO_KEY in .env — run make setup}
     networks:
       - backend_net
+      - data_net
 
   # Dedicated Supabase Postgres (not shared pgvector/postgres stacks)
     logging:
@@ -350,7 +359,7 @@ services:
         max-size: "10m"
         max-file: "3"
   supabase-db:
-    container_name: supabase-db
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}supabase-db
     image: supabase/postgres:17.6.1.136
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -361,9 +370,6 @@ services:
         reservations:
           cpus: "${SUPABASE_DB_CPUS_RESERVED:-0.25}"
           memory: "${SUPABASE_DB_MEMORY_RESERVED:-256M}"
-    ports:
-      # Host 5434 avoids pgvector (5432) and postgres16 (5433)
-      - "127.0.0.1:${SUPABASE_DB_PORT:-5434}:5432"
     volumes:
       - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
@@ -388,11 +394,10 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}
       PGDATABASE: ${POSTGRES_DB:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       JWT_EXP: ${JWT_EXPIRY:-3600}
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=fatal"]
     networks:
-      - backend_net
       - data_net
     logging:
       driver: json-file
@@ -402,9 +407,9 @@ services:
 
 volumes:
   supabase_db_config:
-    name: supabase_db_config
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}supabase_db_config
   supabase_db_data:
-    name: supabase_db_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}supabase_db_data
 
 networks:
   traefik_proxy:

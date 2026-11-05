@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from dss.core.config import PACKAGE_REQUIRES
+from dss.core.config import PACKAGE_DEFAULT_SERVICES, PACKAGE_REQUIRES
 from dss.core.dependencies import dependency_queue, direct_dependencies, startup_queue
 
 
 def test_direct_dependencies_follow_package_requires() -> None:
     assert direct_dependencies("zitadel") == ["postgres"]
-    assert direct_dependencies("oauth2-proxy") == ["zitadel"]
+    assert direct_dependencies("oauth2-proxy") == []
     assert direct_dependencies("inngest") == ["postgres", "redis"]
     assert direct_dependencies("hindsight") == ["pgvector"]
     assert direct_dependencies("redisinsight") == ["redis"]
@@ -23,10 +23,10 @@ def test_direct_dependencies_honor_available_set() -> None:
 
 def test_dependency_queue_is_transitive_and_ordered() -> None:
     assert dependency_queue("zitadel") == ["postgres"]
-    assert dependency_queue("oauth2-proxy") == ["postgres", "zitadel"]
+    assert dependency_queue("oauth2-proxy") == []
     assert dependency_queue("inngest") == ["postgres", "redis"]
     assert dependency_queue("postgres") == []
-    assert dependency_queue("oauth2-proxy", available={"zitadel", "oauth2-proxy"}) == ["zitadel"]
+    assert dependency_queue("oauth2-proxy", available={"zitadel", "oauth2-proxy"}) == []
 
 
 def test_startup_queue_starts_backends_first() -> None:
@@ -39,6 +39,18 @@ def test_startup_queue_starts_backends_first() -> None:
     ]
     assert startup_queue(["oauth2-proxy", "zitadel"]) == ["zitadel", "oauth2-proxy"]
     assert startup_queue([]) == []
+
+
+def test_package_default_services_are_independent_of_oidc_provider() -> None:
+    assert PACKAGE_DEFAULT_SERVICES == [
+        "traefik",
+        "oauth2-proxy",
+        "postgres",
+        "redis",
+        "adminer",
+        "mailpit",
+        "garage",
+    ]
 
 
 def test_package_requires_has_no_cycles() -> None:

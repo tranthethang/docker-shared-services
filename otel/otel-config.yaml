@@ -38,6 +38,9 @@ exporters:
   nop:
 
 service:
+  telemetry:
+    logs:
+      level: warn
   extensions: [health_check]
   pipelines:
     logs:

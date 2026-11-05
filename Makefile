@@ -1,4 +1,4 @@
-.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs cert validate manage tui package sync format format-check lint typecheck test test-update check hooks
+.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs validate manage tui package sync format format-check lint typecheck test test-update check hooks
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -24,11 +24,10 @@ password ?=
 # -f arguments for every service compose file, shared networks first.
 COMPOSE_FILES = -f docker-compose.shared.yml \
 	$(shell find . -maxdepth 2 -name "docker-compose.yml" -not -path "./docker-compose.shared.yml" | LC_ALL=C sort | sed 's|^./|-f |')
+# SANDBOX_NAME from the root .env prefixes the project name of the all-services command.
+SANDBOX_NAME = $(shell $(PY) -m dss.core.stack name 2>/dev/null)
 # Dynamic DOCKER_COMPOSE command that includes all services
-DOCKER_COMPOSE = docker compose $(COMPOSE_FILES)
-
-# Shared bridge networks (name:subnet). Bridges cannot share one CIDR; adjacent /16s in 10/8.
-SHARED_NETWORKS = traefik_proxy:10.0.0.0/16 backend_net:10.1.0.0/16 data_net:10.2.0.0/16
+DOCKER_COMPOSE = docker compose $(if $(SANDBOX_NAME),-p $(SANDBOX_NAME) )$(COMPOSE_FILES)
 
 help: ## Show this help message
 	@echo "╔════════════════════════════════════════════════════════════════╗"
@@ -45,9 +44,9 @@ help: ## Show this help message
 		awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
-setup: ## Setup env files, networks, certs (optional: password='your-secure-password')
-	@echo "Checking shared Docker networks (traefik_proxy, backend_net, data_net)..."
-	@scripts/ensure-networks.sh $(SHARED_NETWORKS)
+setup: ## Setup env files and networks (optional: password='your-secure-password')
+	@echo "Checking shared Docker networks (names and subnets from SANDBOX_NAME and SANDBOX_SUBNET_BASE)..."
+	@scripts/ensure-networks.sh $$($(PY) -m dss.core.stack)
 	@echo "Checking environment files..."
 	@$(PYTHON_ENV_MGR) check all
 	@echo ""
@@ -68,20 +67,11 @@ setup: ## Setup env files, networks, certs (optional: password='your-secure-pass
 	@$(PYTHON_ENV_MGR) validate all || true
 	@$(PYTHON_ENV_MGR) summary all
 	@echo ""
-	@read -p "Do you want to generate SSL certificates? (y/n) " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		$(MAKE) cert; \
-	fi
-	@echo ""
 
 passwords: ## Apply ONE shared password to all services (optional: password='…' force=1)
 	@$(PYTHON_ENV_MGR) fill-shared-password \
 		$(if $(password),--password "$(password)",) \
 		$(if $(filter 1 true yes,$(force)),--force,)
-
-cert: ## Generate SSL certificates for Traefik
-	@scripts/gen-certs.sh traefik/certs
 
 up: ## Start services (usage: make up [service=pgvector])
 	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
@@ -128,7 +118,7 @@ health: ## Check health status of all services (usage: make health [service=pgve
 	@echo "Service Health:"
 	@echo ""
 	@if [ -n "$(service)" ]; then \
-		docker compose --project-directory $(service) -f docker-compose.shared.yml -f $(service)/docker-compose.yml ps; \
+		docker compose $(if $(SANDBOX_NAME),-p $(SANDBOX_NAME)-$(service) )--project-directory $(service) -f docker-compose.shared.yml -f $(service)/docker-compose.yml ps; \
 	else \
 		$(DOCKER_COMPOSE) ps --format "table {{.Name}}\t{{.Status}}"; \
 	fi

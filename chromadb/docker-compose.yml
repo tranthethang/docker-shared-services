@@ -2,13 +2,13 @@ services:
   chromadb:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.chromadb.rule=Host(`chromadb.dss.localhost`)"
-      - "traefik.http.routers.chromadb.entrypoints=websecure"
-      - "traefik.http.routers.chromadb.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.chromadb.rule=Host(`chromadb.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.chromadb.entrypoints=web"
       - "traefik.http.routers.chromadb.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.chromadb.loadbalancer.server.port=8000"
-    container_name: chromadb
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}chromadb
     image: chromadb/chroma:0.5.23
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -23,7 +23,6 @@ services:
       - PERSIST_DIRECTORY=/chroma/data
     networks:
       - traefik_proxy
-      - backend_net
       - data_net
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/heartbeat',\
@@ -40,12 +39,10 @@ services:
 
 volumes:
   chromadb_data:
-    name: chromadb_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}chromadb_data
 
 networks:
-  traefik_proxy:
-    external: true
-  backend_net:
-    external: true
   data_net:
+    external: true
+  traefik_proxy:
     external: true

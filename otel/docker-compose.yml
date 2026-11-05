@@ -1,7 +1,7 @@
 services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.128.0
-    container_name: otel-collector
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}otel-collector
     command: ["--config=/etc/otel-config.yaml"]
     restart: ${RESTART_POLICY:-unless-stopped}
     environment:
@@ -18,6 +18,7 @@ services:
       - "127.0.0.1:${OTEL_COLLECTOR_PORT_HTTP:-4318}:4318" # OTLP HTTP
     networks:
       - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -30,12 +31,12 @@ services:
   grafana:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOSTNAME:-grafana.dss.localhost}`)"
-      - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOSTNAME:-grafana.${DOMAIN:-sandbox.localhost}}`)"
+      - "traefik.http.routers.grafana.entrypoints=web"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-    container_name: grafana
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}grafana
     image: grafana/grafana-oss:${GRAFANA_VERSION:-11.4.0}
     restart: ${RESTART_POLICY:-unless-stopped}
     environment:
@@ -43,9 +44,11 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env — run make setup}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_LOG_LEVEL: ${GRAFANA_LOG_LEVEL:-warn}
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
@@ -72,14 +75,15 @@ services:
         max-file: "3"
 
   loki:
-    container_name: loki
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}loki
     image: grafana/loki:${LOKI_VERSION:-3.3.2}
     restart: ${RESTART_POLICY:-unless-stopped}
-    command: -config.file=/etc/loki/local-config.yaml
+    command:
+      - -config.file=/etc/loki/local-config.yaml
+      - -log.level=${LOKI_LOG_LEVEL:-warn}
     ports:
       - "127.0.0.1:${LOKI_PORT:-3100}:3100"
     networks:
-      - backend_net
       - data_net
     volumes:
       - ./config/loki.yml:/etc/loki/local-config.yaml:ro
@@ -102,20 +106,22 @@ services:
         max-file: "3"
 
   alloy:
-    container_name: alloy
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}alloy
     image: grafana/alloy:${ALLOY_VERSION:-v1.20.1}
     restart: ${RESTART_POLICY:-unless-stopped}
     command:
       - run
       - --server.http.listen-addr=0.0.0.0:12345
+      - --server.log.level=${ALLOY_LOG_LEVEL:-warn}
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
     networks:
       - backend_net
+      - otel_docker
+      - data_net
     volumes:
       - ./config/alloy.alloy:/etc/alloy/config.alloy:ro
       - alloy_data:/var/lib/alloy/data
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
       resources:
         limits:
@@ -129,6 +135,8 @@ services:
     depends_on:
       loki:
         condition: service_healthy
+      alloy-socket-proxy:
+        condition: service_healthy
     # grafana/alloy:v1.20.1 is root with perl, and has neither wget nor curl.
     healthcheck:
       test: ["CMD-SHELL", "perl -e 'use IO::Socket::INET; my $$s = IO::Socket::INET->new(PeerAddr => \"127.0.0.1:12345\",\
@@ -139,8 +147,37 @@ services:
       retries: 3
       start_period: 15s
 
+  # Read-only Docker API for log discovery. Alloy also lists /networks.
+  alloy-socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}alloy-socket-proxy
+    restart: "${RESTART_POLICY:-unless-stopped}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${ALLOY_SOCKET_PROXY_CPUS_LIMIT:-0.1}"
+          memory: "${ALLOY_SOCKET_PROXY_MEMORY_LIMIT:-64M}"
+    environment:
+      - CONTAINERS=1
+      - NETWORKS=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - otel_docker
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2375/_ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   otel-collector-probe:
-    container_name: otel-collector-probe
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}otel-collector-probe
     image: curlimages/curl:8.22.0
     entrypoint: ["sleep", "infinity"]
     network_mode: "service:otel-collector"
@@ -175,6 +212,10 @@ networks:
     external: true
   data_net:
     external: true
+  # Only Alloy may reach its socket proxy. Do not attach this network elsewhere.
+  otel_docker:
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}otel_docker
+    internal: true
 
 volumes:
   grafana_data:

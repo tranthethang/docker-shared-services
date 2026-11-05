@@ -2,13 +2,13 @@ services:
   concourse:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.concourse.rule=Host(`concourse.dss.localhost`)"
-      - "traefik.http.routers.concourse.entrypoints=websecure"
-      - "traefik.http.routers.concourse.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.concourse.rule=Host(`concourse.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.concourse.entrypoints=web"
       - "traefik.http.services.concourse.loadbalancer.server.port=8080"
     image: concourse/concourse:7.14.3
-    container_name: concourse
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}concourse
     restart: "${RESTART_POLICY:-unless-stopped}"
     command: quickstart
     volumes:
@@ -29,17 +29,18 @@ services:
       start_period: 60s
     environment:
       CONCOURSE_POSTGRES_HOST: "${POSTGRES16_HOST:-postgres}"
-      CONCOURSE_POSTGRES_PORT: "${POSTGRES16_PORT:-5432}"
+      CONCOURSE_POSTGRES_PORT: "5432"
       CONCOURSE_POSTGRES_USER: "${POSTGRES16_USER:-postgres}"
       CONCOURSE_POSTGRES_PASSWORD: "${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}"
       CONCOURSE_POSTGRES_DATABASE: "${CONCOURSE_DB_NAME:-concourse}"
-      CONCOURSE_EXTERNAL_URL: "https://${CONCOURSE_HOST:-concourse.dss.localhost}"
+      CONCOURSE_EXTERNAL_URL: "https://${CONCOURSE_HOST:-concourse.${DOMAIN:-sandbox.localhost}}"
       CONCOURSE_ADD_LOCAL_USER: "${CONCOURSE_ADD_LOCAL_USER:-admin:admin}"
       CONCOURSE_MAIN_TEAM_LOCAL_USER: "${CONCOURSE_MAIN_TEAM_LOCAL_USER:-admin}"
       CONCOURSE_WORKER_GARDEN_NETWORK: "${CONCOURSE_WORKER_GARDEN_NETWORK:-backend_net}"
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     logging:
       driver: json-file
       options:
@@ -47,6 +48,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

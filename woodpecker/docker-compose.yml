@@ -1,7 +1,7 @@
 services:
   woodpecker-server:
     image: woodpeckerci/woodpecker-server:v3.19.0
-    container_name: woodpecker-server
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}woodpecker-server
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -16,11 +16,11 @@ services:
     environment:
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
       - WOODPECKER_OPEN=${WOODPECKER_OPEN:-true}
-      - WOODPECKER_HOST=https://${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-dss.localhost}
+      - WOODPECKER_HOST=https://${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN:-sandbox.localhost}
       - WOODPECKER_ADMIN=${WOODPECKER_ADMIN:-}
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET:?Set WOODPECKER_AGENT_SECRET in woodpecker/.env (openssl rand -hex
         32)}
-      - WOODPECKER_LOG_LEVEL=${WOODPECKER_LOG_LEVEL:-info}
+      - WOODPECKER_LOG_LEVEL=${WOODPECKER_LOG_LEVEL:-warn}
       - WOODPECKER_DATABASE_DRIVER=sqlite3
       - WOODPECKER_DATABASE_DATASOURCE=/var/lib/woodpecker/woodpecker.sqlite
       - WOODPECKER_GITEA=${WOODPECKER_GITEA:-true}
@@ -34,10 +34,10 @@ services:
       - backend_net
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.woodpecker.rule=Host(`${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN_NAME:-dss.localhost}`)"
-      - "traefik.http.routers.woodpecker.entrypoints=websecure"
-      - "traefik.http.routers.woodpecker.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.woodpecker.rule=Host(`${WOODPECKER_SUBDOMAIN:-woodpecker}.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.woodpecker.entrypoints=web"
       - "traefik.http.services.woodpecker.loadbalancer.server.port=8000"
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8000/healthz || wget -q --spider http://127.0.0.1:8000/ || exit\
@@ -54,7 +54,7 @@ services:
 
   socket-proxy:
     image: tecnativa/docker-socket-proxy:v0.5.0
-    container_name: woodpecker-socket-proxy
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}woodpecker-socket-proxy
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -76,7 +76,15 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - woodpecker_docker
+      woodpecker_docker:
+        aliases:
+          - woodpecker-socket-proxy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2375/_ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     logging:
       driver: json-file
       options:
@@ -85,7 +93,7 @@ services:
 
   woodpecker-agent:
     image: woodpeckerci/woodpecker-agent:v3.19.0
-    container_name: woodpecker-agent
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}woodpecker-agent
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -99,7 +107,7 @@ services:
       woodpecker-server:
         condition: service_healthy
       socket-proxy:
-        condition: service_started
+        condition: service_healthy
     env_file:
       - ./.env
     environment:
@@ -113,6 +121,13 @@ services:
     networks:
       - backend_net
       - woodpecker_docker
+    # `ping` hits the agent's :3000/healthz, which stops while the server is unreachable.
+    healthcheck:
+      test: ["CMD", "/bin/woodpecker-agent", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     logging:
       driver: json-file
       options:
@@ -121,7 +136,7 @@ services:
 
 volumes:
   woodpecker_data:
-    name: woodpecker_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}woodpecker_data
 
 networks:
   traefik_proxy:
@@ -130,5 +145,5 @@ networks:
     external: true
   # Only the agent may reach the socket proxy. Do not attach this network elsewhere.
   woodpecker_docker:
-    name: woodpecker_docker
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}woodpecker_docker
     internal: true

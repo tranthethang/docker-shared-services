@@ -1,7 +1,7 @@
 services:
   kafka:
     image: apache/kafka:3.8.0
-    container_name: kafka
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}kafka
     deploy:
       resources:
         limits:
@@ -10,8 +10,6 @@ services:
         reservations:
           cpus: "${KAFKA_CPUS_RESERVED:-0.5}"
           memory: "${KAFKA_MEMORY_RESERVED:-512M}"
-    ports:
-      - "127.0.0.1:9092:9092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: "broker,controller"
@@ -33,7 +31,6 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
-      - backend_net
       - data_net
     restart: "${RESTART_POLICY:-unless-stopped}"
     stop_grace_period: 60s
@@ -50,7 +47,7 @@ services:
       start_period: 30s
   kafka-ui:
     image: provectuslabs/kafka-ui:v0.7.2
-    container_name: kafka-ui
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}kafka-ui
     deploy:
       resources:
         limits:
@@ -69,12 +66,13 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.dss.localhost`)"
-      - "traefik.http.routers.kafka-ui.entrypoints=websecure"
-      - "traefik.http.routers.kafka-ui.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.kafka-ui.entrypoints=web"
       - "traefik.http.routers.kafka-ui.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"
     restart: "${RESTART_POLICY:-unless-stopped}"
@@ -92,7 +90,7 @@ services:
 
 volumes:
   kafka_data:
-    name: kafka_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}kafka_data
 
 networks:
   traefik_proxy:

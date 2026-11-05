@@ -2,11 +2,11 @@ services:
   portainer:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`portainer.dss.localhost`)"
-      - "traefik.http.routers.portainer.entrypoints=websecure"
-      - "traefik.http.routers.portainer.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.portainer.entrypoints=web"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-    container_name: portainer
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}portainer
     image: portainer/portainer-ce:2.33.6
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

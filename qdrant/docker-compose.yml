@@ -2,13 +2,13 @@ services:
   qdrant:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.qdrant.rule=Host(`qdrant.dss.localhost`)"
-      - "traefik.http.routers.qdrant.entrypoints=websecure"
-      - "traefik.http.routers.qdrant.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.qdrant.entrypoints=web"
       - "traefik.http.routers.qdrant.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
-    container_name: qdrant
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}qdrant
     image: qdrant/qdrant:v1.18.3
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -21,14 +21,13 @@ services:
           memory: "${QDRANT_MEMORY_RESERVED:-256M}"
     environment:
       - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:?Set QDRANT_API_KEY in .env — run make setup}
-      - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-INFO}
+      - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-WARN}
       - QDRANT__TELEMETRY_DISABLED=${QDRANT_TELEMETRY_DISABLED:-true}
     volumes:
       - qdrant_data:/qdrant/storage
       - qdrant_snapshots:/qdrant/snapshots
     networks:
       - traefik_proxy
-      - backend_net
       - data_net
     ulimits:
       nofile:
@@ -50,15 +49,13 @@ services:
         max-file: "3"
 
 networks:
-  traefik_proxy:
-    external: true
-  backend_net:
-    external: true
   data_net:
+    external: true
+  traefik_proxy:
     external: true
 
 volumes:
   qdrant_data:
-    name: qdrant_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}qdrant_data
   qdrant_snapshots:
-    name: qdrant_snapshots
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}qdrant_snapshots

@@ -5,13 +5,18 @@ import time
 from collections.abc import Callable
 
 from dss.cli.compose import get_compose_cmd
+from dss.core.container_state import is_container_ready
 from dss.core.dependencies import dependency_queue
 from dss.core.utils import error, success
 
 # A database can spend its start_period plus several probe retries before it accepts clients.
 READY_TIMEOUT_SECONDS = 300
-# `docker inspect` prints "<status> <health>".
-_INSPECT_FIELDS = 2
+# `docker inspect` prints "<status> <health> <exit code> <restart policy>".
+INSPECT_FORMAT = (
+    "{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} "
+    '{{.State.ExitCode}} {{or .HostConfig.RestartPolicy.Name "no"}}'
+)
+_INSPECT_FIELDS = 4
 
 Announce = Callable[[str], None]
 
@@ -36,29 +41,30 @@ def _container_ids(service: str) -> list[str]:
 
 def _container_ready(container_id: str) -> bool:
     result = subprocess.run(
-        [
-            "docker",
-            "inspect",
-            "--format",
-            "{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}",
-            container_id,
-        ],
+        ["docker", "inspect", "--format", INSPECT_FORMAT, container_id],
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
         return False
-    parts = result.stdout.split()
+    return parse_inspect_ready(result.stdout)
+
+
+def parse_inspect_ready(output: str) -> bool:
+    """Apply ``is_container_ready`` to one line of ``INSPECT_FORMAT`` output."""
+    parts = output.split()
     if len(parts) < _INSPECT_FIELDS:
         return False
-    status, health = parts[0], parts[1]
-    return status == "running" and health in ("none", "healthy")
+    status, health, exit_code, restart_policy = parts[:_INSPECT_FIELDS]
+    if not exit_code.lstrip("-").isdigit():
+        return False
+    return is_container_ready(status, health, int(exit_code), restart_policy)
 
 
 def wait_until_ready(
     service: str, timeout: int = READY_TIMEOUT_SECONDS, announce: Announce | None = None
 ) -> bool:
-    """Block until every container in ``service`` is running and healthy when probed."""
+    """Block until every container in ``service`` is ready (see ``is_container_ready``)."""
     ids = _container_ids(service)
     if not ids:
         error(f"{service} has no containers")

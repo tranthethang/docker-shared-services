@@ -1,0 +1,965 @@
+/* Hallmark · macrostructure: App Shell (flex rail · in-flow breadcrumb · scroll-pane grid) · tone: utilitarian · anchor hue: ink-blue 255 */
+/* Hallmark · pre-emit critique: P4 H5 E4 S5 R5 V4 */
+/* Genre: editorial · light paper + dark mode · system sans + system mono (no web fonts: works offline).
+ * Targets Adminer 5.4.x markup and loads after its default.css (and its dark.css, which Adminer adds
+ * under prefers-color-scheme: dark once logged in). The legacy --bg/--fg/--dim/--lit variables and its
+ * 800px breakpoint are honoured so the built-in mobile menu toggle keeps working.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --color-paper: oklch(97.5% 0.008 85);
+  --color-paper-raised: oklch(99.3% 0.004 85);
+  --color-paper-muted: oklch(94.5% 0.01 85);
+  --color-paper-hover: oklch(95% 0.018 250);
+  --color-rail: oklch(95.5% 0.009 85);
+  --color-ink: oklch(24% 0.02 260);
+  --color-ink-soft: oklch(40% 0.02 260);
+  --color-ink-muted: oklch(50% 0.015 260);
+  --color-rule: oklch(88% 0.01 85);
+  --color-rule-strong: oklch(78% 0.014 85);
+  --color-accent: oklch(47% 0.13 255);
+  --color-accent-hover: oklch(40% 0.14 255);
+  --color-accent-soft: oklch(93% 0.035 250);
+  --color-accent-ink: oklch(99% 0.004 85);
+  --color-danger: oklch(50% 0.18 25);
+  --color-danger-soft: oklch(95% 0.03 25);
+  --color-success: oklch(47% 0.11 150);
+  --color-success-soft: oklch(95% 0.03 150);
+  --color-focus: oklch(56% 0.16 255);
+  --color-selection: oklch(88% 0.05 250);
+  --color-icon: oklch(47% 0.13 255);
+  --color-icon-hover: oklch(40% 0.14 255);
+  --color-syntax-string: oklch(46% 0.12 150);
+  --color-syntax-number: oklch(48% 0.1 195);
+  --color-syntax-value: oklch(46% 0.14 320);
+  --color-syntax-ident: oklch(48% 0.15 40);
+  --shadow-pop: 0 0.5rem 1.5rem -0.5rem oklch(24% 0.02 260 / 0.35);
+
+  /* Adminer default.css still reads these legacy theme variables. */
+  --bg: var(--color-paper);
+  --fg: var(--color-ink);
+  --dim: var(--color-paper-muted);
+  --lit: var(--color-paper-hover);
+
+  --font-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.75rem;
+  --text-base: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.375rem;
+
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  --radius-control: 3px;
+  --radius-panel: 6px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-micro: 120ms;
+
+  --rail-width: 17rem;
+  --logout-clearance: 11rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: oklch(19% 0.012 260);
+    --color-paper-raised: oklch(22% 0.014 260);
+    --color-paper-muted: oklch(25% 0.015 260);
+    --color-paper-hover: oklch(28% 0.03 255);
+    --color-rail: oklch(17% 0.012 260);
+    --color-ink: oklch(92% 0.008 85);
+    --color-ink-soft: oklch(80% 0.01 85);
+    --color-ink-muted: oklch(68% 0.012 260);
+    --color-rule: oklch(31% 0.015 260);
+    --color-rule-strong: oklch(40% 0.018 260);
+    --color-accent: oklch(76% 0.11 250);
+    --color-accent-hover: oklch(83% 0.09 250);
+    --color-accent-soft: oklch(32% 0.06 255);
+    --color-accent-ink: oklch(18% 0.02 260);
+    --color-danger: oklch(72% 0.15 25);
+    --color-danger-soft: oklch(28% 0.06 25);
+    --color-success: oklch(74% 0.13 150);
+    --color-success-soft: oklch(27% 0.05 150);
+    --color-focus: oklch(76% 0.13 250);
+    --color-selection: oklch(38% 0.08 255);
+    --color-icon: oklch(42% 0.1 255);
+    --color-icon-hover: oklch(50% 0.12 255);
+    --color-syntax-string: oklch(78% 0.12 150);
+    --color-syntax-number: oklch(78% 0.09 195);
+    --color-syntax-value: oklch(78% 0.11 320);
+    --color-syntax-ident: oklch(78% 0.12 50);
+    --shadow-pop: 0 0.5rem 1.5rem -0.5rem oklch(5% 0.01 260 / 0.7);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: clip;
+  background: var(--color-paper);
+}
+
+body {
+  min-width: 0;
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--text-base) / 1.45 var(--font-ui);
+}
+
+::selection {
+  color: var(--color-ink);
+  background: var(--color-selection);
+}
+
+/* Links */
+
+a,
+a:visited {
+  color: var(--color-accent);
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+}
+
+a:link:hover,
+a:visited:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Headings: the page title is h2; h1 only carries the rail logo. */
+
+h2 {
+  margin: 0 0 var(--space-lg);
+  padding: 0 0 var(--space-sm);
+  border-bottom: 1px solid var(--color-rule);
+  background: none;
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  overflow-wrap: anywhere;
+}
+
+h3 {
+  margin: var(--space-lg) 0 var(--space-xs);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+p {
+  margin: var(--space-sm) 0 0;
+}
+
+/* Form controls */
+
+input,
+select,
+textarea {
+  max-width: 100%;
+  margin: 1px;
+  padding: var(--space-2xs) var(--space-xs);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+textarea,
+input[type='text'],
+input[type='password'],
+input[type='number'],
+input[type='search'],
+input:not([type]) {
+  font-family: var(--font-mono);
+}
+
+/* default.css sizes .size (Limit, Text length) as 7ex of content; border-box would eat it in padding. */
+input.size {
+  box-sizing: content-box;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-focus);
+}
+
+input.required,
+input.maxlength {
+  border-color: var(--color-danger);
+  box-shadow: none;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  margin-inline-end: var(--space-2xs);
+  accent-color: var(--color-accent);
+}
+
+/* Buttons: quiet by default. The filled button is whichever submit Enter will press
+ * (Adminer's setupSubmitHighlight adds .default), plus Login. */
+
+input[type='submit'],
+input[type='button'] {
+  min-height: 1.875rem;
+  padding: var(--space-2xs) var(--space-sm);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform var(--dur-micro) var(--ease-out);
+}
+
+input[type='submit']:hover,
+input[type='button']:hover {
+  border-color: var(--color-ink-muted);
+  background: var(--color-paper-hover);
+}
+
+input[type='submit']:active,
+input[type='button']:active {
+  transform: translateY(1px);
+}
+
+input[type='submit']:disabled,
+input[type='button']:disabled {
+  border-color: var(--color-rule);
+  background: var(--color-paper-muted);
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+  transform: none;
+}
+
+input.default,
+#content > form:has(select[name='auth[driver]']) input[type='submit'] {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  box-shadow: none;
+}
+
+input.default:hover,
+#content > form:has(select[name='auth[driver]']) input[type='submit']:hover {
+  border-color: var(--color-accent-hover);
+  background: var(--color-accent-hover);
+}
+
+/* Destructive actions (English labels; Adminer gives them no class). */
+input[type='submit']:is([value='Drop'], [value='Delete'], [value='Truncate'], [value='Kill']):not(:disabled) {
+  border-color: var(--color-danger);
+  background: var(--color-paper-raised);
+  color: var(--color-danger);
+}
+
+input[type='submit']:is([value='Drop'], [value='Delete'], [value='Truncate'], [value='Kill']):not(:disabled):hover {
+  background: var(--color-danger-soft);
+}
+
+fieldset {
+  display: inline-block;
+  margin: var(--space-sm) var(--space-xs) 0 0;
+  padding: var(--space-xs) var(--space-sm) var(--space-sm);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-panel);
+  background: var(--color-paper-raised);
+  vertical-align: top;
+}
+
+legend {
+  padding: 0 var(--space-2xs);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* Login form: one consistent label/control track. */
+
+#content > form:has(select[name='auth[driver]']) > table {
+  width: min(22rem, 100%);
+  table-layout: fixed;
+  border: 0;
+  background: none;
+}
+
+#content > form:has(select[name='auth[driver]']) > table th,
+#content > form:has(select[name='auth[driver]']) > table td {
+  padding: var(--space-2xs) 0;
+  border: 0;
+  background: none;
+}
+
+#content > form:has(select[name='auth[driver]']) > table th {
+  width: 6rem;
+  color: var(--color-ink-soft);
+  font-weight: 500;
+}
+
+#content > form:has(select[name='auth[driver]']) > table input:not([type='submit']),
+#content > form:has(select[name='auth[driver]']) > table select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Code */
+
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+code {
+  padding: 0 var(--space-2xs);
+  border-radius: var(--radius-control);
+  background: var(--color-paper-muted);
+  color: var(--color-ink-soft);
+  font-size: 0.95em;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+}
+
+pre.jush {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-panel);
+  background: var(--color-paper-raised);
+}
+
+.jush {
+  --text-color: var(--color-ink);
+  --bg-color: var(--color-paper-raised);
+  --php-color: var(--color-ink);
+  --string-color: var(--color-syntax-string);
+  --string-plain-color: var(--color-syntax-string);
+  --keyword-color: var(--color-accent);
+  --identifier-color: var(--color-syntax-ident);
+  --value-color: var(--color-syntax-value);
+  --number-color: var(--color-syntax-number);
+  --attribute-color: var(--color-syntax-number);
+  --js-bg-color: var(--color-paper-muted);
+  --css-bg-color: var(--color-paper-muted);
+  --php-bg-color: var(--color-paper-muted);
+  --php-sql-bg-color: var(--color-accent-soft);
+}
+
+/* Tables */
+
+table {
+  margin: var(--space-md) 0 0;
+  border: 1px solid var(--color-rule);
+  border-collapse: collapse;
+  background: var(--color-paper-raised);
+  font-size: var(--text-base);
+}
+
+th,
+td {
+  padding: var(--space-2xs) var(--space-xs);
+  border: 1px solid var(--color-rule);
+  vertical-align: middle;
+}
+
+th {
+  background: none;
+  font-weight: 500;
+  text-align: start;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+thead th,
+thead td {
+  border-bottom-color: var(--color-rule-strong);
+  background: var(--color-paper-muted);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: start;
+  white-space: nowrap;
+}
+
+th a {
+  font-weight: 600;
+}
+
+thead th a,
+thead th a:visited {
+  color: var(--color-accent);
+}
+
+.odds tbody tr:nth-child(2n) {
+  background: none;
+}
+
+.odds tbody tr:nth-child(2n) > td,
+.odds tbody tr:nth-child(2n) > th {
+  background: var(--color-paper);
+}
+
+#content tbody tr:hover > td,
+#content tbody tr:hover > th {
+  background: var(--color-paper-hover);
+}
+
+#content .checkable tr.checked > td,
+#content .checkable tr.checked > th {
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+}
+
+#content .checkable tr.checked a {
+  color: var(--color-accent);
+}
+
+/* Result grids scroll inside their own pane, so the sticky header and wide rows both work. */
+.scrollable {
+  max-width: 100%;
+  max-height: max(16rem, calc(100dvh - 14rem));
+  margin-top: var(--space-md);
+  overflow: auto;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-panel);
+  background: var(--color-paper-raised);
+}
+
+.scrollable > table {
+  min-width: 100%;
+  margin: 0;
+  border: 0;
+}
+
+.scrollable tr > :first-child {
+  border-inline-start: 0;
+}
+
+.scrollable tr > :last-child {
+  border-inline-end: 0;
+}
+
+.scrollable thead tr > * {
+  border-top: 0;
+}
+
+.scrollable tbody td,
+.scrollable tbody th {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Other wide content tables scroll sideways instead of being clipped. */
+#content > table,
+#content > form > table:not(.layout) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.char {
+  color: var(--color-syntax-string);
+}
+
+.date {
+  color: var(--color-syntax-value);
+}
+
+.enum {
+  color: var(--color-syntax-number);
+}
+
+.binary {
+  color: var(--color-danger);
+}
+
+.time {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+:target {
+  background: var(--color-accent-soft);
+  color: inherit;
+}
+
+/* Messages */
+
+.error,
+.message {
+  margin: var(--space-sm) 0 0;
+  padding: var(--space-xs) var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-control);
+  font-weight: 500;
+}
+
+/* In the rail, status lines ("No tables.") are plain text, not banners. */
+#menu .error,
+#menu .message {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-rule);
+  border-radius: 0;
+  background: none;
+  color: var(--color-ink-muted);
+  font-weight: 400;
+}
+
+#menu .error {
+  color: var(--color-danger);
+}
+
+.error {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.error b {
+  background: none;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+}
+
+.message {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.message table {
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+}
+
+/* Small chrome */
+
+.icon {
+  border-radius: var(--radius-control);
+  background-color: var(--color-icon);
+  filter: none;
+}
+
+.icon:hover {
+  background-color: var(--color-icon-hover);
+}
+
+.js .column {
+  border: 1px solid var(--color-rule-strong);
+  border-inline-start: 0;
+  background: var(--color-paper-raised);
+}
+
+#help {
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  box-shadow: var(--shadow-pop);
+}
+
+.links a {
+  margin-inline-end: var(--space-md);
+  white-space: nowrap;
+}
+
+.footer {
+  margin: var(--space-md) 0 0;
+  border-top: 1px solid var(--color-rule);
+  box-shadow: none;
+}
+
+.footer > div {
+  padding: var(--space-xs) 0 var(--space-sm);
+  background: var(--color-paper);
+}
+
+#schema .table {
+  padding: var(--space-2xs) var(--space-xs);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-paper-raised);
+}
+
+#schema .table b,
+#schema div.table a {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* Workspace */
+
+#content {
+  min-width: 0;
+  margin: 0 0 0 var(--rail-width);
+  padding: var(--space-lg) var(--space-xl) var(--space-2xl);
+}
+
+#breadcrumb {
+  position: static;
+  height: auto;
+  margin: 0 0 var(--space-xs);
+  padding: 0 var(--logout-clearance) 0 0;
+  overflow: hidden;
+  background: none;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  top: var(--space-md);
+  right: var(--space-xl);
+  margin: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.logout span {
+  color: var(--color-ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+#logout {
+  min-height: 1.625rem;
+  border-color: transparent;
+  background: none;
+  color: var(--color-ink-soft);
+}
+
+#logout:hover {
+  border-color: var(--color-rule-strong);
+  background: var(--color-paper-hover);
+  color: var(--color-ink);
+}
+
+/* Rail: logo, database picker, links, table list; language picker pinned to the bottom. */
+
+#menu {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--rail-width);
+  margin: 0;
+  overflow: auto;
+  border-inline-end: 1px solid var(--color-rule);
+  background: var(--color-rail);
+}
+
+#menu > * {
+  flex-shrink: 0;
+}
+
+#menu h1 {
+  margin: 0;
+  padding: var(--space-md) var(--space-md) var(--space-sm);
+  border-bottom: 1px solid var(--color-rule);
+  background: none;
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+#h1,
+#h1:visited {
+  color: var(--color-ink);
+  font-style: normal;
+}
+
+#h1:hover {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+#logo {
+  margin-inline-end: var(--space-xs);
+}
+
+.version {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+#version {
+  color: var(--color-accent);
+}
+
+#menu p,
+#logins,
+#tables {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+#menu p:empty {
+  display: none;
+}
+
+p#dbs label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-ink-soft);
+}
+
+p#dbs label select {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+#menu .links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-sm);
+}
+
+#menu .links a {
+  margin: 0;
+}
+
+#menu .active {
+  color: var(--color-accent);
+}
+
+#tables,
+#logins {
+  overflow: visible;
+  white-space: normal;
+}
+
+#tables li,
+#logins li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+#logins a,
+#tables a,
+#tables span {
+  display: block;
+  min-width: 0;
+  padding: 1px var(--space-2xs);
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#tables a.select {
+  flex: none;
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+#tables a.structure,
+#tables a.view,
+#tables span {
+  flex: 1 1 auto;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+#tables a.view {
+  color: var(--color-ink-soft);
+  font-style: normal;
+}
+
+#logins a:hover,
+#tables a:hover {
+  background: var(--color-paper-hover);
+  color: var(--color-accent-hover);
+  text-decoration: none;
+}
+
+#tables a.active {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+#tables a.select.active {
+  background: none;
+  font-weight: 500;
+}
+
+#menu > form:has(#lang) {
+  order: 1;
+  margin-top: auto;
+}
+
+#lang {
+  position: static;
+  padding: var(--space-sm) var(--space-md);
+  border-top: 1px solid var(--color-rule);
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+#lang label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+#lang select {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+/* RTL: mirror the shell (default.css ships .rtl rules with higher specificity). */
+
+.rtl #content {
+  margin: 0 var(--rail-width) 0 0;
+  padding: var(--space-lg) var(--space-xl) var(--space-2xl);
+}
+
+.rtl #breadcrumb {
+  margin: 0 0 var(--space-xs);
+  padding: 0 0 0 var(--logout-clearance);
+}
+
+.rtl #menu {
+  right: 0;
+  left: auto;
+}
+
+.rtl .logout {
+  right: auto;
+  left: var(--space-xl);
+}
+
+/* Matches default.css: below 800px Adminer hides #foot behind the #menuopen toggle. */
+@media (max-width: 800px) {
+  #content,
+  .rtl #content {
+    /* default.css sets margin-left: 10px !important at this width. */
+    margin: 0 !important;
+    padding: var(--space-sm) var(--space-md) var(--space-2xl);
+  }
+
+  /* Logout lives in #foot, so at this width it moves into the toggled menu header. */
+  #breadcrumb,
+  .rtl #breadcrumb {
+    padding-inline: 0;
+    line-height: 1.875rem;
+  }
+
+  /* Clear the #menuopen toggle; pages without a breadcrumb (login) start with the h2. */
+  .js #breadcrumb,
+  .js #content:not(:has(#breadcrumb)) > h2 {
+    padding-inline-start: 2rem;
+  }
+
+  .js #menuopen {
+    top: calc(var(--space-sm) + 6px);
+    left: var(--space-md);
+  }
+
+  .rtl.js #menuopen {
+    right: var(--space-md);
+    left: auto;
+  }
+
+  .logout,
+  .js .logout {
+    top: var(--space-sm);
+    right: var(--space-sm);
+    background: none;
+    box-shadow: none;
+  }
+
+  .logout span {
+    display: none;
+  }
+
+  .js #foot {
+    z-index: 5;
+    top: calc(var(--space-sm) + 2rem);
+    left: var(--space-xs);
+  }
+
+  #menu {
+    position: static;
+    width: min(23em, calc(100vw - 2 * var(--space-xs)));
+    min-width: 0;
+    max-height: calc(100dvh - 4rem);
+    margin: 0;
+    border: 1px solid var(--color-rule-strong);
+    border-radius: var(--radius-panel);
+    background: var(--color-paper-raised);
+    box-shadow: var(--shadow-pop);
+  }
+
+  .scrollable {
+    max-height: max(14rem, calc(100dvh - 10rem));
+  }
+}
+
+@media print {
+  #content,
+  .rtl #content {
+    margin: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

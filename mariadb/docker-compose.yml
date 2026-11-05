@@ -1,6 +1,6 @@
 services:
   mariadb:
-    container_name: mariadb
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}mariadb
     image: "mariadb:11.4.5"
     restart: "${RESTART_POLICY:-unless-stopped}"
     command: mariadbd --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -18,10 +18,7 @@ services:
       MARIADB_PASSWORD: "${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env — run make setup}"
       MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env — run make setup}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
-    ports:
-      - "127.0.0.1:${MARIADB_PORT:-3307}:3306"
     networks:
-      - backend_net
       - data_net
     volumes:
       - mariadb_data:/var/lib/mysql
@@ -39,8 +36,6 @@ services:
       start_period: 30s
 
 networks:
-  backend_net:
-    external: true
   data_net:
     external: true
 

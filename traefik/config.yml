@@ -1,4 +1,1 @@
-tls:
-  certificates:
-    - certFile: /certs/server.crt
-      keyFile: /certs/server.key
+# Static Traefik file provider config (optional). TLS terminates at Caddy; no certs here.

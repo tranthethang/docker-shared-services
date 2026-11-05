@@ -4,7 +4,7 @@ Entry point for agents and contributors. Rules live in `docs/dev/`. Each rule th
 
 ## Project
 
-Local Docker Compose infrastructure for development (databases, cache, auth, CI, observability). Each service is its own Compose project, started from the root Makefile via `python -m dss.cli.service` (run through `uv`). Web UIs are reached through Traefik at `https://*.dss.localhost`.
+Local Docker Compose infrastructure for development (databases, cache, auth, CI, observability). Each service is its own Compose project, started from the root Makefile via `python -m dss.cli.service` (run through `uv`). Web UIs are reached at `https://*.sandbox.localhost` by default (or your `DOMAIN`) through **Caddy** (proxy repo) into Traefik on `traefik_proxy`.
 
 ## Rules
 
@@ -47,7 +47,7 @@ Every target that runs Python needs `uv`. The Makefile stops with an install hin
 
 - `depends_on` does not cross Compose projects. `make up service=<name>` must start that service's `dependency_queue` and wait until each backend container is `running` and, when a healthcheck exists, `healthy`. A created container is not ready.
 - `make up` without `service=` opens a menu. Pass `service=<name>`.
-- `make setup` prompts before writing `.env` files and certificates. Skip it when there is no TTY.
+- `make setup` prompts before writing `.env` files. Skip it when there is no TTY.
 - Root `.env` must exist before `make up`. Create it with `make setup`.
 - Setup rejects the legacy password `Password102!`.
 - `dss/core/config.py` is copied into exports, so editing it changes the export goldens. Run `make test-update` and review the diff.
@@ -60,7 +60,7 @@ Every target that runs Python needs `uv`. The Makefile stops with an install hin
 ## Limits
 
 - **NEVER** edit or test under `dist/`. Change the origin tree (`Makefile`, `dss/`, service directories). Leave `dist/` empty unless the user asks for a new export.
-- Do not commit `.env` files or `traefik/certs/*.{crt,key}`.
+- Do not commit `.env` files or TLS private keys. Local HTTPS certs live in the **docker-shared-services-proxy** repo under `caddy/certs/`.
 - Do not run `make remove-all`, `make prune`, or `make remove-config` unless the user asks. They delete data or env files.
 - Do not lower a quality limit (complexity, coverage floor, 300-line file size) to pass a check.
 

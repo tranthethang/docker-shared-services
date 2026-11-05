@@ -1,6 +1,6 @@
 services:
   redis:
-    container_name: redis
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}redis
     image: "redis:7.4-alpine"
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -19,14 +19,11 @@ services:
       - |
         set -eu
         escaped=$$(printf '%s' "$$REDIS_PASSWORD" | sed 's/[&|\\]/\\&/g')
-        sed "s|\$${REDIS_PASSWORD}|$$escaped|g" /etc/redis/redis.conf > /tmp/redis.conf
-        chown redis:redis /tmp/redis.conf
-        chmod 600 /tmp/redis.conf
-        exec docker-entrypoint.sh redis-server /tmp/redis.conf
-    ports:
-      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+        sed "s|\$${REDIS_PASSWORD}|$$escaped|g" /etc/redis/redis.conf > /data/redis.runtime.conf
+        chown redis:redis /data/redis.runtime.conf
+        chmod 600 /data/redis.runtime.conf
+        exec docker-entrypoint.sh redis-server /data/redis.runtime.conf
     networks:
-      - backend_net
       - data_net
     volumes:
       - redis_data:/data
@@ -47,8 +44,6 @@ services:
       REDIS_PASSWORD: "${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env — run make setup}"
 
 networks:
-  backend_net:
-    external: true
   data_net:
     external: true
 

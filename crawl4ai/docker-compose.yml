@@ -2,12 +2,12 @@ services:
   crawl4ai:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.crawl4ai.rule=Host(`crawl4ai.dss.localhost`)"
-      - "traefik.http.routers.crawl4ai.entrypoints=websecure"
-      - "traefik.http.routers.crawl4ai.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.crawl4ai.rule=Host(`crawl4ai.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.crawl4ai.entrypoints=web"
       - "traefik.http.services.crawl4ai.loadbalancer.server.port=11235"
-    container_name: crawl4ai
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}crawl4ai
     # Pin patch version for reproducibility (was :latest).
     image: "unclecode/crawl4ai:0.7.8"
     restart: "${RESTART_POLICY:-unless-stopped}"
@@ -47,7 +47,7 @@ services:
 
 volumes:
   crawl4ai_data:
-    name: crawl4ai_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}crawl4ai_data
 
 networks:
   traefik_proxy:

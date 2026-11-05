@@ -11,6 +11,7 @@ from dss.core.utils import (
     PASSWORD_MIN_LENGTH,
     PASSWORD_SPECIALS,
     error,
+    generate_bcrypt_auth_user_pass,
     generate_password,
     generate_secret,
     print_header,
@@ -76,6 +77,17 @@ def test_generate_secret_htpasswd_escapes_dollars(monkeypatch: pytest.MonkeyPatc
 
     monkeypatch.setattr("dss.core.utils.subprocess.run", fake_run)
     assert generate_secret("htpasswd", password=PLAINTEXT) == "admin:$$apr1$$salt$$hash"
+
+
+def test_generate_bcrypt_auth_user_pass_escapes_dollars(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_run(cmd: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        assert cmd == ["htpasswd", "-nbBC", "10", "admin", PLAINTEXT]
+        return subprocess.CompletedProcess(cmd, 0, stdout="admin:$2y$10$salt\n", stderr="")
+
+    monkeypatch.setattr("dss.core.utils.subprocess.run", fake_run)
+    assert generate_bcrypt_auth_user_pass("admin", PLAINTEXT) == "admin:$$2y$$10$$salt"
 
 
 def test_generate_secret_htpasswd_falls_back_to_sha(monkeypatch: pytest.MonkeyPatch) -> None:

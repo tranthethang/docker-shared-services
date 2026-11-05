@@ -13,7 +13,8 @@ from dss.core.service_catalog import catalog_problems, load_catalog
 
 
 def test_info_matches_golden(repo_root: Path) -> None:
-    actual = render_info()
+    # Pin the default domain, so a developer DOMAIN in the root .env does not break the golden.
+    actual = render_info(load_catalog(domain="sandbox.localhost"))
     golden = repo_root / "tests" / "golden" / "info.txt"
     if os.environ.get("GOLDEN_UPDATE") == "1":
         golden.write_text(actual, encoding="utf-8")

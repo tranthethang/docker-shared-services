@@ -11,13 +11,16 @@ SERVICES = [
     "centrifugo",
     "dozzle",
     "garage",
+    "garage_ui",
     "gitea",
     "gotenberg",
     "hasura",
+    "host-bridge",
     "hindsight",
     "inngest",
     "jenkins",
     "kafka",
+    "libreoffice-writer",
     "litellm",
     "mailpit",
     "mariadb",
@@ -80,6 +83,7 @@ START_ORDER = [
 
 VALIDATION_RULES = {
     "garage": ["GARAGE_RPC_SECRET", "GARAGE_ADMIN_TOKEN"],
+    "garage_ui": ["GARAGE_ADMIN_TOKEN", "GARAGE_UI_AUTH_USER_PASS"],
     "hasura": ["HASURA_GRAPHQL_ADMIN_SECRET"],
     "hindsight": ["HINDSIGHT_API_LLM_API_KEY"],
     "inngest": ["INNGEST_EVENT_KEY", "INNGEST_SIGNING_KEY"],
@@ -87,7 +91,7 @@ VALIDATION_RULES = {
     "minio": ["MINIO_ROOT_PASSWORD"],
     "mongodb": ["MONGO_ROOT_PASSWORD"],
     "mysql8": ["MYSQL_ROOT_PASSWORD"],
-    # Cookie secret only — Zitadel CLIENT_ID / CLIENT_SECRET are opt-in
+    # Cookie secret only — OIDC CLIENT_ID / CLIENT_SECRET are opt-in
     # prerequisites when configuring the auth gateway, not general setup.
     "oauth2-proxy": [
         "OAUTH2_PROXY_COOKIE_SECRET",
@@ -102,46 +106,61 @@ VALIDATION_RULES = {
 }
 
 # Local random secrets that `make setup` can auto-fill when empty.
-# Format: service -> { VAR: (method, nbytes) } where method is "hex" or "base64" or "htpasswd".
+# Format: service -> { VAR: (method, nbytes) } where method is "hex", "base64", "htpasswd",
+# or "jwt_hs256" (signed with JWT_SECRET from the same .env; nbytes unused).
 # External API keys (e.g. HINDSIGHT_API_LLM_API_KEY) stay manual.
 # These stay UNIQUE per variable (not the shared password).
 AUTO_GENERATED_SECRETS = {
-    ".": {
-        "TRAEFIK_DASHBOARD_AUTH": ("htpasswd", 16),
-    },
+    ".": {"TRAEFIK_DASHBOARD_AUTH": ("htpasswd", 16)},
+    "bugsink": {"BUGSINK_SECRET_KEY": ("base64", 50)},
     "garage": {
         "GARAGE_RPC_SECRET": ("hex", 32),
         "GARAGE_ADMIN_TOKEN": ("base64", 32),
     },
+    # Inngest needs even-length hex; 8 bytes gives 16 characters.
+    "inngest": {"INNGEST_EVENT_KEY": ("hex", 8), "INNGEST_SIGNING_KEY": ("hex", 8)},
     "litellm": {
         "LITELLM_MASTER_KEY": ("hex", 32),
         "LITELLM_SALT_KEY": ("hex", 32),
     },
-    # Cookie encryption only — Zitadel CLIENT_ID / CLIENT_SECRET stay manual.
+    # Cookie encryption only — OIDC CLIENT_ID / CLIENT_SECRET stay manual.
     "oauth2-proxy": {
         # oauth2-proxy v7 expects the decoded secret value to be exactly
         # 16, 24, or 32 bytes; use 32 hex characters rather than a 32-byte
         # base64 encoding (which is 44 characters and is rejected).
         "OAUTH2_PROXY_COOKIE_SECRET": ("hex", 16),
     },
-    "traefik": {
-        "TRAEFIK_DASHBOARD_AUTH": ("htpasswd", 16),
+    # REALTIME_DB_ENC_KEY must be exactly 16 characters.
+    "supabase": {
+        "JWT_SECRET": ("hex", 32),
+        "SECRET_KEY_BASE": ("base64", 48),
+        "REALTIME_DB_ENC_KEY": ("hex", 8),
+        "PG_META_CRYPTO_KEY": ("hex", 32),
+        "S3_PROTOCOL_ACCESS_KEY_ID": ("hex", 16),
+        "S3_PROTOCOL_ACCESS_KEY_SECRET": ("hex", 32),
+        "ANON_KEY": ("jwt_hs256", 0),
+        "SERVICE_ROLE_KEY": ("jwt_hs256", 0),
     },
-    "woodpecker": {
-        "WOODPECKER_AGENT_SECRET": ("hex", 32),
-    },
+    "traefik": {"TRAEFIK_DASHBOARD_AUTH": ("htpasswd", 16)},
+    "woodpecker": {"WOODPECKER_AGENT_SECRET": ("hex", 32)},
+    # 16 bytes as hex is exactly the 32 characters Zitadel requires.
+    "zitadel": {"ZITADEL_MASTERKEY": ("hex", 16)},
 }
 
-# UI services that can attach Traefik middleware auth-default / auth-admin.
-# Public (default): AUTH_MIDDLEWARE=auth-none (or unset → compose default auth-none).
+# UI services with optional Traefik auth-default / auth-admin (default AUTH_MIDDLEWARE=auth-none).
 AUTH_GATEWAY_MIDDLEWARE_OFF = "auth-none"
 AUTH_GATEWAY_MIDDLEWARES_ON = frozenset({"auth-default", "auth-admin"})
-AUTH_OPT_IN_UI_SERVICES = [
-    "chromadb",
-    "kafka",
-    "mermaid-live-editor",
-    "qdrant",
-    "temporal",
+AUTH_OPT_IN_UI_SERVICES = ["chromadb", "kafka", "mermaid-live-editor", "qdrant", "temporal"]
+
+# Services allowed on data_net besides PACKAGE_REQUIRES consumers (test_network_tiers).
+DATA_CLIENT_UI_SERVICES = [
+    "adminer",
+    "appsmith",
+    "chromadb_admin",
+    "host-bridge",
+    "n8n",
+    "node-red",
+    "redisinsight",
 ]
 
 # Sentinel values treated as "still the repo default" and safe to overwrite
@@ -154,8 +173,7 @@ SHARED_PASSWORD_PLACEHOLDERS = frozenset(
     }
 )
 
-# Old repo default. Example files now ship empty values, but .env files created
-# before that may still hold it, so setup keeps overwriting and rejecting it.
+# Old repo default; legacy .env files may still hold it, so setup keeps rejecting it.
 LEGACY_PLACEHOLDER_PASSWORD = "Password102!"  # noqa: S105  # rejected value, not a secret
 INVALID_PASSWORD_VALUES = frozenset({LEGACY_PLACEHOLDER_PASSWORD})
 
@@ -186,7 +204,7 @@ SHARED_PASSWORD_KEYS: dict[str, list[str]] = {
         "JWT_SIGNING_KEY",
         "CENTRIFUGO_API_KEY",
     ],
-    "bugsink": ["POSTGRES16_PASSWORD", "BUGSINK_SECRET_KEY"],
+    "bugsink": ["POSTGRES16_PASSWORD"],
     "centrifugo": ["CENTRIFUGO_API_KEY", "JWT_SIGNING_KEY"],
     "concourse": ["POSTGRES16_PASSWORD"],
     "gitea": ["POSTGRES16_PASSWORD"],
@@ -232,6 +250,7 @@ SERVICE_INFO_VARS = {
         "HINDSIGHT_PUBLIC_URL",
         "HINDSIGHT_UI_PUBLIC_URL",
     ],
+    "libreoffice-writer": ["LIBREOFFICE_WRITER_UNO_PORT"],
     "litellm": ["LITELLM_HOSTNAME"],
     "mongodb": ["MONGO_PORT"],
     "mysql8": ["MYSQL_PORT", "MYSQL_DATABASE"],
@@ -244,10 +263,7 @@ SERVICE_INFO_VARS = {
     "pgvector": ["PGVECTOR_PORT", "PGVECTOR_DB"],
     "postgres": ["POSTGRES16_PORT", "POSTGRES16_DB"],
     "redis": ["REDIS_PORT"],
-    "supabase": [
-        "SUPABASE_PUBLIC_URL",
-        "SUPABASE_STUDIO_HOSTNAME",
-    ],
+    "supabase": ["SUPABASE_PUBLIC_URL", "SUPABASE_STUDIO_HOSTNAME"],
     "temporal": ["TEMPORAL_GRPC_PORT"],
     "verdaccio": ["VERDACCIO_PORT", "VERDACCIO_HOSTNAME"],
     "zitadel": ["ZITADEL_HOSTNAME"],
@@ -258,17 +274,13 @@ PACKAGE_DEFAULT_SERVICES = [
     "traefik",
     "oauth2-proxy",
     "postgres",
-    "zitadel",
     "redis",
     "adminer",
     "mailpit",
     "garage",
-    "hasura",
 ]
 
-# Backend -> services that require it. Resolution is transitive, then ordered as SERVICES.
-# Zitadel's optional Redis cache URL does not require redis. Woodpecker and Supabase
-# do not require postgres. A compose file with traefik.enable=true also requires traefik.
+# Backend -> dependents (transitive, then SERVICES order). traefik.enable implies traefik.
 PACKAGE_REQUIRES: dict[str, list[str]] = {
     "postgres": [
         "bugsink",
@@ -284,5 +296,5 @@ PACKAGE_REQUIRES: dict[str, list[str]] = {
     ],
     "pgvector": ["hindsight"],
     "redis": ["inngest", "redisinsight"],
-    "zitadel": ["oauth2-proxy"],
+    "garage": ["garage_ui"],
 }

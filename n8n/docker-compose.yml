@@ -2,13 +2,13 @@ services:
   n8n:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.n8n.rule=Host(`${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-dss.localhost}`)"
-      - "traefik.http.routers.n8n.entrypoints=websecure"
-      - "traefik.http.routers.n8n.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.n8n.rule=Host(`${N8N_SUBDOMAIN:-n8n}.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.n8n.entrypoints=web"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
     image: docker.n8n.io/n8nio/n8n:1.76.1
-    container_name: n8n
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}n8n
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -20,12 +20,12 @@ services:
           memory: "${N8N_MEMORY_RESERVED:-512M}"
     environment:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
-      - N8N_HOST=${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-dss.localhost}
+      - N8N_HOST=${N8N_SUBDOMAIN:-n8n}.${DOMAIN:-sandbox.localhost}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - N8N_RUNNERS_ENABLED=true
       - NODE_ENV=production
-      - WEBHOOK_URL=https://${N8N_SUBDOMAIN:-n8n}.${DOMAIN_NAME:-dss.localhost}/
+      - WEBHOOK_URL=https://${N8N_SUBDOMAIN:-n8n}.${DOMAIN:-sandbox.localhost}/
       - GENERIC_TIMEZONE=${TZ:-Asia/Ho_Chi_Minh}
       - TZ=${TZ:-Asia/Ho_Chi_Minh}
     volumes:

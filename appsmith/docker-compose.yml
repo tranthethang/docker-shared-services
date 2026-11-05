@@ -2,12 +2,12 @@ services:
   appsmith:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.appsmith.rule=Host(`appsmith.dss.localhost`)"
-      - "traefik.http.routers.appsmith.entrypoints=websecure"
-      - "traefik.http.routers.appsmith.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.appsmith.rule=Host(`appsmith.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.appsmith.entrypoints=web"
       - "traefik.http.services.appsmith.loadbalancer.server.port=80"
-    container_name: appsmith
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}appsmith
     image: appsmith/appsmith-ce:v2.5.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -35,7 +35,7 @@ services:
 
 volumes:
   appsmith_data:
-    name: appsmith_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}appsmith_data
 
 networks:
   traefik_proxy:

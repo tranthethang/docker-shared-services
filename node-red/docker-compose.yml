@@ -2,12 +2,12 @@ services:
   node-red:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.node-red.rule=Host(`node-red.dss.localhost`)"
-      - "traefik.http.routers.node-red.entrypoints=websecure"
-      - "traefik.http.routers.node-red.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.node-red.rule=Host(`node-red.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.node-red.entrypoints=web"
       - "traefik.http.services.node-red.loadbalancer.server.port=1880"
-    container_name: node-red
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}node-red
     image: nodered/node-red:4.0.9
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:

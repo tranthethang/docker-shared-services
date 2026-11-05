@@ -1,14 +1,14 @@
 services:
   chromadb-admin:
-    container_name: chromadb-admin
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}chromadb-admin
     image: fengzhichao/chromadb-admin:0.0.2
     restart: "${RESTART_POLICY:-unless-stopped}"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.chromadb-admin.rule=Host(`chromadb-admin.dss.localhost`)"
-      - "traefik.http.routers.chromadb-admin.entrypoints=websecure"
-      - "traefik.http.routers.chromadb-admin.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.chromadb-admin.rule=Host(`chromadb-admin.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.chromadb-admin.entrypoints=web"
       - "traefik.http.services.chromadb-admin.loadbalancer.server.port=3001"
     environment:
       - CHROMA_URL=${CHROMADB_ADMIN_URL:-http://chromadb:8000}
@@ -20,6 +20,7 @@ services:
     networks:
       - traefik_proxy
       - backend_net
+      - data_net
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3001/ || exit 1"]
       interval: 30s
@@ -33,6 +34,8 @@ services:
         max-file: "3"
 
 networks:
+  data_net:
+    external: true
   traefik_proxy:
     external: true
   backend_net:

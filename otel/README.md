@@ -21,11 +21,11 @@ Docker stdout ─► Alloy ─────────────────�
 
 ### Default Grafana login
 
-| Field    | Value                         | Env override             |
-| -------- | ----------------------------- | ------------------------ |
-| URL      | https://grafana.dss.localhost | `GRAFANA_HOSTNAME`       |
-| Username | `admin`                       | `GRAFANA_ADMIN_USER`     |
-| Password | `DSS_SHARED_PASSWORD`         | `GRAFANA_ADMIN_PASSWORD` |
+| Field    | Value                             | Env override             |
+| -------- | --------------------------------- | ------------------------ |
+| URL      | https://grafana.sandbox.localhost | `GRAFANA_HOSTNAME`       |
+| Username | `admin`                           | `GRAFANA_ADMIN_USER`     |
+| Password | `DSS_SHARED_PASSWORD`             | `GRAFANA_ADMIN_PASSWORD` |
 
 Dev-only defaults (same pattern as other services in this repo). Change them in `otel/.env` or the root `.env` before exposing beyond localhost.
 
@@ -34,8 +34,8 @@ ______________________________________________________________________
 ## Prerequisites
 
 - Shared networks exist (`make setup` from the repo root creates `traefik_proxy`, `backend_net`, and `data_net`).
-- **Traefik** running (`make up service=traefik`) for browser access via `*.dss.localhost` (same pattern as Zitadel).
-- TLS certs for `*.dss.localhost` (`make cert` / `make setup`).
+- **Caddy** edge from [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) (`make cert` + `make up`) for HTTPS on `*.sandbox.localhost`.
+- **Traefik** running (`make up service=traefik`) for browser access via Traefik routing on `traefik_proxy`.
 
 ______________________________________________________________________
 
@@ -47,7 +47,7 @@ From the **repository root**:
 # Ensure env files exist (also done by make setup)
 cp otel/.env.example otel/.env
 
-make up service=traefik   # if not already running
+make up service=traefik   # if not already running (after Caddy is up)
 make up service=otel
 make health service=otel
 ```
@@ -67,7 +67,7 @@ Smoke test (health checks + sample OTLP log):
 ./otel/test-otel.sh
 ```
 
-Then open Grafana: [https://grafana.dss.localhost](https://grafana.dss.localhost)
+Then open Grafana: [https://grafana.sandbox.localhost](https://grafana.sandbox.localhost)
 
 - Username: `admin`
 - Password: `DSS_SHARED_PASSWORD`
@@ -76,15 +76,15 @@ ______________________________________________________________________
 
 ## Access
 
-Only **Grafana** is exposed through Traefik (like `https://zitadel.dss.localhost/...`). Loki, Alloy, and the Collector have no Traefik routers.
+Only **Grafana** is exposed through Traefik (like `https://zitadel.sandbox.localhost/...`). Loki, Alloy, and the Collector have no Traefik routers.
 
 ### Browser (Traefik)
 
-| What    | URL                               | Default login                                 |
-| ------- | --------------------------------- | --------------------------------------------- |
-| Grafana | **https://grafana.dss.localhost** | user `admin` / password `DSS_SHARED_PASSWORD` |
+| What    | URL                                   | Default login                                 |
+| ------- | ------------------------------------- | --------------------------------------------- |
+| Grafana | **https://grafana.sandbox.localhost** | user `admin` / password `DSS_SHARED_PASSWORD` |
 
-Override with `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD`. Hostname is controlled by `GRAFANA_HOSTNAME` (default `grafana.dss.localhost`).
+Override with `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD`. Hostname is controlled by `GRAFANA_HOSTNAME` (default `grafana.sandbox.localhost`).
 
 ### Host ports (fallback / APIs — no Traefik UI)
 
@@ -171,7 +171,7 @@ ______________________________________________________________________
 
 ## Using Grafana
 
-1. Open **https://grafana.dss.localhost** (Traefik + TLS; same `*.dss.localhost` style as Zitadel).
+1. Open **https://grafana.sandbox.localhost** (Traefik + TLS; same `*.sandbox.localhost` style as Zitadel).
 1. Sign in with default account **`admin` / `DSS_SHARED_PASSWORD`** (or your `GRAFANA_ADMIN_*` values).
 1. Go to **Explore** → datasource **Loki** (provisioned from `grafana/provisioning/`).
 1. Example LogQL:
@@ -259,14 +259,14 @@ ______________________________________________________________________
 
 ## Troubleshooting
 
-| Symptom                               | What to check                                                                                 |
-| ------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `https://grafana.dss.localhost` fails | Check that Traefik is running and that certificates cover `*.dss.localhost`.                  |
-| App cannot reach Collector            | Same Docker network? Hostname `otel-collector`? Host apps use `localhost:4317` (not Traefik). |
-| No logs in Grafana                    | Alloy needs Docker socket; Collector needs Loki healthy. Run `./otel/test-otel.sh`.           |
-| Grafana has no Loki datasource        | Confirm mount `./grafana/provisioning` and restart Grafana.                                   |
-| Loki disk growth                      | Retention is `168h` in `config/loki.yml`; lower `retention_period` if needed.                 |
-| Port already allocated                | Change `OTEL_COLLECTOR_PORT_*` or `LOKI_PORT` in `otel/.env` / root `.env`.                   |
+| Symptom                                   | What to check                                                                                 |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `https://grafana.sandbox.localhost` fails | Check that Traefik is running and that certificates cover `*.sandbox.localhost`.              |
+| App cannot reach Collector                | Same Docker network? Hostname `otel-collector`? Host apps use `localhost:4317` (not Traefik). |
+| No logs in Grafana                        | Alloy needs Docker socket; Collector needs Loki healthy. Run `./otel/test-otel.sh`.           |
+| Grafana has no Loki datasource            | Confirm mount `./grafana/provisioning` and restart Grafana.                                   |
+| Loki disk growth                          | Retention is `168h` in `config/loki.yml`; lower `retention_period` if needed.                 |
+| Port already allocated                    | Change `OTEL_COLLECTOR_PORT_*` or `LOKI_PORT` in `otel/.env` / root `.env`.                   |
 
 Collector health extension (inside the container network): `http://otel-collector:13133/`.
 

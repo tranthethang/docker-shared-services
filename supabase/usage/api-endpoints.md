@@ -2,10 +2,10 @@
 
 Kong listens on container ports `8000` / `8443` and is not published to host ports. Traefik routes:
 
-- APIs → `https://supabase.dss.localhost`
-- Studio → `https://studio.dss.localhost`
+- APIs → `https://supabase.sandbox.localhost`
+- Studio → `https://studio.sandbox.localhost`
 
-API base URL: `https://supabase.dss.localhost` (`SUPABASE_PUBLIC_URL`).
+API base URL: `https://supabase.sandbox.localhost` (`SUPABASE_PUBLIC_URL`).
 
 Declarative routes live in [`volumes/api/kong.yml`](../volumes/api/kong.yml).
 
@@ -30,7 +30,7 @@ Declarative routes live in [`volumes/api/kong.yml`](../volumes/api/kong.yml).
 Example:
 
 ```sh
-curl 'https://supabase.dss.localhost/auth/v1/health' \
+curl 'https://supabase.sandbox.localhost/auth/v1/health' \
   -H "apikey: $ANON_KEY"
 ```
 
@@ -68,11 +68,11 @@ No Kong `key-auth` on Storage (S3 protocol / SigV4 and user JWTs). Image transfo
 
 ## Studio / dashboard
 
-| Path                     | Auth                                                       |
-| ------------------------ | ---------------------------------------------------------- |
-| `/` and Studio UI routes | Direct un-gated local dev access on `studio.dss.localhost` |
+| Path                     | Auth                                                           |
+| ------------------------ | -------------------------------------------------------------- |
+| `/` and Studio UI routes | Direct un-gated local dev access on `studio.sandbox.localhost` |
 
-Open https://studio.dss.localhost for direct access. Non-API paths on https://supabase.dss.localhost redirect there.
+Open https://studio.sandbox.localhost for direct access. Non-API paths on https://supabase.sandbox.localhost redirect there.
 
 ## MCP
 
