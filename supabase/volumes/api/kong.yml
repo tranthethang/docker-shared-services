@@ -326,7 +326,7 @@ services:
       #    deny: []
 
   ## Dashboard - catch all remaining routes
-  ## Auth: Direct un-gated local dev access on https://studio.dss.localhost
+  ## Auth: Direct un-gated local dev access on https://studio.sandbox.localhost
   ## Kong basic-auth disabled for easy local access.
   - name: dashboard
     _comment: 'Studio: /* -> http://supabase-studio:3000/*'

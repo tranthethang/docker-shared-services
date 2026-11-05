@@ -3,11 +3,11 @@
 MCP agent memory service ([vectorize-io/hindsight](https://github.com/vectorize-io/hindsight)).
 Traefik-only access — no host ports in the default compose file.
 
-| Endpoint         | URL                                              |
-| ---------------- | ------------------------------------------------ |
-| API + MCP        | `https://hindsight.dss.localhost`                |
-| Control-plane UI | `https://hindsight-ui.dss.localhost`             |
-| MCP (per bank)   | `https://hindsight.dss.localhost/mcp/<bank_id>/` |
+| Endpoint         | URL                                                  |
+| ---------------- | ---------------------------------------------------- |
+| API + MCP        | `https://hindsight.sandbox.localhost`                |
+| Control-plane UI | `https://hindsight-ui.sandbox.localhost`             |
+| MCP (per bank)   | `https://hindsight.sandbox.localhost/mcp/<bank_id>/` |
 
 ## Prerequisites
 
@@ -55,7 +55,7 @@ HINDSIGHT_API_RERANKER_LITELLM_MODEL=semantic-ranker-fast-004
 
 Switching embedding dimensions on a non-empty bank requires re-indexing.
 
-3. Ensure Traefik is up (`make up service=traefik`) so the `*.dss.localhost` hosts resolve over HTTPS.
+3. Ensure Traefik is up (`make up service=traefik`) so the `*.sandbox.localhost` hosts resolve over HTTPS.
 
 ## Start
 
@@ -77,7 +77,7 @@ Point an HTTP MCP client at a memory bank (trailing slash required):
 {
   "mcpServers": {
     "hindsight": {
-      "url": "https://hindsight.dss.localhost/mcp/default/"
+      "url": "https://hindsight.sandbox.localhost/mcp/default/"
     }
   }
 }

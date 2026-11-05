@@ -37,7 +37,7 @@ _FIELDS = {"category", "description", "containers", "web_ui", "info"}
 
 
 def root_domain(env_path: Path = ROOT_ENV_PATH) -> str:
-    """DOMAIN from the root ``.env``; ``dss.localhost`` when the file or value is missing."""
+    """DOMAIN from the root ``.env``; ``sandbox.localhost`` when the file or value is missing."""
     value = read_env_value(env_path, "DOMAIN") if env_path.is_file() else None
     return value or DEFAULT_DOMAIN
 

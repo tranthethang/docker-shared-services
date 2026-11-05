@@ -37,16 +37,16 @@ sh run.sh start
 
 Wait until containers are healthy, then open Studio:
 
-| Resource              | URL                                        |
-| --------------------- | ------------------------------------------ |
-| Studio (Traefik)      | https://studio.dss.localhost               |
-| API gateway (Traefik) | https://supabase.dss.localhost             |
-| Auth API              | https://supabase.dss.localhost/auth/v1     |
-| Storage API           | https://supabase.dss.localhost/storage/v1  |
-| Realtime              | https://supabase.dss.localhost/realtime/v1 |
-| Postgres              | `localhost:5434`                           |
+| Resource              | URL                                            |
+| --------------------- | ---------------------------------------------- |
+| Studio (Traefik)      | https://studio.sandbox.localhost               |
+| API gateway (Traefik) | https://supabase.sandbox.localhost             |
+| Auth API              | https://supabase.sandbox.localhost/auth/v1     |
+| Storage API           | https://supabase.sandbox.localhost/storage/v1  |
+| Realtime              | https://supabase.sandbox.localhost/realtime/v1 |
+| Postgres              | `localhost:5434`                               |
 
-Studio UI is open directly for local development at https://studio.dss.localhost. API routes on `supabase.dss.localhost` stay public (key-auth). Kong dashboard basic-auth is disabled.
+Studio UI is open directly for local development at https://studio.sandbox.localhost. API routes on `supabase.sandbox.localhost` stay public (key-auth). Kong dashboard basic-auth is disabled.
 
 ## Verify the stack
 
@@ -69,7 +69,7 @@ Realtime’s **container** name is `realtime-dev.supabase-realtime` (required by
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
-  'https://supabase.dss.localhost',
+  'https://supabase.sandbox.localhost',
   process.env.ANON_KEY! // or SUPABASE_PUBLISHABLE_KEY if using opaque keys
 )
 

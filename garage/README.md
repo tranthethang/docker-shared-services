@@ -5,14 +5,14 @@ S3-compatible object store; deployed here in single-node mode (`replication_fact
 
 - Image: `dxflrs/garage:v2.4.1` (latest stable, pinned — never `:latest`)
 - Ports (internal to network): `3900` S3 API · `3901` RPC · `3902` static website hosting · `3903` admin API/metrics (no host ports exposed)
-- Traefik: `https://s3.garage.dss.localhost` (S3 API), `https://admin.garage.dss.localhost` (admin API)
+- Traefik: `https://s3.garage.sandbox.localhost` (S3 API), `https://admin.garage.sandbox.localhost` (admin API)
 - Config: directory mount `./config` → `/etc/garage` (`GARAGE_CONFIG_FILE=/etc/garage/garage.toml`)
 
 > **Browser admin UI:** use **[Garage Web UI](../garage_ui/README.md)** at
-> `https://garage-ui.dss.localhost` (`make up service=garage_ui`). Copy
+> `https://garage-ui.sandbox.localhost` (`make up service=garage_ui`). Copy
 > `GARAGE_ADMIN_TOKEN` from this directory’s `.env` into `garage_ui/.env`.
 >
-> **`https://admin.garage.dss.localhost/`** is the REST Admin API only (Bearer token).
+> **`https://admin.garage.sandbox.localhost/`** is the REST Admin API only (Bearer token).
 > Opening it in a browser returns `Unknown API endpoint: GET /` — not a dashboard.
 > Use the Web UI above or the CLI below for administration.
 
@@ -64,7 +64,7 @@ S3-compatible object store; deployed here in single-node mode (`replication_fact
    ```
 
    The `key create` output prints an S3-style `Key ID` / `Secret key` pair — use these with any
-   S3 client (aws-cli, mc, SDKs) pointed at `https://s3.garage.dss.localhost` (region: `garage`).
+   S3 client (aws-cli, mc, SDKs) pointed at `https://s3.garage.sandbox.localhost` (region: `garage`).
 
 ## CLI cheat sheet
 
@@ -144,16 +144,16 @@ For more subcommands: `docker exec garage /garage --help`,
 ## Path-style addressing is mandatory
 
 Garage does **not** support virtual-hosted-style bucket addressing
-(`bucket.s3.garage.dss.localhost`) the way current AWS S3 does by default — it only speaks
-legacy **path-style** (`s3.garage.dss.localhost/bucket`). This isn't optional here: our
+(`bucket.s3.garage.sandbox.localhost`) the way current AWS S3 does by default — it only speaks
+legacy **path-style** (`s3.garage.sandbox.localhost/bucket`). This isn't optional here: our
 `garage.toml` has no `root_domain` set for `[s3_api]` on purpose, and Traefik only routes the
-single host `s3.garage.dss.localhost` (no wildcard subdomain/cert per bucket). So every client
+single host `s3.garage.sandbox.localhost` (no wildcard subdomain/cert per bucket). So every client
 must force path-style, or requests will fail to resolve the bucket.
 
 - **aws-cli**
 
   ```bash
-  aws --endpoint-url https://s3.garage.dss.localhost \
+  aws --endpoint-url https://s3.garage.sandbox.localhost \
       --region garage \
       s3 ls s3://my-bucket
   ```
@@ -168,7 +168,7 @@ must force path-style, or requests will fail to resolve the bucket.
 
   s3 = boto3.client(
       "s3",
-      endpoint_url="https://s3.garage.dss.localhost",
+      endpoint_url="https://s3.garage.sandbox.localhost",
       region_name="garage",
       aws_access_key_id="...",
       aws_secret_access_key="...",
@@ -180,7 +180,7 @@ must force path-style, or requests will fail to resolve the bucket.
 
   ```js
   new S3Client({
-    endpoint: "https://s3.garage.dss.localhost",
+    endpoint: "https://s3.garage.sandbox.localhost",
     region: "garage",
     forcePathStyle: true, // s3ForcePathStyle in SDK v2
   });
@@ -189,7 +189,7 @@ must force path-style, or requests will fail to resolve the bucket.
 - **mc (MinIO client)**
 
   ```bash
-  mc alias set garage https://s3.garage.dss.localhost ACCESS_KEY SECRET_KEY --api S3v4 --path on
+  mc alias set garage https://s3.garage.sandbox.localhost ACCESS_KEY SECRET_KEY --api S3v4 --path on
   ```
 
 - **rclone** (`rclone.conf`)
@@ -198,7 +198,7 @@ must force path-style, or requests will fail to resolve the bucket.
   [garage]
   type = s3
   provider = Other
-  endpoint = https://s3.garage.dss.localhost
+  endpoint = https://s3.garage.sandbox.localhost
   region = garage
   force_path_style = true
   ```
@@ -206,8 +206,8 @@ must force path-style, or requests will fail to resolve the bucket.
 - **s3cmd** (`.s3cfg`)
 
   ```ini
-  host_base = s3.garage.dss.localhost
-  host_bucket = s3.garage.dss.localhost
+  host_base = s3.garage.sandbox.localhost
+  host_bucket = s3.garage.sandbox.localhost
   use_https = True
   ```
 

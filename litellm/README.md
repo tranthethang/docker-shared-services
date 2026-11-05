@@ -5,10 +5,10 @@ credentials are stored in shared Postgres 16 (`litellm` database). The pinned im
 `ghcr.io/berriai/litellm:v1.106.6` (set `LITELLM_IMAGE` in `.env`; do not use `latest` or
 `main-stable`).
 
-| Endpoint              | URL                                |
-| --------------------- | ---------------------------------- |
-| Admin UI              | `https://litellm.dss.localhost/ui` |
-| OpenAI-compatible API | `https://litellm.dss.localhost/v1` |
+| Endpoint              | URL                                    |
+| --------------------- | -------------------------------------- |
+| Admin UI              | `https://litellm.sandbox.localhost/ui` |
+| OpenAI-compatible API | `https://litellm.sandbox.localhost/v1` |
 
 ## Prerequisites
 
@@ -47,7 +47,7 @@ key).
 From the host (Traefik):
 
 ```bash
-curl -sS https://litellm.dss.localhost/v1/chat/completions \
+curl -sS https://litellm.sandbox.localhost/v1/chat/completions \
   -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{"model":"your-model","messages":[{"role":"user","content":"Ping"}],"max_tokens":16}'

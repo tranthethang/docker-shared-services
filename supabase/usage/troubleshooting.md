@@ -22,11 +22,11 @@ Check:
 1. Required volume files exist (`volumes/api/kong.yml`, `volumes/db/*.sql`, `volumes/api/kong-entrypoint.sh`).
 1. Docker has enough disk — Postgres and images are large.
 
-## `supabase.dss.localhost` does not resolve / TLS fails
+## `supabase.sandbox.localhost` does not resolve / TLS fails
 
 1. Start Traefik: `make up service=traefik`
 1. Confirm `SUPABASE_SUBDOMAIN` / `DOMAIN` / `SUPABASE_PUBLIC_URL` match your Traefik host rule.
-1. Use the API domain: https://supabase.dss.localhost
+1. Use the API domain: https://supabase.sandbox.localhost
 
 ## Auth or Storage cannot connect to the database
 
@@ -53,7 +53,7 @@ docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" supabase-db \
 Then reload Storage in Studio (no recreate required). Verify:
 
 ```sh
-curl -sS "https://supabase.dss.localhost/storage/v1/bucket" \
+curl -sS "https://supabase.sandbox.localhost/storage/v1/bucket" \
   -H "apikey: $SERVICE_ROLE_KEY" \
   -H "Authorization: Bearer $SERVICE_ROLE_KEY"
 ```
@@ -78,8 +78,8 @@ docker restart supabase-auth
 
 - Use the current `ANON_KEY` / `SERVICE_ROLE_KEY` (or opaque keys) from `.env`.
 - After regenerating keys, recreate `supabase-kong` (and usually `supabase-auth` / `supabase-storage` / `realtime` / `supabase-studio`).
-- Studio: open https://studio.dss.localhost for direct access.
-- Use `https://supabase.dss.localhost` so requests go through Traefik.
+- Studio: open https://studio.sandbox.localhost for direct access.
+- Use `https://supabase.sandbox.localhost` so requests go through Traefik.
 
 ## Realtime unhealthy or WebSocket fails
 
@@ -135,7 +135,7 @@ sh utils/generate-keys.sh --update-env
 Defaults point SMTP at shared **Mailpit** (`SMTP_HOST=mailpit`, `SMTP_PORT=1025`) with `ENABLE_EMAIL_AUTOCONFIRM=false`.
 
 1. Start Mailpit: `make up service=mailpit`
-1. Open https://mailpit.dss.localhost to read messages
+1. Open https://mailpit.sandbox.localhost to read messages
 1. Or set `ENABLE_EMAIL_AUTOCONFIRM=true` to skip email locally
 1. After changing SMTP env, recreate auth: `sh run.sh recreate supabase-auth`
 

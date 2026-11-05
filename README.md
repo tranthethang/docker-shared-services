@@ -30,10 +30,10 @@ make info                      # URLs / ports
 
 HTTPS uses **Caddy** in the companion [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) repo (`make cert` + `make up` there). Traefik in this repo routes **HTTP only** on `traefik_proxy`; start Caddy before Traefik for browser access.
 
-Access UIs at `https://<service>.dss.localhost` when Caddy and Traefik are running.
+Access UIs at `https://<service>.sandbox.localhost` when Caddy and Traefik are running.
 Use the domain names for browser UIs. Verdaccio also exposes `http://127.0.0.1:4873/` for host package managers.
 Run `make setup` before any direct `docker compose up`; Compose requires the generated `.env` files and credentials.
-The Traefik dashboard is at `https://traefik.dss.localhost/dashboard/` with username `admin` and the shared password in the root `.env`.
+The Traefik dashboard is at `https://traefik.sandbox.localhost/dashboard/` with username `admin` and the shared password in the root `.env`.
 
 ## Shared password
 
@@ -81,15 +81,15 @@ Press `?` inside the TUI for key bindings. Status updates automatically from Doc
 
 ## What’s included
 
-| Area        | Examples                                                                                        |
-| ----------- | ----------------------------------------------------------------------------------------------- |
-| Data        | Postgres 16, PgVector 17, MySQL, MariaDB, MongoDB, Redis, Memcached, ChromaDB, Qdrant           |
-| Messaging   | RabbitMQ, Kafka, Centrifugo                                                                     |
-| Auth / apps | Zitadel, oauth2-proxy (`auth.dss.localhost`), Supabase, Gitea, n8n, Appsmith, Hindsight, Hasura |
-| CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                            |
-| Storage     | MinIO, Garage                                                                                   |
-| Dev tools   | Verdaccio npm registry                                                                          |
-| Edge / obs  | Caddy (proxy repo), Traefik, OTel (Collector + Loki + Alloy + Grafana )                         |
+| Area        | Examples                                                                                            |
+| ----------- | --------------------------------------------------------------------------------------------------- |
+| Data        | Postgres 16, PgVector 17, MySQL, MariaDB, MongoDB, Redis, Memcached, ChromaDB, Qdrant               |
+| Messaging   | RabbitMQ, Kafka, Centrifugo                                                                         |
+| Auth / apps | Zitadel, oauth2-proxy (`auth.sandbox.localhost`), Supabase, Gitea, n8n, Appsmith, Hindsight, Hasura |
+| CI / ops    | Jenkins, Concourse, Woodpecker, SonarQube, Portainer, Dockge, Dozzle                                |
+| Storage     | MinIO, Garage                                                                                       |
+| Dev tools   | Verdaccio npm registry                                                                              |
+| Edge / obs  | Caddy (proxy repo), Traefik, OTel (Collector + Loki + Alloy + Grafana )                             |
 
 Full catalog: [docs/services.md](docs/services.md).
 
@@ -107,7 +107,7 @@ docs/                       # deeper guides
 
 ## Opt-in UI authentication
 
-Selected Traefik UIs can require login through `oauth2-proxy` (`https://auth.dss.localhost`) with any OIDC issuer. Auth is **off by default**. `make setup` only requires the oauth2-proxy cookie secret; an OIDC client id/secret are prerequisites when you configure the gateway.
+Selected Traefik UIs can require login through `oauth2-proxy` (`https://auth.sandbox.localhost`) with any OIDC issuer. Auth is **off by default**. `make setup` only requires the oauth2-proxy cookie secret; an OIDC client id/secret are prerequisites when you configure the gateway.
 
 1. Start Traefik, register a confidential OIDC client with the callback URL, and set the issuer URL and client credentials in `oauth2-proxy/.env`. Then start oauth2-proxy. See [oauth2-proxy/README.md](oauth2-proxy/README.md).
 1. In a candidate service `.env` set `AUTH_ENABLED=true` and `AUTH_MIDDLEWARE=auth-default`, then restart that service.

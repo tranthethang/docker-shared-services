@@ -4,7 +4,7 @@
 
 ## URL
 
-- **https://garage-ui.dss.localhost** (Traefik, HTTPS)
+- **https://garage-ui.sandbox.localhost** (Traefik, HTTPS)
 
 ## Start
 
@@ -44,4 +44,4 @@ Backend URLs are set in `docker-compose.yml`:
 - S3 API: `http://garage:3900`
 - Region: `garage`
 
-Garage’s REST admin host (**https://admin.garage.dss.localhost**) stays API-only; use this UI for browser administration.
+Garage’s REST admin host (**https://admin.garage.sandbox.localhost**) stays API-only; use this UI for browser administration.

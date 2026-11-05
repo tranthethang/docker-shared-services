@@ -28,9 +28,9 @@ DOMAIN=dev.example.test
 
 Per-service host and URL variables are empty in the `.env.example` files. Each one has a `# Default:` comment that shows the value built from `DOMAIN`, for example `ZITADEL_HOSTNAME` defaults to `zitadel.${DOMAIN}`. Set one only to give that service a different host.
 
-An existing `.env` keeps its explicit host values, such as `ZITADEL_HOSTNAME=zitadel.dss.localhost` or `GITEA_ROOT_URL=https://gitea.dss.localhost/`. Clear those values to follow `DOMAIN`. `DOMAIN_NAME` is no longer read; move a custom value to `DOMAIN`.
+An existing `.env` keeps its explicit host values, such as `ZITADEL_HOSTNAME=zitadel.sandbox.localhost` or `GITEA_ROOT_URL=https://gitea.sandbox.localhost/`. Clear those values to follow `DOMAIN`. `DOMAIN_NAME` is no longer read; move a custom value to `DOMAIN`.
 
-Some files are not interpolated by Compose and keep `dss.localhost`: `garage/config/garage.toml`. Edit that file by hand for another domain. The smoke scripts `otel/test-otel.sh` and `hindsight/smoke-test.sh` read `DOMAIN` from the shell environment, so export it before you run them. The Caddy certificate in the proxy repo must also cover the new domain.
+Some files are not interpolated by Compose and keep `sandbox.localhost`: `garage/config/garage.toml`. Edit that file by hand for another domain. The smoke scripts `otel/test-otel.sh` and `hindsight/smoke-test.sh` read `DOMAIN` from the shell environment, so export it before you run them. The Caddy certificate in the proxy repo must also cover the new domain.
 
 ### Several stacks on one host
 
@@ -92,7 +92,7 @@ make passwords password='MyNewSharedPass' force=1
 The chosen value is stored as `DSS_SHARED_PASSWORD` in the root `.env` and copied
 into each service’s password variables (Postgres, Redis, MinIO, Grafana, …).
 Run `make setup` before direct `docker compose up` commands so the required `.env` files and credentials exist.
-The Traefik dashboard uses `admin` and this shared password at `https://traefik.dss.localhost/dashboard/`.
+The Traefik dashboard uses `admin` and this shared password at `https://traefik.sandbox.localhost/dashboard/`.
 
 ### Change a single service password
 
@@ -184,7 +184,7 @@ Browser UIs can sit behind a shared `oauth2-proxy` gateway that authenticates us
 
 1. `make setup` (creates `oauth2-proxy/.env` and fills `OAUTH2_PROXY_COOKIE_SECRET` when empty). General setup validation only requires the cookie secret; empty `OAUTH2_PROXY_CLIENT_ID` / `OAUTH2_PROXY_CLIENT_SECRET` are expected until you opt in.
 1. Start Traefik: `make up service=traefik`.
-1. Register a confidential client with your OIDC provider and allow redirect URI `https://auth.dss.localhost/oauth2/callback`. Set `OAUTH2_PROXY_OIDC_ISSUER_URL` to the issuer base URL (origin plus path, not the well-known URL), and set the client id/secret in `oauth2-proxy/.env`. For a public issuer, leave `OAUTH2_PROXY_OIDC_ISSUER_HOST` empty. For a local issuer reached through this machine's Traefik, set it to the issuer hostname only, for example `idp.dss.localhost`.
+1. Register a confidential client with your OIDC provider and allow redirect URI `https://auth.sandbox.localhost/oauth2/callback`. Set `OAUTH2_PROXY_OIDC_ISSUER_URL` to the issuer base URL (origin plus path, not the well-known URL), and set the client id/secret in `oauth2-proxy/.env`. For a public issuer, leave `OAUTH2_PROXY_OIDC_ISSUER_HOST` empty. For a local issuer reached through this machine's Traefik, set it to the issuer hostname only, for example `idp.sandbox.localhost`.
 1. The client id/secret are manual prerequisites for oauth2-proxy and are never auto-generated. Until both values are set, `make manage` and `make tui` show `oauth2-proxy` as a label and will not start it. `make up service=oauth2-proxy` exits with the same reason.
 1. `make up service=oauth2-proxy`.
 1. To protect a UI, edit that service’s `.env`:
@@ -198,13 +198,13 @@ Then `make restart service=<folder>`. Set `AUTH_MIDDLEWARE=auth-none` (and `AUTH
 
 ### Initial candidates (default: off)
 
-| Folder / UI           | Traefik host             | Notes                                      |
-| --------------------- | ------------------------ | ------------------------------------------ |
-| `mermaid-live-editor` | `mermaid.dss.localhost`  | Browser editor; WebSockets go through auth |
-| `temporal` (UI only)  | `temporal.dss.localhost` | gRPC `:7233` is not gated                  |
-| `chromadb`            | `chromadb.dss.localhost` | Enabling breaks non-browser API on Traefik |
-| `qdrant`              | `qdrant.dss.localhost`   | Prefer native `QDRANT_API_KEY` for APIs    |
-| `kafka` (Kafka UI)    | `kafka-ui.dss.localhost` | UI only                                    |
+| Folder / UI           | Traefik host                 | Notes                                      |
+| --------------------- | ---------------------------- | ------------------------------------------ |
+| `mermaid-live-editor` | `mermaid.sandbox.localhost`  | Browser editor; WebSockets go through auth |
+| `temporal` (UI only)  | `temporal.sandbox.localhost` | gRPC `:7233` is not gated                  |
+| `chromadb`            | `chromadb.sandbox.localhost` | Enabling breaks non-browser API on Traefik |
+| `qdrant`              | `qdrant.sandbox.localhost`   | Prefer native `QDRANT_API_KEY` for APIs    |
+| `kafka` (Kafka UI)    | `kafka-ui.sandbox.localhost` | UI only                                    |
 
 Middleware names: `auth-none` (public default), `auth-default` (any authenticated user), `auth-admin` (extension point for stricter policy later). Do **not** protect the OIDC issuer itself.
 
@@ -226,9 +226,9 @@ ______________________________________________________________________
 
 TLS and host ports **80/443** live in the companion repo [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy). Traefik in this repo listens on **HTTP port 80** inside `traefik_proxy` only; it does not mount server certificates or publish 80/443 on the Docker host by default. See [Proxy contract](#proxy-contract) for the optional published port.
 
-Public hostnames still use `*.dss.localhost` (for example `https://mailpit.dss.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `dss.localhost`.
+Public hostnames still use `*.sandbox.localhost` (for example `https://mailpit.sandbox.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `sandbox.localhost`.
 
-Nested app hosts (one extra label) need extra wildcard SANs on the Caddy certificate — the proxy repo `make cert` script issues `*.tts.dss.localhost`, `*.minio.dss.localhost`, and `*.garage.dss.localhost` in addition to `*.dss.localhost`. Re-run `make cert` in the proxy repo and restart Caddy after changing SANs.
+Nested app hosts (one extra label) need extra wildcard SANs on the Caddy certificate — the proxy repo `make cert` script issues `*.tts.sandbox.localhost`, `*.minio.sandbox.localhost`, and `*.garage.sandbox.localhost` in addition to `*.sandbox.localhost`. Re-run `make cert` in the proxy repo and restart Caddy after changing SANs.
 
 ### Startup order
 
@@ -263,7 +263,7 @@ openssl x509 -in caddy/certs/server.crt -text -noout    # run from proxy repo
 openssl x509 -in caddy/certs/server.crt -noout -dates
 ```
 
-Do not browse Traefik directly on host ports; use `https://traefik.dss.localhost/dashboard/` through Caddy.
+Do not browse Traefik directly on host ports; use `https://traefik.sandbox.localhost/dashboard/` through Caddy.
 
 ______________________________________________________________________
 

@@ -1,6 +1,6 @@
 # How to Route External Containers via Traefik
 
-To make your containers from other `docker-compose.yml` files accessible via Traefik with a custom domain (e.g., `sitexxx.dss.localhost`), follow these steps:
+To make your containers from other `docker-compose.yml` files accessible via Traefik with a custom domain (e.g., `sitexxx.sandbox.localhost`), follow these steps:
 
 ## Prerequisites
 
@@ -56,4 +56,4 @@ networks:
 ## Troubleshooting
 
 - Ensure the container is actually running and joined to the `traefik_proxy` network: `docker network inspect traefik_proxy`.
-- Check the Traefik dashboard at [https://traefik.dss.localhost/dashboard/](https://traefik.dss.localhost/dashboard/) (via Caddy) to see if your router appears. Log in as `admin` with `DSS_SHARED_PASSWORD` from the root `.env`.
+- Check the Traefik dashboard at [https://traefik.sandbox.localhost/dashboard/](https://traefik.sandbox.localhost/dashboard/) (via Caddy) to see if your router appears. Log in as `admin` with `DSS_SHARED_PASSWORD` from the root `.env`.

@@ -100,12 +100,12 @@ docker volume prune               # Remove unused volumes
 
 | Problem                                                    | Solution                                                                                                                                                                           |
 | :--------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Redirect loop or callback error                            | Confirm the OIDC client redirect URI is exactly `https://auth.dss.localhost/oauth2/callback` and `OAUTH2_PROXY_CLIENT_*` match the client                                          |
+| Redirect loop or callback error                            | Confirm the OIDC client redirect URI is exactly `https://auth.sandbox.localhost/oauth2/callback` and `OAUTH2_PROXY_CLIENT_*` match the client                                      |
 | Browser displays a “Found” link instead of opening sign-in | Ensure shared ForwardAuth points to oauth2-proxy `/`, which returns the login redirect as an actual 302; recreate `oauth2-proxy` after changing its labels                         |
 | `oauth2-proxy` cannot discover issuer                      | Check `OAUTH2_PROXY_OIDC_ISSUER_URL` is the issuer base URL, not the well-known URL. For a local issuer through host Traefik, set `OAUTH2_PROXY_OIDC_ISSUER_HOST` to its hostname. |
 | UI still public after enabling auth                        | Set both `AUTH_ENABLED=true` and `AUTH_MIDDLEWARE=auth-default`, then `make restart service=<folder>`                                                                              |
 | API clients fail on chromadb/qdrant Traefik hosts          | Auth is opt-in; use `AUTH_MIDDLEWARE=auth-none` for API-first access through the domain and provide native keys such as `QDRANT_API_KEY`                                           |
-| Cookie not shared across UIs                               | Cookie domain must be `.dss.localhost` (default); browse via HTTPS Traefik hosts, not raw localhost ports                                                                          |
+| Cookie not shared across UIs                               | Cookie domain must be `.sandbox.localhost` (default); browse via HTTPS Traefik hosts, not raw localhost ports                                                                      |
 | Do not put gateway in front of the OIDC issuer             | Keep issuer routers without `AUTH_MIDDLEWARE`                                                                                                                                      |
 
 ### Common Issues

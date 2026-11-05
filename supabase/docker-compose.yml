@@ -93,7 +93,7 @@ services:
       - "traefik.http.routers.supabase-studio.entrypoints=web"
       - "traefik.http.routers.supabase-studio.priority=50"
       - "traefik.http.routers.supabase-studio.service=supabase"
-      # Legacy Studio on supabase.dss.localhost → redirect to studio.dss.localhost
+      # Legacy Studio on supabase.sandbox.localhost → redirect to studio.sandbox.localhost
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.regex=^https?://[^/]+/(.*)"
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.replacement=https://${SUPABASE_STUDIO_HOSTNAME:-studio.${DOMAIN:-sandbox.localhost}}/$${1}"
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.permanent=false"

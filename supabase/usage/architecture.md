@@ -20,8 +20,8 @@ The Realtime container name **must** stay `realtime-dev.supabase-realtime`: the 
 
 ```
                          ┌─────────────┐
-  APIs  supabase.dss.localhost │ Traefik     │
-  Studio studio.dss.localhost│            │
+  APIs  supabase.sandbox.localhost │ Traefik     │
+  Studio studio.sandbox.localhost│            │
                          └──────┬──────┘
                                 ▼
                          ┌─────────────┐
@@ -78,6 +78,6 @@ Kong joins `traefik_proxy` for ingress and `backend_net` for internal services. 
 
 Traefik labels on `supabase-kong`:
 
-- APIs: `Host(`supabase.dss.localhost`)` + PathPrefix (`/auth`, `/storage`, …) — public
-- Studio: `Host(`studio.dss.localhost`)` (un-gated local dev)
-- Legacy UI on `supabase.dss.localhost` redirects to `studio.dss.localhost`
+- APIs: `Host(`supabase.sandbox.localhost`)` + PathPrefix (`/auth`, `/storage`, …) — public
+- Studio: `Host(`studio.sandbox.localhost`)` (un-gated local dev)
+- Legacy UI on `supabase.sandbox.localhost` redirects to `studio.sandbox.localhost`
