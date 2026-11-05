@@ -43,7 +43,7 @@ Below is the mapping for all container services in the repository:
 | **gitea**                   | Git Service               |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL on data_net              |
 | **gotenberg**               | PDF Conversion Service    |       ❌        |      ✅       |     ❌     | Internal HTTP API / localhost:3030                   |
 | **hasura**                  | GraphQL Engine            |       ✅        |      ✅       |     ✅     | Traefik GraphQL API/Console + PostgreSQL on data_net |
-| **host-bridge**             | HAProxy TCP bridge        |       ❌        |      ✅       |     ✅     | Default dev TCP on 127.0.0.1; start with `make up` |
+| **host-bridge**             | HAProxy TCP bridge        |       ❌        |      ✅       |     ✅     | Default dev TCP on 127.0.0.1; start with `make up`   |
 | **hindsight**               | MCP Memory Service        |       ✅        |      ✅       |     ✅     | Traefik Web UI/API + PgVector on data_net            |
 | **inngest**                 | Background Job Platform   |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL/Redis on data_net        |
 | **jenkins**                 | Automation Server         |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL on data_net              |
