@@ -18,8 +18,6 @@ services:
       MYSQL_PASSWORD: "${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env — run make setup}"
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env — run make setup}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
-    ports:
-      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
     networks:
       - data_net
     volumes:

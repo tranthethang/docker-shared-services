@@ -15,8 +15,6 @@ services:
       POSTGRES_USER: "${PGVECTOR_USER:-postgres}"
       POSTGRES_PASSWORD: "${PGVECTOR_PASSWORD:?Set PGVECTOR_PASSWORD in .env — run make setup}"
       POSTGRES_DB: "${PGVECTOR_DB:-postgres}"
-    ports:
-      - "127.0.0.1:${PGVECTOR_PORT:-5433}:5432"
     networks:
       - data_net
     volumes:

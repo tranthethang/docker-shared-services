@@ -18,8 +18,6 @@ services:
       POSTGRES_PASSWORD: "${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in .env — run make setup}"
       POSTGRES_DB: "${POSTGRES16_DB:-postgres_db}"
       TZ: "${TZ:-Asia/Ho_Chi_Minh}"
-    ports:
-      - "127.0.0.1:${POSTGRES16_PORT:-5432}:5432"
     networks:
       - data_net
     volumes:

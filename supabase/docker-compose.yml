@@ -370,9 +370,6 @@ services:
         reservations:
           cpus: "${SUPABASE_DB_CPUS_RESERVED:-0.25}"
           memory: "${SUPABASE_DB_MEMORY_RESERVED:-256M}"
-    ports:
-      # Host 5434 avoids pgvector (5432) and postgres16 (5433)
-      - "127.0.0.1:${SUPABASE_DB_PORT:-5434}:5432"
     volumes:
       - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z

@@ -23,8 +23,6 @@ services:
       # Align defaults with .env.example (avoid classic guest/guest).
       RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER:-admin}"
       RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env — run make setup}"
-    ports:
-      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
     networks:
       - traefik_proxy
       - data_net

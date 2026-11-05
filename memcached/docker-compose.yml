@@ -11,8 +11,6 @@ services:
         reservations:
           cpus: "${MEMCACHED_CPUS_RESERVED:-0.25}"
           memory: "${MEMCACHED_MEMORY_RESERVED:-256M}"
-    ports:
-      - "127.0.0.1:${MEMCACHED_PORT:-11211}:11211"
     networks:
       - data_net
     stop_grace_period: 20s
