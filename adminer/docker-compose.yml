@@ -4,7 +4,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.adminer.rule=Host(`adminer.${DOMAIN:-dss.localhost}`)"
+      - "traefik.http.routers.adminer.rule=Host(`adminer.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.adminer.entrypoints=web"
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"
     container_name: ${DSS_NAME:+${DSS_NAME}-}adminer

@@ -4,7 +4,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.redisinsight.rule=Host(`redisinsight.${DOMAIN:-dss.localhost}`)"
+      - "traefik.http.routers.redisinsight.rule=Host(`redisinsight.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.redisinsight.entrypoints=web"
       - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"
     container_name: ${DSS_NAME:+${DSS_NAME}-}redisinsight

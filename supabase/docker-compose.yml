@@ -45,7 +45,7 @@ services:
       DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT:-Default Project}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       SUPABASE_URL: http://supabase-kong:8000
-      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.${DOMAIN:-dss.localhost}}
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.${DOMAIN:-sandbox.localhost}}
       SUPABASE_ANON_KEY: ${ANON_KEY:?Set ANON_KEY in .env — run make setup}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY:?Set SERVICE_ROLE_KEY in .env — run make setup}
       AUTH_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
@@ -82,22 +82,22 @@ services:
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
       - "traefik.http.services.supabase.loadbalancer.server.port=8000"
       # Public APIs (clients use anon/service keys)
-      - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN:-dss.localhost}`) && (PathPrefix(`/auth`)\
+      - "traefik.http.routers.supabase-api.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN:-sandbox.localhost}`) && (PathPrefix(`/auth`)\
         \ || PathPrefix(`/storage`) || PathPrefix(`/realtime`) || PathPrefix(`/pg`) || PathPrefix(`/.well-known`) || PathPrefix(`/api/mcp`)\
         \ || PathPrefix(`/mcp`))"
       - "traefik.http.routers.supabase-api.entrypoints=web"
       - "traefik.http.routers.supabase-api.priority=100"
       - "traefik.http.routers.supabase-api.service=supabase"
       # Studio UI (un-gated local dev)
-      - "traefik.http.routers.supabase-studio.rule=Host(`${SUPABASE_STUDIO_HOSTNAME:-studio.${DOMAIN:-dss.localhost}}`)"
+      - "traefik.http.routers.supabase-studio.rule=Host(`${SUPABASE_STUDIO_HOSTNAME:-studio.${DOMAIN:-sandbox.localhost}}`)"
       - "traefik.http.routers.supabase-studio.entrypoints=web"
       - "traefik.http.routers.supabase-studio.priority=50"
       - "traefik.http.routers.supabase-studio.service=supabase"
       # Legacy Studio on supabase.dss.localhost → redirect to studio.dss.localhost
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.regex=^https?://[^/]+/(.*)"
-      - "traefik.http.middlewares.supabase-to-studio.redirectregex.replacement=https://${SUPABASE_STUDIO_HOSTNAME:-studio.${DOMAIN:-dss.localhost}}/$${1}"
+      - "traefik.http.middlewares.supabase-to-studio.redirectregex.replacement=https://${SUPABASE_STUDIO_HOSTNAME:-studio.${DOMAIN:-sandbox.localhost}}/$${1}"
       - "traefik.http.middlewares.supabase-to-studio.redirectregex.permanent=false"
-      - "traefik.http.routers.supabase-ui-redirect.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN:-dss.localhost}`)"
+      - "traefik.http.routers.supabase-ui-redirect.rule=Host(`${SUPABASE_SUBDOMAIN:-supabase}.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.supabase-ui-redirect.entrypoints=web"
       - "traefik.http.routers.supabase-ui-redirect.priority=1"
       - "traefik.http.routers.supabase-ui-redirect.middlewares=supabase-to-studio"
@@ -175,11 +175,11 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://supabase.${DOMAIN:-dss.localhost}/auth/v1}
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://supabase.${DOMAIN:-sandbox.localhost}/auth/v1}
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make
         setup}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      GOTRUE_SITE_URL: ${SITE_URL:-https://supabase.${DOMAIN:-dss.localhost}}
+      GOTRUE_SITE_URL: ${SITE_URL:-https://supabase.${DOMAIN:-sandbox.localhost}}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS:-}
       GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP:-false}
       GOTRUE_JWT_ADMIN_ROLES: service_role
@@ -187,7 +187,7 @@ services:
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
       GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
       GOTRUE_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
-      GOTRUE_JWT_ISSUER: ${API_EXTERNAL_URL:-https://supabase.${DOMAIN:-dss.localhost}/auth/v1}
+      GOTRUE_JWT_ISSUER: ${API_EXTERNAL_URL:-https://supabase.${DOMAIN:-sandbox.localhost}/auth/v1}
       GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP:-true}
       GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS:-false}
       GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM:-false}
@@ -239,7 +239,7 @@ services:
       SERVICE_KEY: ${SERVICE_ROLE_KEY:?Set SERVICE_ROLE_KEY in .env — run make setup}
       AUTH_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env — run make setup}
       DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — run make setup}@${POSTGRES_HOST:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.${DOMAIN:-dss.localhost}}
+      STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-https://supabase.${DOMAIN:-sandbox.localhost}}
       REQUEST_ALLOW_X_FORWARDED_PATH: "true"
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file

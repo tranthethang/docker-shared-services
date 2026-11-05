@@ -17,7 +17,7 @@ cp pgvector/.env.example pgvector/.env
 
 ### Domain
 
-`DOMAIN` in the root `.env` sets the base domain of every DSS hostname. The default is `dss.localhost`, so Adminer is at `https://adminer.dss.localhost`.
+`DOMAIN` in the root `.env` sets the base domain of every DSS hostname. The default is `sandbox.localhost`, so Adminer is at `https://adminer.sandbox.localhost`.
 
 ```env
 # root .env

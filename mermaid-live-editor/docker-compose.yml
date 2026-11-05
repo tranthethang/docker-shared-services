@@ -4,7 +4,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.${DOMAIN:-dss.localhost}`)"
+      - "traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.mermaid-live-editor.entrypoints=web"
       - "traefik.http.routers.mermaid-live-editor.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080"

@@ -4,7 +4,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.${DOMAIN:-dss.localhost}`)"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.rabbitmq.entrypoints=web"
       - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
     container_name: ${DSS_NAME:+${DSS_NAME}-}rabbitmq

@@ -14,7 +14,7 @@ if [[ -f "${ENV_FILE}" ]]; then
 fi
 
 # Base domain of DSS hostnames; matches DOMAIN in the root .env.
-DOMAIN="${DOMAIN:-dss.localhost}"
+DOMAIN="${DOMAIN:-sandbox.localhost}"
 GW_BASE="${GW_BASE:-https://openai.${DOMAIN}}"
 HS_BASE="${HS_BASE:-${HINDSIGHT_PUBLIC_URL:-https://hindsight.${DOMAIN}}}"
 GW_KEY="${GW_KEY:-${HINDSIGHT_API_LLM_API_KEY:-}}"

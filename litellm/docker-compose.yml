@@ -27,7 +27,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.litellm.rule=Host(`${LITELLM_HOSTNAME:-litellm.${DOMAIN:-dss.localhost}}`)"
+      - "traefik.http.routers.litellm.rule=Host(`${LITELLM_HOSTNAME:-litellm.${DOMAIN:-sandbox.localhost}}`)"
       - "traefik.http.routers.litellm.entrypoints=web"
       - "traefik.http.services.litellm.loadbalancer.server.port=4000"
     networks:

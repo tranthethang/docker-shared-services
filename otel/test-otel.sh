@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Base domain of DSS hostnames; matches DOMAIN in the root .env.
-DOMAIN="${DOMAIN:-dss.localhost}"
+DOMAIN="${DOMAIN:-sandbox.localhost}"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'

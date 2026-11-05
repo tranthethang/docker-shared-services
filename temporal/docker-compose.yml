@@ -51,7 +51,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.temporal.rule=Host(`temporal.${DOMAIN:-dss.localhost}`)"
+      - "traefik.http.routers.temporal.rule=Host(`temporal.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.temporal.entrypoints=web"
       - "traefik.http.routers.temporal.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.temporal.loadbalancer.server.port=8080"
@@ -68,7 +68,7 @@ services:
           memory: "${TEMPORAL_UI_MEMORY_RESERVED:-256M}"
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CORS_ORIGINS=http://localhost:8083,https://temporal.${DOMAIN:-dss.localhost}
+      - TEMPORAL_CORS_ORIGINS=http://localhost:8083,https://temporal.${DOMAIN:-sandbox.localhost}
     networks:
       - traefik_proxy
       - backend_net

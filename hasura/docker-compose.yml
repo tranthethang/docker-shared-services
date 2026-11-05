@@ -27,7 +27,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.hasura.rule=Host(`${HASURA_HOSTNAME:-hasura.${DOMAIN:-dss.localhost}}`)"
+      - "traefik.http.routers.hasura.rule=Host(`${HASURA_HOSTNAME:-hasura.${DOMAIN:-sandbox.localhost}}`)"
       - "traefik.http.routers.hasura.entrypoints=web"
       - "traefik.http.services.hasura.loadbalancer.server.port=8080"
     networks:

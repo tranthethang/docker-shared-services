@@ -30,7 +30,7 @@ def test_every_compose_directory_is_in_the_catalog(repo_root: Path) -> None:
 def test_default_domain_fills_placeholder(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     catalog = load_catalog()
-    assert catalog["adminer"]["web_ui"] == ["https://adminer.dss.localhost"]
+    assert catalog["adminer"]["web_ui"] == ["https://adminer.sandbox.localhost"]
     assert all("{domain}" not in line for entry in catalog.values() for line in entry["info"])
 
 
@@ -40,7 +40,7 @@ def test_root_env_domain_fills_placeholder(tmp_path: Path, monkeypatch: pytest.M
     assert load_catalog()["adminer"]["web_ui"] == ["https://adminer.env.test"]
 
     (tmp_path / ".env").write_text("DOMAIN=\n", encoding="utf-8")
-    assert load_catalog()["adminer"]["web_ui"] == ["https://adminer.dss.localhost"]
+    assert load_catalog()["adminer"]["web_ui"] == ["https://adminer.sandbox.localhost"]
 
 
 def test_domain_argument_overrides_root_env(
@@ -56,9 +56,9 @@ def test_domain_argument_overrides_root_env(
 def test_package_readme_ignores_the_exporter_domain(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # The export ships DOMAIN=dss.localhost, so its README must show that domain.
+    # The export ships DOMAIN=sandbox.localhost, so its README must show that domain.
     monkeypatch.chdir(tmp_path)
     (tmp_path / ".env").write_text("DOMAIN=env.test\n", encoding="utf-8")
     readme = render_readme("stack", ["adminer"])
-    assert "https://adminer.dss.localhost" in readme
+    assert "https://adminer.sandbox.localhost" in readme
     assert "env.test" not in readme

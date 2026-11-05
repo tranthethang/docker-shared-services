@@ -68,7 +68,7 @@ def render_readme(
     name: str, services: list[str], catalog: dict[str, dict[str, Any]] | None = None
 ) -> str:
     """README for the packaged tree: quick start plus services grouped by category."""
-    # The export ships DOMAIN=dss.localhost, so the README must not use the exporter's DOMAIN.
+    # The export ships DOMAIN=sandbox.localhost, so the README must not use the exporter's DOMAIN.
     catalog = load_catalog(domain=DEFAULT_DOMAIN) if catalog is None else catalog
     lines = [
         f"# {name}",

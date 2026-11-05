@@ -33,7 +33,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOSTNAME:-grafana.${DOMAIN:-dss.localhost}}`)"
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOSTNAME:-grafana.${DOMAIN:-sandbox.localhost}}`)"
       - "traefik.http.routers.grafana.entrypoints=web"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     container_name: ${DSS_NAME:+${DSS_NAME}-}grafana

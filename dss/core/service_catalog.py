@@ -16,7 +16,7 @@ CATALOG_PATH = Path(__file__).resolve().parent / "service_catalog.json"
 
 # ``web_ui`` and ``info`` strings use ``{domain}``; ``load_catalog`` fills it from DOMAIN.
 DOMAIN_PLACEHOLDER = "{domain}"
-DEFAULT_DOMAIN = "dss.localhost"
+DEFAULT_DOMAIN = "sandbox.localhost"
 ROOT_ENV_PATH = Path(".env")
 
 # Display order of categories in the wizard and README.

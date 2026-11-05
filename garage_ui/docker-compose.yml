@@ -7,7 +7,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.garage-ui.rule=Host(`garage-ui.${DOMAIN:-dss.localhost}`)"
+      - "traefik.http.routers.garage-ui.rule=Host(`garage-ui.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.garage-ui.entrypoints=web"
       - "traefik.http.services.garage-ui.loadbalancer.server.port=3909"
     environment:

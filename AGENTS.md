@@ -4,7 +4,7 @@ Entry point for agents and contributors. Rules live in `docs/dev/`. Each rule th
 
 ## Project
 
-Local Docker Compose infrastructure for development (databases, cache, auth, CI, observability). Each service is its own Compose project, started from the root Makefile via `python -m dss.cli.service` (run through `uv`). Web UIs are reached at `https://*.dss.localhost` through **Caddy** (proxy repo) into Traefik on `traefik_proxy`.
+Local Docker Compose infrastructure for development (databases, cache, auth, CI, observability). Each service is its own Compose project, started from the root Makefile via `python -m dss.cli.service` (run through `uv`). Web UIs are reached at `https://*.sandbox.localhost` by default (or your `DOMAIN`) through **Caddy** (proxy repo) into Traefik on `traefik_proxy`.
 
 ## Rules
 

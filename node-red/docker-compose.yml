@@ -4,7 +4,7 @@ services:
       - "traefik.enable=true"
       - "dss.stack=${DSS_NAME:-dss}"
       - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-      - "traefik.http.routers.node-red.rule=Host(`node-red.${DOMAIN:-dss.localhost}`)"
+      - "traefik.http.routers.node-red.rule=Host(`node-red.${DOMAIN:-sandbox.localhost}`)"
       - "traefik.http.routers.node-red.entrypoints=web"
       - "traefik.http.services.node-red.loadbalancer.server.port=1880"
     container_name: ${DSS_NAME:+${DSS_NAME}-}node-red

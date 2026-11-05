@@ -25,13 +25,13 @@ labels:
   - "traefik.enable=true"
   - "dss.stack=${DSS_NAME:-dss}"
   - "traefik.docker.network=${DSS_NAME:+${DSS_NAME}_}traefik_proxy"
-  - "traefik.http.routers.<service>.rule=Host(`<service>.${DOMAIN:-dss.localhost}`)"
+  - "traefik.http.routers.<service>.rule=Host(`<service>.${DOMAIN:-sandbox.localhost}`)"
   - "traefik.http.routers.<service>.entrypoints=web"
   - "traefik.http.services.<service>.loadbalancer.server.port=<port>"
 ```
 
 - Every service with `traefik.enable=true` carries the `dss.stack` label, because Traefik only routes containers of its own stack. **Enforced by** `tests/test_stack_names.py` (`make test`).
-- The host is `<name>.${DOMAIN}` (default `<name>.dss.localhost`) over HTTPS via Caddy (Traefik `web` entrypoint, no `tls=true` labels). **Review only.**
+- The host is `<name>.${DOMAIN}` (default `<name>.sandbox.localhost`) over HTTPS via Caddy (Traefik `web` entrypoint, no `tls=true` labels). **Review only.**
 - UIs that support the auth gateway take `AUTH_MIDDLEWARE` and are listed in `AUTH_OPT_IN_UI_SERVICES` in `dss/core/config.py`. **Review only.**
 
 ## 3. Register the service in `dss/core/config.py`
