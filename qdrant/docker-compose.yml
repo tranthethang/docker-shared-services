@@ -21,7 +21,7 @@ services:
           memory: "${QDRANT_MEMORY_RESERVED:-256M}"
     environment:
       - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:?Set QDRANT_API_KEY in .env — run make setup}
-      - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-INFO}
+      - QDRANT__LOG_LEVEL=${QDRANT_LOG_LEVEL:-WARN}
       - QDRANT__TELEMETRY_DISABLED=${QDRANT_TELEMETRY_DISABLED:-true}
     volumes:
       - qdrant_data:/qdrant/storage

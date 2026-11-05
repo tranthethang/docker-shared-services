@@ -44,6 +44,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env — run make setup}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_LOG_LEVEL: ${GRAFANA_LOG_LEVEL:-warn}
     networks:
       - traefik_proxy
       - backend_net
@@ -77,7 +78,9 @@ services:
     container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}loki
     image: grafana/loki:${LOKI_VERSION:-3.3.2}
     restart: ${RESTART_POLICY:-unless-stopped}
-    command: -config.file=/etc/loki/local-config.yaml
+    command:
+      - -config.file=/etc/loki/local-config.yaml
+      - -log.level=${LOKI_LOG_LEVEL:-warn}
     ports:
       - "127.0.0.1:${LOKI_PORT:-3100}:3100"
     networks:
@@ -109,6 +112,7 @@ services:
     command:
       - run
       - --server.http.listen-addr=0.0.0.0:12345
+      - --server.log.level=${ALLOY_LOG_LEVEL:-warn}
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
     networks:
