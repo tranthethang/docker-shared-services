@@ -43,6 +43,7 @@ Below is the mapping for all container services in the repository:
 | **gitea**                   | Git Service               |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL on data_net              |
 | **gotenberg**               | PDF Conversion Service    |       ❌        |      ✅       |     ❌     | Internal HTTP API / localhost:3030                   |
 | **hasura**                  | GraphQL Engine            |       ✅        |      ✅       |     ✅     | Traefik GraphQL API/Console + PostgreSQL on data_net |
+| **host-bridge**             | HAProxy TCP bridge        |       ❌        |      ✅       |     ✅     | Default dev TCP on 127.0.0.1; start with `make up` |
 | **hindsight**               | MCP Memory Service        |       ✅        |      ✅       |     ✅     | Traefik Web UI/API + PgVector on data_net            |
 | **inngest**                 | Background Job Platform   |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL/Redis on data_net        |
 | **jenkins**                 | Automation Server         |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL on data_net              |
@@ -50,11 +51,11 @@ Below is the mapping for all container services in the repository:
 | **kafka-ui**                | Kafka Management UI       |       ✅        |      ✅       |     ✅     | Traefik Web UI + Kafka on data_net                   |
 | **litellm**                 | OpenAI-compatible proxy   |       ✅        |      ✅       |     ✅     | Traefik UI/API + Postgres 16 on data_net             |
 | **mailpit**                 | SMTP Testing & Web UI     |       ✅        |      ✅       |     ❌     | Traefik Web UI + backend SMTP clients                |
-| **mariadb**                 | Relational Database       |       ❌        |      ❌       |     ✅     | data_net only; host port on 127.0.0.1                |
-| **memcached**               | In-Memory Cache           |       ❌        |      ❌       |     ✅     | data_net only; host port on 127.0.0.1                |
+| **mariadb**                 | Relational Database       |       ❌        |      ❌       |     ✅     | data_net only; Mac TCP via host-bridge               |
+| **memcached**               | In-Memory Cache           |       ❌        |      ❌       |     ✅     | data_net only; Mac TCP via host-bridge               |
 | **minio**                   | S3 Object Storage         |       ✅        |      ✅       |     ❌     | Traefik Console/API + backend S3 clients             |
-| **mongodb**                 | Document Database         |       ❌        |      ❌       |     ✅     | data_net only; host port on 127.0.0.1                |
-| **mysql8**                  | Relational Database       |       ❌        |      ❌       |     ✅     | data_net only; host port on 127.0.0.1                |
+| **mongodb**                 | Document Database         |       ❌        |      ❌       |     ✅     | data_net only; Mac TCP via host-bridge               |
+| **mysql8**                  | Relational Database       |       ❌        |      ❌       |     ✅     | data_net only; Mac TCP via host-bridge               |
 | **n8n**                     | Workflow Automation       |       ✅        |      ✅       |     ✅     | Traefik Web UI + DB connectors & APIs                |
 | **node-red**                | Flow-Based Automation     |       ✅        |      ✅       |     ✅     | Traefik Web UI + DB connectors & APIs                |
 | **oauth2-proxy**            | Auth Gateway              |       ✅        |      ✅       |     ❌     | Traefik Auth Gateway + configured OIDC issuer        |
@@ -96,12 +97,12 @@ Below is the mapping for all container services in the repository:
 - A non-data container joins `data_net` only when one of these holds:
   - its project is a consumer of a data store in `PACKAGE_REQUIRES` (`dss/core/config.py`);
   - it is in the same Compose project as a data store (for example `kafka-ui`, `grafana`, the Supabase services);
-  - its project is a data-store UI listed in `DATA_CLIENT_UI_SERVICES`.
+  - its project is a data-store UI or TCP bridge listed in `DATA_CLIENT_UI_SERVICES` (includes `host-bridge`).
 - Every `PACKAGE_REQUIRES` consumer of a data store has a container on `data_net`.
 
-`data_net` is not `internal: true`. An internal network blocks the `127.0.0.1` host ports that local database clients use.
+`data_net` is not `internal: true`. Mac clients reach data stores through **`host-bridge`** on `127.0.0.1`, not through per-service `ports:` on database containers.
 
-Consumers reach a data store at its container port (`postgres:5432`, `redis:6379`). The `*_PORT` variables in the data-store projects only set the host port.
+Consumers on Docker networks reach a data store at its container port (`postgres:5432`, `redis:6379`). Root `.env` `*_PORT` variables configure **host-bridge** publish addresses for the default profile.
 
 ## Docker API access
 

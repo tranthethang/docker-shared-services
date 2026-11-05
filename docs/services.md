@@ -69,6 +69,7 @@ ______________________________________________________________________
 - **Loki** - Log aggregation and storage
 - **Alloy** - Ships Docker container stdout to Loki via the Docker API
 - **Traefik** - Reverse proxy and load balancer
+- **host-bridge** - HAProxy TCP bridge for default `localhost` dev aliases (`make up service=host-bridge`); see [host-bridge/USAGE.md](../host-bridge/USAGE.md)
 - **Zitadel** - Central Identity Provider / OIDC & OAuth2 Server
 - **oauth2-proxy** - Opt-in Traefik authentication gateway (`auth.sandbox.localhost`) for any OIDC issuer
 - **Redis Insight** - Redis management UI
@@ -77,6 +78,8 @@ ______________________________________________________________________
 ______________________________________________________________________
 
 ## 🌐 Service Access
+
+Mac **TCP** aliases for the default profile (Postgres, Redis, Mailpit SMTP, and the other eleven rules) require **`make up service=host-bridge`** after those backends are running. Caddy owns **80/443**; host-bridge owns those TCP ports on `127.0.0.1`. Full alias table: [host-bridge/USAGE.md](../host-bridge/USAGE.md).
 
 | Service            | Access Point                                                                                       | Credentials after `make setup`                                                                      |
 | :----------------- | :------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |

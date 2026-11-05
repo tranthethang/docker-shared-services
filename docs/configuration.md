@@ -226,6 +226,8 @@ ______________________________________________________________________
 
 TLS and host ports **80/443** live in the companion repo [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy). Traefik in this repo listens on **HTTP port 80** inside `traefik_proxy` only; it does not mount server certificates or publish 80/443 on the Docker host by default. See [Proxy contract](#proxy-contract) for the optional published port.
 
+Default **TCP** dev aliases on the Mac (`localhost:5432`, `localhost:6379`, and the other eleven default profile ports) are published by **`host-bridge`** (HAProxy on `data_net` and `backend_net`), not by individual database compose files. Run `make up service=host-bridge` after the backends you need are up. Port names and defaults match the root `.env`; see [host-bridge/USAGE.md](../host-bridge/USAGE.md). HTTP(S) stays on Caddy → Traefik only.
+
 Public hostnames still use `*.sandbox.localhost` (for example `https://mailpit.sandbox.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `sandbox.localhost`.
 
 Nested app hosts (one extra label) need extra wildcard SANs on the Caddy certificate — the proxy repo `make cert` script issues `*.tts.sandbox.localhost`, `*.minio.sandbox.localhost`, and `*.garage.sandbox.localhost` in addition to `*.sandbox.localhost`. Re-run `make cert` in the proxy repo and restart Caddy after changing SANs.
@@ -242,6 +244,7 @@ make setup && make cert && make up
 # 3. This repo — internal router and services
 make up service=traefik
 make up service=<name>
+make up service=host-bridge   # when Mac apps need localhost TCP aliases (after backends are up)
 ```
 
 ### Generate certificates (proxy repo)
