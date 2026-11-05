@@ -2,13 +2,13 @@ services:
   gitea:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.gitea.rule=Host(`gitea.dss.localhost`)"
-      - "traefik.http.routers.gitea.entrypoints=websecure"
-      - "traefik.http.routers.gitea.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.gitea.rule=Host(`gitea.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.gitea.entrypoints=web"
       - "traefik.http.services.gitea.loadbalancer.server.port=3000"
     image: gitea/gitea:1.25.2
-    container_name: gitea
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}gitea
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -23,8 +23,8 @@ services:
     environment:
       - USER_UID=1000
       - USER_GID=1000
-      - GITEA__server__DOMAIN=gitea.dss.localhost
-      - GITEA__server__ROOT_URL=${GITEA_ROOT_URL:-https://gitea.dss.localhost/}
+      - GITEA__server__DOMAIN=gitea.${DOMAIN:-sandbox.localhost}
+      - GITEA__server__ROOT_URL=${GITEA_ROOT_URL:-https://gitea.${DOMAIN:-sandbox.localhost}/}
       - GITEA__database__DB_TYPE=postgres
       - GITEA__database__HOST=${POSTGRES16_HOST:-postgres}:5432
       - GITEA__database__NAME=${GITEA_DB_NAME:-gitea}

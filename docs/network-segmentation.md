@@ -4,11 +4,13 @@
 
 Docker Shared Services uses a three-tier network segmentation model that isolates external ingress traffic from internal application logic and database persistence:
 
-1. **`traefik_proxy`** (`10.0.0.0/16`): The public-facing edge network. Connects Traefik reverse proxy to services that expose Web UIs or HTTP APIs routed by Traefik (`https://*.dss.localhost`).
+1. **`traefik_proxy`** (`10.0.0.0/16`): The public-facing edge network. Connects Traefik reverse proxy to services that expose Web UIs or HTTP APIs routed by Traefik (`https://*.sandbox.localhost`).
 1. **`backend_net`** (`10.1.0.0/16`): The internal application and orchestration network. Interconnects application logic containers, background workers, and CI/CD agents. Data stores are not attached to it.
 1. **`data_net`** (`10.2.0.0/16`): The data storage and persistence network. Data stores (relational and document databases, caches, message brokers, vector stores, Loki) attach only here, plus `traefik_proxy` when they have a UI. Only declared clients join it (see [Data tier rules](#data-tier-rules)). Traefik does NOT connect to `data_net`.
 
 ## Network Topology & Addressing
+
+The names and subnets below are the defaults. With `SANDBOX_NAME` set in the root `.env`, every network name gets the prefix `<SANDBOX_NAME>_` (for example `projb_data_net`), and `SANDBOX_SUBNET_BASE` moves the subnets to `10.<base>.0.0/16`, `10.<base+1>.0.0/16`, and `10.<base+2>.0.0/16`. See [Several stacks on one host](configuration.md#several-stacks-on-one-host). The Compose files keep the network keys, so a service still lists `data_net`.
 
 | Network Name    | Subnet        | Gateway    | Purpose                                           | Direct Traefik Ingress |
 | --------------- | ------------- | ---------- | ------------------------------------------------- | ---------------------- |

@@ -22,7 +22,7 @@ SNAPSHOTS = (
     "uv.lock",
     ".gitignore",
 )
-# The packaged Makefile only runs env management, so only that slice of dss/ ships.
+# The packaged Makefile runs env management and the network setup, so only that slice of dss/ ships.
 PACKAGED_DSS_FILES = [
     "dss/__init__.py",
     "dss/cli/__init__.py",
@@ -32,6 +32,7 @@ PACKAGED_DSS_FILES = [
     "dss/core/env_files.py",
     "dss/core/env_report.py",
     "dss/core/secrets.py",
+    "dss/core/stack.py",
     "dss/core/utils.py",
 ]
 

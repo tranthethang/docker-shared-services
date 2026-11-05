@@ -2,12 +2,12 @@ services:
   bugsink:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.bugsink.rule=Host(`bugsink.dss.localhost`)"
-      - "traefik.http.routers.bugsink.entrypoints=websecure"
-      - "traefik.http.routers.bugsink.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.bugsink.rule=Host(`bugsink.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.bugsink.entrypoints=web"
       - "traefik.http.services.bugsink.loadbalancer.server.port=8000"
-    container_name: bugsink
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}bugsink
     image: bugsink/bugsink:2.6.1
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -26,7 +26,7 @@ services:
         \ make setup}@${POSTGRES16_HOST:-postgres}:5432/${POSTGRES16_DB:-bugsink}"
       BEHIND_HTTPS_PROXY: "${BUGSINK_BEHIND_HTTPS_PROXY:-true}"
       USE_X_FORWARDED_HOST: "${BUGSINK_USE_X_FORWARDED_HOST:-true}"
-      BASE_URL: "${BUGSINK_BASE_URL:-https://bugsink.dss.localhost}"
+      BASE_URL: "${BUGSINK_BASE_URL:-https://bugsink.${DOMAIN:-sandbox.localhost}}"
       SITE_TITLE: "${BUGSINK_SITE_TITLE:-Bugsink}"
       TIME_ZONE: "${TZ:-Asia/Ho_Chi_Minh}"
       EMAIL_HOST: "${BUGSINK_EMAIL_HOST:-mailpit}"

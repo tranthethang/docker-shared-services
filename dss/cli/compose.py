@@ -8,14 +8,8 @@ from pathlib import Path
 from dss.core.config import SERVICES, START_ORDER
 from dss.core.dependencies import startup_queue
 from dss.core.service_catalog import catalog_problems, load_catalog
-from dss.core.utils import error, success, warning
-
-# Bridges cannot share one CIDR; adjacent /16s in 10/8.
-SHARED_NETWORKS = (
-    ("traefik_proxy", "10.0.0.0/16"),
-    ("backend_net", "10.1.0.0/16"),
-    ("data_net", "10.2.0.0/16"),
-)
+from dss.core.stack import network_pairs, project_name, stack_name
+from dss.core.utils import error, read_env_value, success, warning
 
 
 def _docker_network_exists(name: str) -> bool:
@@ -30,7 +24,8 @@ def _docker_network_exists(name: str) -> bool:
 
 
 def ensure_network() -> None:
-    for name, subnet in SHARED_NETWORKS:
+    for pair in network_pairs():
+        name, subnet = pair.split(":", 1)
         if _docker_network_exists(name):
             continue
 
@@ -80,17 +75,44 @@ def ensure_network() -> None:
         )
 
 
+TRAEFIK_PUBLISH_FILE = "traefik/docker-compose.publish.yml"
+
+
+def _traefik_publishes_port() -> bool:
+    env_path = Path("traefik") / ".env"
+    if not env_path.is_file():
+        return False
+    return bool(read_env_value(env_path, "TRAEFIK_HTTP_PORT"))
+
+
+ROOT_ENV_FILE = ".env"
+
+
+def _env_file_args(service: str) -> list[str]:
+    """Root .env first, then <service>/.env, so a service value overrides a root value."""
+    args: list[str] = []
+    for env_path in (Path(ROOT_ENV_FILE), Path(service) / ".env"):
+        if env_path.is_file():
+            args += ["--env-file", env_path.as_posix()]
+    return args
+
+
 def get_compose_cmd(service: str) -> list[str]:
-    return [
-        "docker",
-        "compose",
+    cmd = ["docker", "compose"]
+    if stack_name():
+        cmd += ["-p", project_name(service)]
+    cmd += [
         "--project-directory",
         service,
+        *_env_file_args(service),
         "-f",
         "docker-compose.shared.yml",
         "-f",
         f"{service}/docker-compose.yml",
     ]
+    if service == "traefik" and _traefik_publishes_port():
+        cmd += ["-f", TRAEFIK_PUBLISH_FILE]
+    return cmd
 
 
 def _check_compose_config(service: str) -> tuple[bool, bool]:

@@ -1,12 +1,12 @@
 services:
   traefik:
     image: "traefik:v3.7"
-    container_name: "traefik"
+    container_name: "${SANDBOX_NAME:+${SANDBOX_NAME}-}traefik"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`traefik.dss.localhost`)"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
-      - "traefik.http.routers.dashboard.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.dashboard.entrypoints=web"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH:?Set TRAEFIK_DASHBOARD_AUTH in .env\
@@ -23,25 +23,14 @@ services:
       - "--api.dashboard=true"
       - "--ping=true"
       - "--entryPoints.web.address=:80"
-      - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
-      - "--entryPoints.web.http.redirections.entryPoint.permanent=true"
-      - "--entryPoints.websecure.address=:443"
-      - "--providers.file=true"
-      - "--providers.file.filename=/traefik/config.yml"
+      - "--entryPoints.web.forwardedHeaders.trustedIPs=${TRAEFIK_TRUSTED_IPS:-10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}"
       - "--providers.docker=true"
       - "--providers.docker.endpoint=tcp://traefik-socket-proxy:2375"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=traefik_proxy"
-      - "--providers.docker.defaultRule=Host(`{{ normalize .Name }}.dss.localhost`)"
+      - "--providers.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "--providers.docker.constraints=Label(`sandbox.stack`,`${SANDBOX_NAME:-sandbox}`)"
+      - "--providers.docker.defaultRule=Host(`{{ normalize .Name }}.${DOMAIN:-sandbox.localhost}`)"
       - "--log.level=${LOG_LEVEL:-INFO}"
-    ports:
-      # Loopback-only: *.dss.localhost and local tools still work; LAN exposure is blocked (SEC-02/SEC-05).
-      - "127.0.0.1:80:80"
-      - "127.0.0.1:443:443"
-    volumes:
-      - ./config.yml:/traefik/config.yml:ro
-      - ./certs:/certs:ro
     logging:
       driver: json-file
       options:
@@ -59,15 +48,12 @@ services:
         condition: service_healthy
     networks:
       traefik_proxy:
-        aliases:
-          - minio.dss.localhost
-          - s3.minio.dss.localhost
       traefik_docker:
 
   # Read-only Docker API for the provider. A :ro socket mount does not limit the API.
   socket-proxy:
     image: tecnativa/docker-socket-proxy:v0.5.0
-    container_name: traefik-socket-proxy
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}traefik-socket-proxy
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
       resources:
@@ -79,7 +65,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - traefik_docker
+      traefik_docker:
+        # Traefik reaches the proxy by its unprefixed name in every stack.
+        aliases:
+          - traefik-socket-proxy
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:2375/_ping"]
       interval: 10s
@@ -97,5 +86,5 @@ networks:
     external: true
   # Only Traefik may reach its socket proxy. Do not attach this network elsewhere.
   traefik_docker:
-    name: traefik_docker
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_docker
     internal: true

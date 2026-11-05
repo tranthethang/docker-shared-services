@@ -1,6 +1,6 @@
 # Hasura GraphQL Engine
 
-Hasura provides an instant GraphQL API over the shared Postgres 16 service. Metadata and the default data source both use the `hasura` database. The Console and GraphQL endpoint are available through Traefik TLS at `hasura.dss.localhost`.
+Hasura provides an instant GraphQL API over the shared Postgres 16 service. Metadata and the default data source both use the `hasura` database. The Console and GraphQL endpoint are available through Traefik TLS at `hasura.sandbox.localhost`.
 
 Upstream: [hasura/graphql-engine](https://github.com/hasura/graphql-engine).
 
@@ -14,10 +14,10 @@ make up service=traefik       # Optional: reverse proxy / TLS
 make up service=hasura
 ```
 
-| Resource         | URL                                       | Default Credentials                 |
-| ---------------- | ----------------------------------------- | ----------------------------------- |
-| Console (TLS)    | `https://hasura.dss.localhost/console`    | Admin secret: `DSS_SHARED_PASSWORD` |
-| GraphQL endpoint | `https://hasura.dss.localhost/v1/graphql` | Header `x-hasura-admin-secret`      |
+| Resource         | URL                                           | Default Credentials                 |
+| ---------------- | --------------------------------------------- | ----------------------------------- |
+| Console (TLS)    | `https://hasura.sandbox.localhost/console`    | Admin secret: `DSS_SHARED_PASSWORD` |
+| GraphQL endpoint | `https://hasura.sandbox.localhost/v1/graphql` | Header `x-hasura-admin-secret`      |
 
 ## Database Dependency
 

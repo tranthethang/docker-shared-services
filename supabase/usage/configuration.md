@@ -13,7 +13,7 @@ Prefer starting via the repo Makefile (`make up service=supabase`) so shared net
 | `ANON_KEY`                                                    | Legacy anon JWT (signed with `JWT_SECRET`)               |
 | `SERVICE_ROLE_KEY`                                            | Legacy service_role JWT — **server-side only**           |
 | `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD`                   | Legacy Kong basic-auth (plugin off)                      |
-| `SUPABASE_STUDIO_HOSTNAME`                                    | Studio Traefik host (default `studio.dss.localhost`)     |
+| `SUPABASE_STUDIO_HOSTNAME`                                    | Studio Traefik host (default `studio.sandbox.localhost`) |
 | `PG_META_CRYPTO_KEY`                                          | Studio ↔ postgres-meta encryption (min 32 chars)         |
 | `SECRET_KEY_BASE`                                             | Realtime Phoenix secret (min 64 chars)                   |
 | `REALTIME_DB_ENC_KEY`                                         | Realtime `_realtime` field encryption (exactly 16 chars) |
@@ -39,13 +39,13 @@ See [Secrets and keys](./secrets-and-keys.md).
 
 ## URLs (Traefik)
 
-| Variable                             | Typical local value                      | Notes                                  |
-| ------------------------------------ | ---------------------------------------- | -------------------------------------- |
-| `SUPABASE_PUBLIC_URL`                | `https://supabase.dss.localhost`         | Public base URL for clients / Storage  |
-| `API_EXTERNAL_URL`                   | `https://supabase.dss.localhost/auth/v1` | External Auth base (issuer, redirects) |
-| `SITE_URL`                           | `https://supabase.dss.localhost`         | App site URL for Auth redirects        |
-| `SUPABASE_SUBDOMAIN` / `DOMAIN_NAME` | `supabase` / `localhost`                 | Traefik `Host()` rule                  |
-| `ADDITIONAL_REDIRECT_URLS`           | *(empty)*                                | Comma-separated allow-list             |
+| Variable                        | Typical local value                          | Notes                                  |
+| ------------------------------- | -------------------------------------------- | -------------------------------------- |
+| `SUPABASE_PUBLIC_URL`           | `https://supabase.sandbox.localhost`         | Public base URL for clients / Storage  |
+| `API_EXTERNAL_URL`              | `https://supabase.sandbox.localhost/auth/v1` | External Auth base (issuer, redirects) |
+| `SITE_URL`                      | `https://supabase.sandbox.localhost`         | App site URL for Auth redirects        |
+| `SUPABASE_SUBDOMAIN` / `DOMAIN` | `supabase` / `sandbox.localhost`             | Traefik `Host()` rule                  |
+| `ADDITIONAL_REDIRECT_URLS`      | *(empty)*                                    | Comma-separated allow-list             |
 
 ## Database
 
@@ -103,7 +103,7 @@ Default backend is **file** under `./volumes/storage`. Image transforms are off.
 
 ## Kong access
 
-Kong is reachable through Traefik at `https://supabase.dss.localhost`; its HTTP and HTTPS ports are not published to the host.
+Kong is reachable through Traefik at `https://supabase.sandbox.localhost`; its HTTP and HTTPS ports are not published to the host.
 
 ## Resource limits
 

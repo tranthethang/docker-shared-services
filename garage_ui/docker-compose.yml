@@ -1,14 +1,14 @@
 services:
   garage-webui:
-    container_name: garage-webui
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}garage-webui
     image: khairul169/garage-webui:1.1.0
     restart: "${RESTART_POLICY:-unless-stopped}"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.garage-ui.rule=Host(`garage-ui.dss.localhost`)"
-      - "traefik.http.routers.garage-ui.entrypoints=websecure"
-      - "traefik.http.routers.garage-ui.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.garage-ui.rule=Host(`garage-ui.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.garage-ui.entrypoints=web"
       - "traefik.http.services.garage-ui.loadbalancer.server.port=3909"
     environment:
       - API_BASE_URL=http://garage:3903

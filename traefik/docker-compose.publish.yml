@@ -1,0 +1,6 @@
+# Added by get_compose_cmd only when traefik/.env sets TRAEFIK_HTTP_PORT.
+# Traefik serves plain HTTP here. Bind it to a private address only.
+services:
+  traefik:
+    ports:
+      - "${TRAEFIK_BIND:-127.0.0.1}:${TRAEFIK_HTTP_PORT:?Set TRAEFIK_HTTP_PORT}:80"

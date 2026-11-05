@@ -22,7 +22,7 @@ s3_region = "garage"
 api_bind_addr = "[::]:3900"
 # No `root_domain` here on purpose: Garage's virtual-hosted-style addressing
 # (bucket.<root_domain>) needs a wildcard DNS entry + wildcard TLS cert per
-# bucket, which our single-host Traefik router (s3.garage.dss.localhost)
+# bucket, which our single-host Traefik router (s3.garage.sandbox.localhost)
 # does not provide. Clients MUST use path-style addressing instead
 # (force_path_style / s3ForcePathStyle / use_path_style_endpoint = true) —
 # see ../README.md for per-client examples.
@@ -32,7 +32,7 @@ bind_addr = "[::]:3902"
 # Static website hosting also needs wildcard DNS/cert per bucket to work
 # through Traefik; left configured for direct/local use but not routed via
 # Traefik in docker-compose.yml. Add a wildcard router + cert if you need it.
-root_domain = ".web.garage.dss.localhost"
+root_domain = ".web.garage.sandbox.localhost"
 index = "index.html"
 
 [admin]

@@ -10,9 +10,8 @@ ______________________________________________________________________
 
 ```bash
 make help           # Show all commands
-make setup          # Setup environment files, networks, and certs
+make setup          # Setup environment files and shared Docker networks
                     # (also merges new keys from .env.example into existing .env)
-make cert           # Generate SSL certificates
 make up             # Start services (interactive or specific)
 make down           # Stop and remove services
 make stop           # Stop services (keep containers)

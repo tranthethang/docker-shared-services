@@ -57,7 +57,7 @@ ______________________________________________________________________
 
 ### Service Endpoints
 
-- **URL**: `https://crawl4ai.dss.localhost` (through Traefik; UI and API are not published directly to the host).
+- **URL**: `https://crawl4ai.sandbox.localhost` (through Traefik; UI and API are not published directly to the host).
 - **Authentication**: Include the token in your HTTP headers using the Bearer scheme:
   ```http
   Authorization: Bearer <CRAWL4AI_API_TOKEN>
@@ -68,7 +68,7 @@ ______________________________________________________________________
 Verify if the container is healthy:
 
 ```bash
-curl https://crawl4ai.dss.localhost/health
+curl https://crawl4ai.sandbox.localhost/health
 ```
 
 **Response:**
@@ -88,7 +88,7 @@ Request the crawler to fetch page contents and return Markdown.
 #### cURL Example
 
 ```bash
-curl -X POST https://crawl4ai.dss.localhost/crawl \
+curl -X POST https://crawl4ai.sandbox.localhost/crawl \
   -H "Authorization: Bearer crawl4ai102" \
   -H "Content-Type: application/json" \
   -d '{
@@ -104,7 +104,7 @@ curl -X POST https://crawl4ai.dss.localhost/crawl \
 ```python
 import requests
 
-url = "https://crawl4ai.dss.localhost/crawl"
+url = "https://crawl4ai.sandbox.localhost/crawl"
 headers = {
     "Authorization": "Bearer crawl4ai102",
     "Content-Type": "application/json"

@@ -8,7 +8,6 @@ _MAKE_TARGETS = (
     "help",
     "setup",
     "passwords",
-    "cert",
     "validate",
     "up",
     "down",
@@ -33,6 +32,27 @@ def _startup_order(services: list[str]) -> list[str]:
     return startup_queue(services)
 
 
+def _traefik_publish_make_shell(service_var: str) -> str:
+    """Shell words appended to compose when ``service_var`` is traefik and port is set."""
+    return (
+        f'$$(if [ "$${service_var}" = traefik ] && [ -f traefik/.env ]; then '
+        "port=$$(grep -E '^TRAEFIK_HTTP_PORT=' traefik/.env | head -1 | cut -d= -f2- "
+        "| tr -d '\"\\047 \\r'); "
+        'if [ -n "$$port" ]; then echo -f traefik/docker-compose.publish.yml; fi; fi)'
+    )
+
+
+def _env_file_make_shell(service_var: str) -> str:
+    """Shell words for ``--env-file``: root ``.env`` first, then ``<service>/.env``.
+
+    Same order as ``dss.cli.compose.get_compose_cmd``, so a service value overrides a root value.
+    """
+    return (
+        "$$(if [ -f .env ]; then echo --env-file .env; fi) "
+        f'$$(if [ -f "$${service_var}/.env" ]; then echo --env-file "$${service_var}/.env"; fi)'
+    )
+
+
 _QUEUE_SHELL = r"""
 >@set -e; \
 >wait_ready() { \
@@ -40,17 +60,18 @@ _QUEUE_SHELL = r"""
 >deadline=$$((SECONDS + $(READY_TIMEOUT))); \
 >echo "  Waiting until $$dep is ready..."; \
 >while [ "$$SECONDS" -lt "$$deadline" ]; do \
->ids=$$(docker compose --project-directory "$$dep" -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" ps -aq); \
+>ids=$$(docker compose --project-directory "$$dep" __DEP_ENV_FILES__ -f docker-compose.shared.yml -f "$$dep/docker-compose.yml" __TRAEFIK_DEP_PUBLISH__ ps -aq); \
 >if [ -z "$$ids" ]; then \
 >echo "  ERROR: $$dep has no containers" >&2; \
 >return 1; \
 >fi; \
 >ready=1; \
 >for id in $$ids; do \
->state=$$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$$id"); \
->status="$${state%% *}"; \
->health="$${state#* }"; \
->if [ "$$status" != "running" ] || { [ "$$health" != "none" ] && [ "$$health" != "healthy" ]; }; then \
+>set -- $$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} {{.State.ExitCode}} {{or .HostConfig.RestartPolicy.Name "no"}}' "$$id"); \
+>if [ "$${1:-}" = exited ] && [ "$${3:-}" = 0 ] && [ "$${4:-}" = no ]; then \
+>continue; \
+>fi; \
+>if [ "$${1:-}" != running ] || { [ "$${2:-}" != none ] && [ "$${2:-}" != healthy ]; }; then \
 >ready=0; \
 >fi; \
 >done; \
@@ -77,7 +98,13 @@ _QUEUE_SHELL = r"""
 
 def _queue_recipe(flags: str) -> str:
     suffix = f" {flags}" if flags else ""
-    text = _QUEUE_SHELL.lstrip("\n").replace("__FLAGS__", suffix)
+    dep_publish = _traefik_publish_make_shell("dep")
+    text = (
+        _QUEUE_SHELL.lstrip("\n")
+        .replace("__FLAGS__", suffix)
+        .replace("__TRAEFIK_DEP_PUBLISH__", dep_publish)
+        .replace("__DEP_ENV_FILES__", _env_file_make_shell("dep"))
+    )
     return _make_lines(text)
 
 
@@ -93,6 +120,8 @@ def _dependency_tokens(services: list[str]) -> str:
 
 def render_makefile(services: list[str]) -> str:
     startup = _startup_order(services)
+    traefik_publish = _traefik_publish_make_shell("s")
+    env_files = _env_file_make_shell("s")
     dozzle = ""
     if "dozzle" in services:
         dozzle = _make_lines(
@@ -130,16 +159,20 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 PYTHON_ENV_MGR := uv run --frozen --no-dev python -m dss.cli.env
+PYTHON_STACK := uv run --frozen --no-dev python -m dss.core.stack
+# SANDBOX_NAME in the root .env prefixes every Compose project and network.
+SANDBOX_NAME = $(shell $(PYTHON_STACK) name 2>/dev/null)
 password ?=
 
 # One compose project per service, like dss/cli/service.py: --project-directory
-# loads <service>/.env for interpolation and resolves ./ paths inside <service>/.
+# resolves ./ paths inside <service>/. The root .env, then <service>/.env, feed
+# interpolation, so DOMAIN in the root .env sets every hostname.
 STARTUP_SERVICES := {" ".join(startup)}
 SHUTDOWN_SERVICES := {" ".join(reversed(startup))}
 # consumer:backend. up/recreate wait until each backend is running and healthy.
 SERVICE_DEPS := {_dependency_tokens(services)}
 READY_TIMEOUT ?= 300
-COMPOSE = docker compose --project-directory $$s -f docker-compose.shared.yml -f $$s/docker-compose.yml
+COMPOSE = docker compose $(if $(SANDBOX_NAME),-p $(SANDBOX_NAME)-$$s) --project-directory $$s {env_files} -f docker-compose.shared.yml -f $$s/docker-compose.yml {traefik_publish}
 """
     body += _make_lines(
         r"""
@@ -156,9 +189,10 @@ help: ## Show this help message
 >awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 >@echo ""
 
-setup: ## Create env files, fill secrets, and optionally generate certificates
->@echo "Checking shared Docker networks (traefik_proxy, backend_net, data_net)..."
->@for pair in "traefik_proxy:10.0.0.0/16" "backend_net:10.1.0.0/16" "data_net:10.2.0.0/16"; do \
+setup: ## Create env files and fill secrets
+>@echo "Checking shared Docker networks (names and subnets from SANDBOX_NAME and SANDBOX_SUBNET_BASE)..."
+>@pairs=$$($(PYTHON_STACK)) || exit 1; \
+>for pair in $$pairs; do \
 >name=$${pair%%:*}; subnet=$${pair#*:}; \
 >if docker network inspect $$name >/dev/null 2>&1; then \
 >echo "  $$name: already exists"; \
@@ -182,41 +216,11 @@ setup: ## Create env files, fill secrets, and optionally generate certificates
 >@$(PYTHON_ENV_MGR) validate all || true
 >@$(PYTHON_ENV_MGR) summary all
 >@echo ""
->@read -p "Do you want to generate SSL certificates? (y/n) " -n 1 -r; \
->echo; \
->if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
->$(MAKE) cert; \
->fi
->@echo ""
 
 passwords: ## Fill the shared password only (optional: password='…' force=1)
 >@$(PYTHON_ENV_MGR) fill-shared-password \
 >$(if $(password),--password "$(password)",) \
 >$(if $(filter 1 true yes,$(force)),--force,)
-
-cert: ## Generate SSL certificates for Traefik
->@echo "Detecting local IP..."
->@CURRENT_IP=$$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' \
->  | grep -v '127.0.0.1' | awk '{print $$2}' | sed 's/addr://' | head -n 1); \
->echo "Local IP detected: $$CURRENT_IP"; \
->mkdir -p traefik/certs; \
->if command -v mkcert >/dev/null 2>&1; then \
->mkcert -cert-file traefik/certs/server.crt \
->       -key-file traefik/certs/server.key \
->       "$$CURRENT_IP" \
->       "*.dss.localhost" \
->       "*.minio.dss.localhost" \
->       "*.garage.dss.localhost" \
->       "*.tts.dss.localhost" \
->       "dss.localhost" \
->       localhost \
->       127.0.0.1 \
->       ::1; \
->echo "Success: Certificates are generated in traefik/certs/"; \
->else \
->echo "Error: mkcert is not installed. Please install it first."; \
->exit 1; \
->fi
 
 validate: ## Validate every packaged Compose project
 >@set -e; for s in $(STARTUP_SERVICES); do \

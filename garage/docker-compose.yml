@@ -1,15 +1,29 @@
 services:
+  # Copy garage.toml into a named volume. Bind mounts (file or directory) to /etc/garage
+  # are visible on the host but often ENOENT inside dxflrs/garage distroless (exec + healthcheck).
+  garage-config-init:
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}garage-config-init
+    image: alpine:3.21
+    restart: "no"
+    volumes:
+      - ./config/garage.toml:/src/garage.toml:ro
+      - garage_config:/etc/garage
+    command:
+      - sh
+      - -ec
+      - |
+        cp /src/garage.toml /etc/garage/garage.toml
+        chmod 444 /etc/garage/garage.toml
+
   garage:
-    container_name: garage
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}garage
     # dxflrs/garage v2.4.1 — latest stable release (Sep 2026).
     # Pin explicitly; do NOT use ":latest" for a storage backend.
     image: dxflrs/garage:v2.4.1
     restart: "${RESTART_POLICY:-unless-stopped}"
-    # Explicit config path — do NOT rely on the image default /etc/garage.toml.
-    # Bind-mounting a *single file* to /etc/garage.toml is invisible inside this
-    # distroless image under OrbStack (ENOENT on docker exec / healthcheck),
-    # which left the container permanently "unhealthy" and broke `docker exec … /garage …`.
-    # Mount the config *directory* instead and point Garage at the file inside it.
+    depends_on:
+      garage-config-init:
+        condition: service_completed_successfully
     # Global flags (-c) must precede the subcommand (Garage clap parsing).
     command: ["/garage", "-c", "/etc/garage/garage.toml", "server"]
     deploy:
@@ -25,31 +39,28 @@ services:
       - GARAGE_RPC_SECRET=${GARAGE_RPC_SECRET:?Set GARAGE_RPC_SECRET in .env (openssl rand -hex 32)}
       - GARAGE_ADMIN_TOKEN=${GARAGE_ADMIN_TOKEN:?Set GARAGE_ADMIN_TOKEN in .env (openssl rand -base64 32)}
       - GARAGE_METRICS_TOKEN=${GARAGE_METRICS_TOKEN:-${GARAGE_ADMIN_TOKEN}}
-      # So `docker exec garage /garage …` picks up the same config without -c.
       - GARAGE_CONFIG_FILE=/etc/garage/garage.toml
     volumes:
-      - ./config:/etc/garage:ro
+      - garage_config:/etc/garage:ro
       - garage_meta:/var/lib/garage/meta
       - garage_data:/var/lib/garage/data
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.garage-s3.rule=Host(`s3.garage.dss.localhost`)"
-      - "traefik.http.routers.garage-s3.entrypoints=websecure"
-      - "traefik.http.routers.garage-s3.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.garage-s3.rule=Host(`s3.garage.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.garage-s3.entrypoints=web"
       - "traefik.http.routers.garage-s3.service=garage-s3"
       - "traefik.http.services.garage-s3.loadbalancer.server.port=3900"
-      - "traefik.http.routers.garage-admin.rule=Host(`admin.garage.dss.localhost`)"
-      - "traefik.http.routers.garage-admin.entrypoints=websecure"
-      - "traefik.http.routers.garage-admin.tls=true"
+      - "traefik.http.routers.garage-admin.rule=Host(`admin.garage.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.garage-admin.entrypoints=web"
       - "traefik.http.routers.garage-admin.service=garage-admin"
       - "traefik.http.services.garage-admin.loadbalancer.server.port=3903"
     networks:
       - traefik_proxy
       - backend_net
-    # Image is distroless (no shell/curl). CLI + healthcheck share GARAGE_CONFIG_FILE.
     healthcheck:
-      test: ["CMD", "/garage", "status"]
+      test: ["CMD", "/garage", "-c", "/etc/garage/garage.toml", "status"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -67,5 +78,6 @@ networks:
     external: true
 
 volumes:
+  garage_config:
   garage_meta:
   garage_data:

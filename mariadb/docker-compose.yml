@@ -1,6 +1,6 @@
 services:
   mariadb:
-    container_name: mariadb
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}mariadb
     image: "mariadb:11.4.5"
     restart: "${RESTART_POLICY:-unless-stopped}"
     command: mariadbd --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci

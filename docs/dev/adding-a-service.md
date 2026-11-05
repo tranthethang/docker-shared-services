@@ -8,7 +8,9 @@ Create `<service>/docker-compose.yml` and `<service>/.env.example`.
 
 - Every service is its own Compose project, loaded with `--project-directory <service>` together with `docker-compose.shared.yml`, so `<service>/.env` and relative paths resolve. **Enforced by** `make validate` (runs `docker compose --project-directory <service> -f docker-compose.shared.yml -f <service>/docker-compose.yml config` for each service).
 - Attach only the external networks the service needs: `traefik_proxy` for a web UI, `backend_net` for app-to-app traffic, `data_net` for databases. A data store attaches to `data_net` and not `backend_net`; a client joins `data_net` only as a `PACKAGE_REQUIRES` consumer, a same-project container, or a `DATA_CLIENT_UI_SERVICES` entry. See [network segmentation](../network-segmentation.md#data-tier-rules). **Enforced by** `tests/test_network_tiers.py` (`make test`) for the data tier; the rest is **review only**.
-- Pin image tags; do not use `latest`. Set `container_name`, `restart: "${RESTART_POLICY:-unless-stopped}"`, resource limits through `<SERVICE>_*` env vars, `json-file` logging with rotation, and a `healthcheck` whenever the image allows one. **Review only.**
+- Pin image tags; do not use `latest`. Set `container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}<name>` (the `SANDBOX_NAME` prefix keeps several stacks apart; a fixed volume or network `name:` takes `${SANDBOX_NAME:+${SANDBOX_NAME}_}<name>`; **enforced by** `tests/test_stack_names.py`), `restart: "${RESTART_POLICY:-unless-stopped}"`, resource limits through `<SERVICE>_*` env vars, `json-file` logging with rotation, and a `healthcheck` whenever the image allows one. **Review only.**
+- Every service sets `restart`. **Enforced by** `tests/test_oneshot_services.py` (`make test`).
+- A one-shot init container (for example `garage-config-init`) sets `restart: "no"`, and the main service waits on it with `condition: service_completed_successfully`. `make up`, the export Makefile, and the TUI treat such a container as done once it exits 0. List it in the catalog `containers` too. **Enforced by** `tests/test_oneshot_services.py` and the catalog check (`make test`).
 - Bind database and protocol ports to `127.0.0.1` only (`"127.0.0.1:${PORT}:5432"`). **Review only.**
 - `depends_on` does not cross Compose projects. Declare cross-project backends in `PACKAGE_REQUIRES` (step 3). **Review only.**
 - A service that only reads Docker state uses a `tecnativa/docker-socket-proxy` sidecar on its own internal network, not a direct `docker.sock` mount. See [Docker API access](../network-segmentation.md#docker-api-access). **Review only.**
@@ -21,14 +23,15 @@ Publish web UIs with Traefik labels, not host ports:
 ```yaml
 labels:
   - "traefik.enable=true"
-  - "traefik.docker.network=traefik_proxy"
-  - "traefik.http.routers.<service>.rule=Host(`<service>.dss.localhost`)"
-  - "traefik.http.routers.<service>.entrypoints=websecure"
-  - "traefik.http.routers.<service>.tls=true"
+  - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+  - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+  - "traefik.http.routers.<service>.rule=Host(`<service>.${DOMAIN:-sandbox.localhost}`)"
+  - "traefik.http.routers.<service>.entrypoints=web"
   - "traefik.http.services.<service>.loadbalancer.server.port=<port>"
 ```
 
-- The host is `<name>.dss.localhost` over HTTPS. **Review only.**
+- Every service with `traefik.enable=true` carries the `sandbox.stack` label, because Traefik only routes containers of its own stack. **Enforced by** `tests/test_stack_names.py` (`make test`).
+- The host is `<name>.${DOMAIN}` (default `<name>.sandbox.localhost`) over HTTPS via Caddy (Traefik `web` entrypoint, no `tls=true` labels). **Review only.**
 - UIs that support the auth gateway take `AUTH_MIDDLEWARE` and are listed in `AUTH_OPT_IN_UI_SERVICES` in `dss/core/config.py`. **Review only.**
 
 ## 3. Register the service in `dss/core/config.py`

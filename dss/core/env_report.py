@@ -124,7 +124,7 @@ def show_summary(service_arg: str | None) -> None:
         print(f"Service: {s}")
         vars_to_check = SERVICE_INFO_VARS.get(s, [])
         if not vars_to_check and s == "traefik":
-            print("  Ports: 80, 443")
+            print("  Routing: HTTP on traefik_proxy (HTTPS via Caddy edge in proxy repo)")
         elif not vars_to_check:
             print("  (configured)")
         else:

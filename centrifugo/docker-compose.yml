@@ -1,6 +1,6 @@
 services:
   centrifugo:
-    container_name: centrifugo
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}centrifugo
     image: centrifugo/centrifugo:v5.4.9
     restart: "${RESTART_POLICY:-unless-stopped}"
     command: ["centrifugo", "--config=/centrifugo/config.json"]

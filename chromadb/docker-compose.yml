@@ -2,13 +2,13 @@ services:
   chromadb:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.chromadb.rule=Host(`chromadb.dss.localhost`)"
-      - "traefik.http.routers.chromadb.entrypoints=websecure"
-      - "traefik.http.routers.chromadb.tls=true"
+      - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
+      - "traefik.docker.network=${SANDBOX_NAME:+${SANDBOX_NAME}_}traefik_proxy"
+      - "traefik.http.routers.chromadb.rule=Host(`chromadb.${DOMAIN:-sandbox.localhost}`)"
+      - "traefik.http.routers.chromadb.entrypoints=web"
       - "traefik.http.routers.chromadb.middlewares=${AUTH_MIDDLEWARE:-auth-none}"
       - "traefik.http.services.chromadb.loadbalancer.server.port=8000"
-    container_name: chromadb
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}chromadb
     image: chromadb/chroma:0.5.23
     restart: "${RESTART_POLICY:-unless-stopped}"
     deploy:
@@ -39,7 +39,7 @@ services:
 
 volumes:
   chromadb_data:
-    name: chromadb_data
+    name: ${SANDBOX_NAME:+${SANDBOX_NAME}_}chromadb_data
 
 networks:
   data_net:
