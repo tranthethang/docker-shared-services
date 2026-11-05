@@ -125,7 +125,7 @@ health: ## Check health status of all services (usage: make health [service=pgve
 	@echo ""
 
 remove-all: ## Remove all containers and volumes (⚠️ DANGER: Removes all data)
-	@scripts/remove-all.sh $(COMPOSE_FILES)
+	@scripts/remove-all.sh
 
 prune: ## Remove unused Docker resources
 	@echo "Pruning Docker resources..."
