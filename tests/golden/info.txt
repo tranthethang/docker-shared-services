@@ -25,32 +25,44 @@ Services:
   • Gotenberg - http://localhost:3030 (container: gotenberg:3000)
   • Grafana - https://grafana.sandbox.localhost [otel stack]
   • Hasura - https://hasura.sandbox.localhost
+  • Host bridge - make up service=host-bridge (start backends first)
   • Inngest - https://inngest.sandbox.localhost
   • Jenkins - https://jenkins.sandbox.localhost (agent: localhost:50000)
+  • Kafka - localhost:9092
   • Kafka - localhost:9092
   • Kafka UI - https://kafka-ui.sandbox.localhost
   • LibreOffice Writer UNO - localhost:2002 (container: libreoffice-writer:2002)
   • Loki - http://localhost:3100 [otel stack]
   • Mailpit - https://mailpit.sandbox.localhost (SMTP: localhost:1025)
+  • Mailpit SMTP - localhost:1025
+  • MariaDB - localhost:3307
   • MariaDB 11 - localhost:3307
+  • Memcached - localhost:11211
   • Memcached - localhost:11211
   • Mermaid Live Editor - https://mermaid.sandbox.localhost
   • MinIO - https://minio.sandbox.localhost (S3: localhost:9002)
   • MongoDB - localhost:27017
+  • MongoDB - localhost:27017
+  • MySQL 8 - localhost:3306
   • MySQL 8 - localhost:3306
   • n8n - https://n8n.sandbox.localhost
   • Node-RED - https://node-red.sandbox.localhost
   • oauth2-proxy (auth gateway) - https://auth.sandbox.localhost (Traefik only; needs OIDC client)
   • OTel Collector - localhost:4317 (gRPC), localhost:4318 (HTTP) [otel stack]
   • PgVector (PostgreSQL 17, standalone) - localhost:5433
+  • PgVector - localhost:5433
   • PocketBase - https://pocketbase.sandbox.localhost
   • Portainer - https://portainer.sandbox.localhost
   • Postgres (PostgreSQL 16, default shared DB) - localhost:5432
+  • Postgres 16 - localhost:5432
   • RabbitMQ - https://rabbitmq.sandbox.localhost (AMQP: localhost:5672)
+  • RabbitMQ - localhost:5672
+  • Redis - localhost:6379
   • Redis - localhost:6379
   • Redis Insight - https://redisinsight.sandbox.localhost
   • SonarQube - https://sonarqube.sandbox.localhost
   • Supabase - https://studio.sandbox.localhost (API: https://supabase.sandbox.localhost, DB: localhost:5434)
+  • Supabase DB - localhost:5434
   • Temporal - localhost:7233 (UI: https://temporal.sandbox.localhost)
   • Traefik (Reverse Proxy) - https://traefik.sandbox.localhost (BasicAuth)
   • Woodpecker CI - https://woodpecker.sandbox.localhost

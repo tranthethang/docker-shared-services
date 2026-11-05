@@ -15,6 +15,7 @@ SERVICES = [
     "gitea",
     "gotenberg",
     "hasura",
+    "host-bridge",
     "hindsight",
     "inngest",
     "jenkins",
@@ -151,11 +152,12 @@ AUTH_GATEWAY_MIDDLEWARE_OFF = "auth-none"
 AUTH_GATEWAY_MIDDLEWARES_ON = frozenset({"auth-default", "auth-admin"})
 AUTH_OPT_IN_UI_SERVICES = ["chromadb", "kafka", "mermaid-live-editor", "qdrant", "temporal"]
 
-# Data-store UIs allowed on data_net besides PACKAGE_REQUIRES consumers (test_network_tiers).
+# Services allowed on data_net besides PACKAGE_REQUIRES consumers (test_network_tiers).
 DATA_CLIENT_UI_SERVICES = [
     "adminer",
     "appsmith",
     "chromadb_admin",
+    "host-bridge",
     "n8n",
     "node-red",
     "redisinsight",
@@ -171,8 +173,7 @@ SHARED_PASSWORD_PLACEHOLDERS = frozenset(
     }
 )
 
-# Old repo default. Example files now ship empty values, but .env files created
-# before that may still hold it, so setup keeps overwriting and rejecting it.
+# Old repo default; legacy .env files may still hold it, so setup keeps rejecting it.
 LEGACY_PLACEHOLDER_PASSWORD = "Password102!"  # noqa: S105  # rejected value, not a secret
 INVALID_PASSWORD_VALUES = frozenset({LEGACY_PLACEHOLDER_PASSWORD})
 

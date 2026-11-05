@@ -197,6 +197,28 @@
       "Hasura - https://hasura.{domain}"
     ]
   },
+  "host-bridge": {
+    "category": "Auth & Gateway",
+    "description": "HAProxy TCP bridge for default dev host aliases on 127.0.0.1.",
+    "containers": [
+      "host-bridge"
+    ],
+    "web_ui": [],
+    "info": [
+      "Host bridge - make up service=host-bridge (start backends first)",
+      "Kafka - localhost:9092",
+      "Mailpit SMTP - localhost:1025",
+      "MariaDB - localhost:3307",
+      "Memcached - localhost:11211",
+      "MongoDB - localhost:27017",
+      "MySQL 8 - localhost:3306",
+      "PgVector - localhost:5433",
+      "Postgres 16 - localhost:5432",
+      "RabbitMQ - localhost:5672",
+      "Redis - localhost:6379",
+      "Supabase DB - localhost:5434"
+    ]
+  },
   "hindsight": {
     "category": "AI & Search",
     "description": "MCP agent memory service (API plus control-plane UI) on PgVector.",
