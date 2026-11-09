@@ -88,6 +88,7 @@
     "category": "AI & Search",
     "description": "LLM-friendly web crawler and scraping API with a playground.",
     "containers": [
+      "crawl4ai-volume-init",
       "crawl4ai"
     ],
     "web_ui": [

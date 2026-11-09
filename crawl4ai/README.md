@@ -34,6 +34,8 @@ Customize the variables in `crawl4ai/.env`:
 - `OPENAI_API_KEY` / `OPENAI_BASE_URL`: Configure these if you route LLM calls through a custom OpenAI-compatible proxy (e.g., LiteLLM, Ollama, Portkey).
 - Resource limits: Memory and CPU limitations (`CRAWL4AI_MEMORY_LIMIT` defaults to `2G` to support Playwright/Chromium requirements).
 
+A one-shot `crawl4ai-volume-init` container (`alpine`) `chown`s the named volume to uid `999` (`appuser`) before the main container starts, so fresh volumes work on Docker Desktop (macOS) and Linux without host-side fixes.
+
 ______________________________________________________________________
 
 ## 🛠️ Operations

@@ -1,4 +1,18 @@
 services:
+  # Named volumes mount root-owned; fix ownership before appuser (uid 999) starts.
+  crawl4ai-volume-init:
+    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}crawl4ai-volume-init
+    image: alpine:3.21
+    restart: "no"
+    user: "0:0"
+    volumes:
+      - crawl4ai_data:/var/lib/crawl4ai
+    command:
+      - sh
+      - -ec
+      - |
+        chown -R 999:999 /var/lib/crawl4ai
+
   crawl4ai:
     labels:
       - "traefik.enable=true"
@@ -11,6 +25,9 @@ services:
     # Pin patch version for reproducibility (was :latest).
     image: "unclecode/crawl4ai:0.7.8"
     restart: "${RESTART_POLICY:-unless-stopped}"
+    depends_on:
+      crawl4ai-volume-init:
+        condition: service_completed_successfully
     deploy:
       resources:
         limits:
