@@ -224,7 +224,7 @@ pub fn setup(password: Option<&str>, yes: bool) -> Res {
     Ok(())
 }
 
-/// Env sub-commands, as `python -m dss.cli.env` offered them.
+/// `dss env <name>`: check, create, merge, fill secrets, passwords, summary, validate.
 pub fn env_command(
     name: &str,
     service: Option<&str>,
