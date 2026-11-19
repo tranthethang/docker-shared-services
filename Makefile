@@ -1,4 +1,4 @@
-.PHONY: help build setup passwords ps health remove-all prune remove-config info up down stop restart logs validate manage tui package format format-check lint test check hooks
+.PHONY: help build setup passwords ps health remove-all prune remove-config info up down stop restart logs validate manage tui package format format-check lint shell-lint test check hooks
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -102,13 +102,18 @@ lint: ## Run clippy with warnings as errors
 	@echo "==> lint: clippy"
 	@$(CARGO) clippy $(MANIFEST) --all-targets -- -D warnings
 
+shell-lint: ## Run shellcheck (warning level) on tracked shell scripts. Needs shellcheck.
+	@echo "==> shell-lint: shellcheck"
+	@command -v shellcheck >/dev/null 2>&1 || { echo "shellcheck is required. Install: https://www.shellcheck.net/"; exit 1; }
+	@git ls-files -z '*.sh' | xargs -0 shellcheck -S warning
+
 test: ## Run cargo test (unit tests plus repo rules and the 300-line limit)
 	@echo "==> test: cargo test"
 	@$(CARGO) test --quiet $(MANIFEST)
 
-hooks: ## Install git hooks (pre-commit: format-check, lint; pre-push: test). Needs prek.
+hooks: ## Install git hooks (pre-commit: format-check, lint, shell-lint; pre-push: test). Needs prek.
 	@command -v prek >/dev/null 2>&1 || { echo "prek is required. Install: https://github.com/j178/prek"; exit 1; }
 	@prek install
 	@echo "✅ Git hooks installed (.pre-commit-config.yaml)"
 
-check: format-check lint test validate ## Run format-check, lint, test, and validate
+check: format-check lint shell-lint test validate ## Run format-check, lint, shell-lint, test, and validate

@@ -24,6 +24,14 @@ repos:
         always_run: true
         stages: [pre-commit]
 
+      - id: shell-lint
+        name: make shell-lint
+        entry: make shell-lint
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
       - id: test
         name: make test
         entry: make test

@@ -10,6 +10,7 @@ Runs these targets in order and stops at the first failure:
 | ------------------- | -------------------------------------------------------------------------------------- |
 | `make format-check` | `cargo fmt --check`                                                                    |
 | `make lint`         | `cargo clippy --all-targets -- -D warnings`                                            |
+| `make shell-lint`   | `shellcheck -S warning` on every tracked `*.sh` file (needs `shellcheck`)              |
 | `make test`         | `cargo test`: unit tests, Compose repo rules, and the 300-line limit                   |
 | `make validate`     | `docker compose config` per service, plus service catalog drift                        |
 
@@ -17,7 +18,7 @@ Runs these targets in order and stops at the first failure:
 
 Rules:
 
-- Run `make check` after any change to Compose files, `cli/`, or the Makefile. **Enforced by** CI. Git hooks run `format-check` and `lint` on commit and `test` on push. `make validate` is CI-only (see below).
+- Run `make check` after any change to Compose files, `cli/`, or the Makefile. **Enforced by** CI. Git hooks run `format-check`, `lint`, and `shell-lint` on commit and `test` on push. `make validate` is CI-only (see below).
 - Do not lower a limit (line length, clippy level, file size) to make a check pass. **Review only.**
 
 ## Limits
@@ -40,7 +41,7 @@ A failure names the compose file and the service. Fix the compose file, or the t
 
 `make hooks` installs [prek](https://github.com/j178/prek) hooks from `.pre-commit-config.yaml`:
 
-- pre-commit: `make format-check`, `make lint`
+- pre-commit: `make format-check`, `make lint`, `make shell-lint`
 - pre-push: `make test`
 
 Hooks only call make targets and define no rule config of their own. **Enforced by** review of `.pre-commit-config.yaml`. To run every hook without committing, use `prek run --all-files --hook-stage pre-commit` (or `--hook-stage pre-push`).
