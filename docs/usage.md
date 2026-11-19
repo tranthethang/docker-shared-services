@@ -15,8 +15,8 @@ make setup          # Setup environment files and shared Docker networks
 make up             # Start services (interactive or specific)
 make down           # Stop and remove services
 make stop           # Stop services (keep containers)
-make manage         # Interactive multi-select start/stop
-make tui            # Optional Textual dashboard (uv + TTY)
+make manage         # Dashboard with multi-select start/stop
+make tui            # ratatui dashboard (TTY)
 make ps             # Show service status
 make logs           # View logs
 make info           # URLs, ports, opt-in UI auth guidance
@@ -26,54 +26,52 @@ make restart        # Restart services
 
 ### Quality gate
 
-`make check` is the post-change gate. It runs formatting, lint (ruff, file size, shellcheck, shfmt), mypy, pytest, and Compose validation. Compose validation needs env files; CI creates a disposable env before `make check`.
+`make check` is the post-change gate. It runs `cargo fmt --check`, clippy, `cargo test` (which also checks the Compose files and the 300-line limit), and Compose validation. Compose validation needs env files; CI creates a disposable env before `make check`.
 
 ```bash
-make check          # format-check, lint, typecheck, test, validate
-make test-update    # rewrite tests/golden from export_stack (GOLDEN_UPDATE=1)
+make check          # format-check, lint, test, validate
+make build          # build cli/target/release/dss
 ```
 
-A normal `make test` compares golden files and does not write them.
+### Dashboard (`make tui`, `make manage`, or `dss`)
 
-### Optional Textual dashboard (`make tui`)
-
-Keyboard-driven status/health/logs UI that reuses the same Compose conventions as the Makefile. Does **not** replace `make manage` or other CLI targets.
+Keyboard-driven status, health, and logs UI built with ratatui. It runs the same Compose commands as `make up` / `down` / `stop` / `restart`. `make manage` opens the same dashboard. `make up` with no `service=` opens it too.
 
 ```bash
-uv sync --group tui   # install optional deps (textual, docker SDK)
-make tui
+make tui    # interactive terminal required
 ```
 
-| Key                   | Action                                                       |
-| --------------------- | ------------------------------------------------------------ |
-| `↑`/`↓` or `j`/`k`    | Move selection                                               |
-| `/`                   | Filter services (`Enter`/`Esc` returns to the list)          |
-| `r`                   | Force a status refresh (status also auto-updates)            |
-| `Enter`               | Container details (details also follow the cursor)           |
-| `l`                   | Follow live logs (last 200 lines + new); press again to stop |
-| `u` / `s` / `Shift+R` | Up / stop / restart selected stack                           |
-| `d`                   | Down selected stack (confirm)                                |
-| `Space`               | Toggle manage selection                                      |
-| `m`                   | Confirm manage plan, then quit and show Docker progress      |
-| `?`                   | Help                                                         |
-| `q`                   | Quit                                                         |
+| Key                | Action                                                       |
+| ------------------ | ------------------------------------------------------------ |
+| `↑`/`↓` or `j`/`k` | Move selection                                               |
+| `/`                | Filter services (`Enter`/`Esc` returns to the list)          |
+| `R`                | Force a status refresh (status also auto-updates)            |
+| `Enter`            | Show details and stop following logs                         |
+| `l`                | Follow live logs (last 200 lines + new); press again to stop |
+| `u` / `s` / `r`    | Up / stop / restart selected stack                           |
+| `d`                | Down selected stack (confirm)                                |
+| `Space`            | Toggle manage selection                                      |
+| `a` / `c`          | Select all / clear the manage selection                      |
+| `m`                | Confirm and apply the manage plan                            |
+| `?`                | Help                                                         |
+| `q`                | Quit                                                         |
 
 Notes:
 
-- Status refreshes automatically on Docker container events (start, stop, health changes); `r` forces a refresh.
-- `m` closes the dashboard after confirmation and runs the same start/stop commands as `make manage`, so image pulls print in the terminal.
+- Status refreshes automatically on Docker container events (start, stop, health changes); `R` forces a refresh.
+- `m` shows what will start and stop, then runs it in the background. Compose output appears in the Operations panel.
 - `oauth2-proxy` is a label until `OAUTH2_PROXY_CLIENT_ID` and `OAUTH2_PROXY_CLIENT_SECRET` are set in `oauth2-proxy/.env`. Space, `a`, `u`, and restart leave it unchanged. Stop and down still work.
 - Logs are streamed **unredacted**, exactly like `make logs` / `docker logs`, and only when you press `l`. Application logs can contain credentials; treat the screen accordingly.
-- When a Compose action fails, the operations panel shows the last lines of Compose's error output with values from the root and service `.env` files masked as `***`. Run the matching `make` target for the full output.
+- Compose output in the Operations panel has values from the root and service `.env` files masked as `***`. Run the matching `make` target for the full output.
 
-Setup errors (non-interactive terminal, missing TUI packages, or Docker unreachable) print actionable messages and leave Makefile/CLI workflows available. Every Makefile target that runs Python needs `uv`; without it, Make stops with an install hint.
+Without an interactive terminal, the dashboard prints a message and exits. Use `make up service=<name>`, `make ps`, or `dss --help` instead. Every Makefile target builds the binary with `cargo` first. Without `cargo`, Make stops with an install hint.
 
 ### Opt-in UI auth (oauth2-proxy)
 
 ```bash
 make up service=oauth2-proxy
-uv run python -m dss.cli.env summary   # AUTH gateway on/off per candidate UI
-uv run python -m dss.cli.env merge-missing all   # add keys from .env.example missing in .env
+cli/target/release/dss env summary   # AUTH gateway on/off per candidate UI
+cli/target/release/dss env merge-missing   # add keys from .env.example missing in .env
 # Enable for one UI: edit <service>/.env → AUTH_ENABLED=true, AUTH_MIDDLEWARE=auth-default
 make restart service=mermaid-live-editor
 ```

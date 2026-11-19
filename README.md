@@ -2,7 +2,7 @@
 
 ![Docker Shared Services](assets/tux.svg)
 
-Local Docker Compose stack for common infra: databases, cache, messaging, CI/CD, auth, storage, and observability. Managed with a `Makefile` + the `dss/` Python package (run through `uv`).
+Local Docker Compose stack for common infra: databases, cache, messaging, CI/CD, auth, storage, and observability. Managed with a `Makefile` + the `dss` Rust binary in `cli/` (built with `cargo`).
 
 **macOS / Linux only.** Windows is unsupported (WSL2 may work, untested).
 
@@ -55,8 +55,8 @@ Value is stored as `DSS_SHARED_PASSWORD` in the root `.env`.
 | `make setup`                            | Networks, `.env`, shared password, Dozzle user            |
 | `make passwords`                        | Apply / rotate the shared password                        |
 | `make up` / `down` / `stop` / `restart` | Lifecycle (`service=<folder>` optional)                   |
-| `make manage`                           | Interactive multi-select start/stop                       |
-| `make tui`                              | Optional Textual dashboard (needs `uv` + interactive TTY) |
+| `make manage`                           | Dashboard with multi-select start/stop                    |
+| `make tui`                              | ratatui dashboard (needs an interactive TTY)              |
 | `make logs` / `ps` / `health` / `info`  | Observe                                                   |
 | `make validate`                         | Validate all compose files                                |
 | `make remove-config`                    | Delete generated `.env` files (confirm)                   |
@@ -68,16 +68,15 @@ make logs service=gitea
 make restart service=postgres
 ```
 
-### Optional Textual dashboard
+### Dashboard
 
-`make tui` opens a keyboard-driven terminal UI for status, health, logs, and the same lifecycle actions as `make up` / `down` / `stop` / `restart` / `manage`. Existing Makefile and CLI workflows are unchanged.
+`make tui` opens a keyboard-driven terminal UI (ratatui) for status, health, logs, and the same lifecycle actions as `make up` / `down` / `stop` / `restart`. `make manage` and `make up` without `service=` open it too.
 
 ```bash
-uv sync --group tui   # once: install optional Textual + Docker SDK deps
 make tui              # interactive terminal required
 ```
 
-Press `?` inside the TUI for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `make logs`); press `l` again to stop. Press `m` and confirm to leave the dashboard and apply the manage plan in the terminal, so large image pulls show Docker progress. Without a TTY, the command prints how to use `make manage` / `make up` / `make ps` instead.
+Press `?` inside the dashboard for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `make logs`); press `l` again to stop. Select services with `Space`, then press `m` and confirm to start the selected services and stop the rest. Without a TTY, use `make up service=<name>`, `make ps`, or `dss --help`.
 
 ## What’s included
 
@@ -98,9 +97,7 @@ Full catalog: [docs/services.md](docs/services.md).
 ```
 docker-compose.shared.yml   # networks: traefik_proxy, backend_net, data_net
 Makefile                    # day-to-day commands
-dss/                        # Python: core logic, CLIs, packager, TUI
-tools/                      # dev tooling (formatter, file-size check)
-scripts/                    # shell called by Makefile recipes (networks, Dozzle users, cleanup)
+cli/                        # Rust crate `dss`: lifecycle, env and secrets, dashboard, packager
 <service>/                  # docker-compose.yml + .env.example
 docs/                       # deeper guides
 ```
@@ -126,7 +123,7 @@ Details: [docs/configuration.md](docs/configuration.md#opt-in-oidc-ui-authentica
 
 ## Requirements
 
-Docker Engine 20.10+, Compose v2+, Make, and [uv](https://docs.astral.sh/uv/) (it runs every Python target on Python 3.12). For HTTPS in the browser, clone [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) and install [mkcert](https://github.com/FiloSottile/mkcert) there.
+Docker Engine 20.10+, Compose v2+, Make, and a [Rust toolchain](https://rustup.rs/) (`cargo` builds the `dss` binary on first use). For HTTPS in the browser, clone [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) and install [mkcert](https://github.com/FiloSottile/mkcert) there.
 
 ## License
 

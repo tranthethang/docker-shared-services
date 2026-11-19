@@ -47,16 +47,6 @@ temp/
 .DS_Store
 Thumbs.db
 
-# --- Python / uv ---
-.venv/
-.ruff_cache/
-.mypy_cache/
-.pytest_cache/
-.import_linter_cache/
-.coverage
-**/__pycache__/
-*.py[cod]
-*$py.class
 
 # --- Certificates ---
 **/server.crt
@@ -89,14 +79,9 @@ docker-compose.lock
 !docker-compose.shared.yml
 
 # Keep scripts and documentation
-!start-services.sh
-!setup-env.sh
 !Makefile
 !*.md
 !LICENSE
-
-# Keep Python sources in dss/
-!dss/**/*.py
 
 # Supabase: track Kong + init SQL (not runtime data/storage)
 # Overrides **/volumes/ and *.sql above
@@ -112,3 +97,6 @@ supabase/volumes/storage/
 
 .zencoder/
 .zenflow/
+
+# --- Rust CLI ---
+cli/target/

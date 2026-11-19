@@ -4,15 +4,14 @@ Entry point for agents and contributors. Rules live in `docs/dev/`. Each rule th
 
 ## Project
 
-Local Docker Compose infrastructure for development (databases, cache, auth, CI, observability). Each service is its own Compose project, started from the root Makefile via `python -m dss.cli.service` (run through `uv`). Web UIs are reached at `https://*.sandbox.localhost` by default (or your `DOMAIN`) through **Caddy** (proxy repo) into Traefik on `traefik_proxy`.
+Local Docker Compose infrastructure for development (databases, cache, auth, CI, observability). Each service is its own Compose project, started from the root Makefile through the Rust binary in `cli/` (`dss`, built with `cargo`). Web UIs are reached at `https://*.sandbox.localhost` by default (or your `DOMAIN`) through **Caddy** (proxy repo) into Traefik on `traefik_proxy`.
 
 ## Rules
 
 | Topic                                      | Doc                                                          |
 | ------------------------------------------ | ------------------------------------------------------------ |
-| `dss` layers, lint/type rules, new modules | [docs/dev/python-layout.md](docs/dev/python-layout.md)       |
-| Shell scripts                              | [docs/dev/shell-scripts.md](docs/dev/shell-scripts.md)       |
-| `make check`, limits, goldens, git hooks   | [docs/dev/quality-gate.md](docs/dev/quality-gate.md)         |
+| `cli/` modules, lint rules, new modules    | [docs/dev/rust-layout.md](docs/dev/rust-layout.md)           |
+| `make check`, limits, Compose rules, hooks | [docs/dev/quality-gate.md](docs/dev/quality-gate.md)         |
 | Compose layout, Traefik, catalog, backends | [docs/dev/adding-a-service.md](docs/dev/adding-a-service.md) |
 
 Write files in this repo in English (README, `docs/`, comments, commits, `.env.example`).
@@ -26,18 +25,16 @@ make down service=zitadel               # stop and remove that service's contain
 make ps                                 # status of running services
 make health service=postgres            # health for one service
 make logs service=zitadel               # logs for one service
-make check                              # format, lint, typecheck, test, and Compose validate
-make test-update                        # regenerate tests/golden (GOLDEN_UPDATE=1)
+make check                              # fmt, clippy, test, and Compose validate
+make build                              # build cli/target/release/dss
 make hooks                              # install prek git hooks
 ```
 
-Every target that runs Python needs `uv`. The Makefile stops with an install hint when it is missing. `make tui` and `make package` also need a TTY.
+Every target runs the `dss` binary, which needs `cargo` to build. The Makefile stops with an install hint when it is missing. `make tui`, `make manage`, and `make package` (without flags) also need a TTY.
 
 ## Structure
 
-- `dss/` — Python package: `core` (config, catalog, env, secrets; stdlib only), `cli` (make entry points), `package` (`make package` exporter + wizard), `tui` (Textual dashboard)
-- `tools/` — dev tooling (`format_repo.py`, `check_file_size.py`)
-- `scripts/` — shell scripts called by Makefile recipes
+- `cli/` — Rust crate `dss`: `config`, `stack`, `catalog`, `env` (secrets), `docker` (compose, readiness, state), `commands`, `tui` (ratatui dashboard), `package` (`make package` exporter + wizard). `cli/service_catalog.json` is the service catalog.
 - `<service>/` — that service's `docker-compose.yml` and `.env.example`
 - `docker-compose.shared.yml` — external networks `traefik_proxy`, `backend_net`, `data_net`
 - `docs/` — usage, configuration, networking, troubleshooting; `docs/dev/` — contributor rules
@@ -50,19 +47,19 @@ Every target that runs Python needs `uv`. The Makefile stops with an install hin
 - `make setup` prompts before writing `.env` files. Skip it when there is no TTY.
 - Root `.env` must exist before `make up`. Create it with `make setup`.
 - Setup rejects the legacy password `Password102!`.
-- `dss/core/config.py` is copied into exports, so editing it changes the export goldens. Run `make test-update` and review the diff.
+- `cli/` is copied into exports. An export holds only the services you pick, listed in its `dss-package.json`.
 
 ## Workflow
 
-- After Compose, shell, `dss/`, `tools/`, or `tests/` edits, run `make check`.
+- After Compose, `cli/`, or Makefile edits, run `make check`.
 - Ask before adding dependencies, committing, or pushing. Create a commit only when the user asks.
 
 ## Limits
 
-- **NEVER** edit or test under `dist/`. Change the origin tree (`Makefile`, `dss/`, service directories). Leave `dist/` empty unless the user asks for a new export.
+- **NEVER** edit or test under `dist/`. Change the origin tree (`Makefile`, `cli/`, service directories). Leave `dist/` empty unless the user asks for a new export.
 - Do not commit `.env` files or TLS private keys. Local HTTPS certs live in the **docker-shared-services-proxy** repo under `caddy/certs/`.
 - Do not run `make remove-all`, `make prune`, or `make remove-config` unless the user asks. They delete data or env files.
-- Do not lower a quality limit (complexity, coverage floor, 300-line file size) to pass a check.
+- Do not lower a quality limit (clippy level, 300-line file size) to pass a check.
 
 ## More docs
 
