@@ -12,7 +12,7 @@ path = "src/main.rs"
 base64 = "0.22"
 bcrypt = "0.17"
 clap = { version = "4", features = ["derive"] }
-crossterm = "0.28"
+crossterm = "0.29"
 hmac = "0.12"
 rand = "0.8"
 ratatui = "0.29"
