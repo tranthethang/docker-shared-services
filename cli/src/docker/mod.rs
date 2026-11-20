@@ -4,6 +4,7 @@ pub mod compose;
 pub mod follow;
 pub mod readiness;
 pub mod state;
+pub mod stats;
 
 use crate::config::{PACKAGE_REQUIRES, START_ORDER};
 use crate::stack::read_env_value;

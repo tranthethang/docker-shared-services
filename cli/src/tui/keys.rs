@@ -1,6 +1,8 @@
 //! Key handling for the dashboard.
 
 use super::app::{App, Effect, Modal, OpKind, Plan};
+use super::presets;
+use super::tree::{self, TreeRow};
 use crate::docker::{shutdown_queue, startup_queue};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
@@ -25,7 +27,19 @@ impl App {
             }
             KeyCode::Char('j') | KeyCode::Down => self.step(1),
             KeyCode::Char('k') | KeyCode::Up => self.step(-1),
-            KeyCode::Enter => self.stop_logs(),
+            KeyCode::Left => {
+                tree::set_group_collapsed(self, true);
+                vec![]
+            }
+            KeyCode::Right => {
+                tree::set_group_collapsed(self, false);
+                vec![]
+            }
+            KeyCode::Enter => self.on_enter(),
+            KeyCode::Char('o') => self.open_web_ui(),
+            KeyCode::Char('f') => self.toggle_active_only(),
+            KeyCode::Char('z') => self.toggle_zoom(),
+            KeyCode::Char('p') => self.open(Modal::Presets { selected: 0 }),
             KeyCode::Char('l') => self.toggle_logs(),
             KeyCode::Char('R') => self.refresh_now(),
             KeyCode::Char('u') => self.single(OpKind::Up),
@@ -63,6 +77,10 @@ impl App {
                 self.modal = None;
                 vec![]
             }
+            (code, Modal::Presets { selected }) => {
+                presets::handle_key(self, selected, code);
+                vec![]
+            }
             _ => vec![],
         }
     }
@@ -80,8 +98,51 @@ impl App {
     }
 
     fn step(&mut self, delta: isize) -> Vec<Effect> {
-        let last = self.visible().len().saturating_sub(1);
+        let last = self.tree_rows().len().saturating_sub(1);
         self.selected = self.selected.saturating_add_signed(delta).min(last);
+        vec![]
+    }
+
+    fn on_enter(&mut self) -> Vec<Effect> {
+        if let Some(TreeRow::Group {
+            category,
+            collapsed,
+            ..
+        }) = self.selected_tree_row()
+        {
+            tree::fold_category(self, category, !collapsed);
+            return vec![];
+        }
+        self.stop_logs()
+    }
+
+    fn open_web_ui(&mut self) -> Vec<Effect> {
+        let Some(row) = self.selected_row() else {
+            self.status = "No service selected".into();
+            return vec![];
+        };
+        if let Some(url) = self.catalog.get(&row.name).and_then(|e| e.web_ui.first()) {
+            self.status = format!("Opening {url}");
+            return vec![Effect::OpenUrl(url.clone())];
+        }
+        self.status = format!("No Web UI URL configured for {}", row.name);
+        vec![]
+    }
+
+    fn toggle_active_only(&mut self) -> Vec<Effect> {
+        self.active_only = !self.active_only;
+        self.clamp();
+        self.status = if self.active_only {
+            "Showing active services only"
+        } else {
+            "Showing all services"
+        }
+        .into();
+        vec![]
+    }
+
+    fn toggle_zoom(&mut self) -> Vec<Effect> {
+        self.zoom_details = !self.zoom_details;
         vec![]
     }
 

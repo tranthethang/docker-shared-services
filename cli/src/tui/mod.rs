@@ -3,10 +3,15 @@
 pub mod app;
 mod keys;
 mod ops;
+pub mod presets;
+pub mod theme;
+pub mod tree;
 mod ui;
+pub mod widgets;
 
 use crate::docker::follow::{EventWatcher, LogFollower};
 use crate::docker::state::list_service_statuses;
+use crate::docker::stats::{collect_capacity, collect_disk_usage, collect_stats};
 use crate::docker::{label_only_reason, Docker};
 use app::{App, Effect, Msg};
 use crossterm::event::{self, Event, KeyEventKind};
@@ -19,12 +24,16 @@ use ratatui::Terminal;
 use std::collections::BTreeMap;
 use std::io::{stdout, IsTerminal, Stdout};
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Sender};
+use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 
 const LOG_TAIL: u32 = 200;
 const POLL: Duration = Duration::from_millis(100);
+const STATS_POLL: Duration = Duration::from_millis(2500);
+const DF_POLL: Duration = Duration::from_secs(30);
 
 /// Puts the terminal back, on normal exit and on panic.
 pub(crate) struct TerminalGuard;
@@ -102,9 +111,18 @@ fn apply(effects: Vec<Effect>, tx: &Sender<Msg>, logs: &mut Option<LogFollower>)
             Effect::Run(plan) => run_plan(plan, tx.clone()),
             Effect::FollowLogs(containers) => *logs = Some(follow_logs(&containers, tx.clone())),
             Effect::StopLogs => *logs = None,
+            Effect::OpenUrl(url) => open_url(&url),
         }
     }
     false
+}
+
+fn open_url(url: &str) {
+    #[cfg(target_os = "macos")]
+    let cmd = "open";
+    #[cfg(not(target_os = "macos"))]
+    let cmd = "xdg-open";
+    let _ = std::process::Command::new(cmd).arg(url).spawn();
 }
 
 /// Open the dashboard. `q` leaves it and restores the terminal.
@@ -119,10 +137,42 @@ pub fn run() -> Result<(), String> {
     event_loop(&mut terminal)
 }
 
+fn spawn_telemetry(tx: Sender<Msg>, stop: Arc<AtomicBool>) {
+    thread::spawn(move || {
+        if let Ok(cap) = collect_capacity(&Docker) {
+            let _ = tx.send(Msg::Capacity(cap));
+        }
+        let mut last_stats = Instant::now() - STATS_POLL;
+        let mut last_df = Instant::now() - DF_POLL;
+        while !stop.load(Ordering::Relaxed) {
+            let now = Instant::now();
+            if now.duration_since(last_stats) >= STATS_POLL {
+                if let Ok(stats) = collect_stats(&Docker) {
+                    if tx.send(Msg::Stats(stats)).is_err() {
+                        break;
+                    }
+                }
+                last_stats = Instant::now();
+            }
+            if now.duration_since(last_df) >= DF_POLL {
+                if let Ok(df) = collect_disk_usage(&Docker) {
+                    if tx.send(Msg::DiskUsage(df)).is_err() {
+                        break;
+                    }
+                }
+                last_df = Instant::now();
+            }
+            thread::sleep(Duration::from_millis(250));
+        }
+    });
+}
+
 fn event_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), String> {
     let (tx, rx) = mpsc::channel::<Msg>();
     let watcher_tx = tx.clone();
     let watcher = EventWatcher::start(move || drop(watcher_tx.send(Msg::DockerEvent)));
+    let stop_telemetry = Arc::new(AtomicBool::new(false));
+    spawn_telemetry(tx.clone(), Arc::clone(&stop_telemetry));
     let mut app = App::new();
     let mut logs: Option<LogFollower> = None;
     let mut quit = apply(app.on_start(), &tx, &mut logs);
@@ -142,6 +192,7 @@ fn event_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), S
         }
         quit |= apply(app.tick(Instant::now()), &tx, &mut logs);
     }
+    stop_telemetry.store(true, Ordering::Relaxed);
     watcher.stop();
     drop(logs);
     Ok(())

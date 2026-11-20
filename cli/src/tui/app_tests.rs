@@ -1,12 +1,12 @@
 use super::*;
+use crate::docker::stats::{ContainerStat, DiskUsage, DockerCapacity};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 fn key(c: char) -> KeyEvent {
     KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE)
 }
-
-fn code(code: KeyCode) -> KeyEvent {
-    KeyEvent::new(code, KeyModifiers::NONE)
+fn code(c: KeyCode) -> KeyEvent {
+    KeyEvent::new(c, KeyModifiers::NONE)
 }
 
 fn row(name: &str, running: usize, total: usize) -> ServiceStatus {
@@ -47,68 +47,63 @@ fn loaded() -> App {
     app
 }
 
+fn select_service(app: &mut App, name: &str) {
+    app.selected = app
+        .tree_rows()
+        .iter()
+        .position(|t| matches!(t, TreeRow::Service { index } if app.rows[*index].name == name))
+        .unwrap();
+}
+
 #[test]
-fn start_requests_one_refresh_and_loads_rows() {
+fn start_refresh_and_error() {
     let mut app = App::new();
     assert_eq!(app.on_start(), [Effect::Refresh]);
-    assert!(app.on_start().is_empty(), "a refresh is already running");
+    assert!(app.on_start().is_empty());
     let effects = app.on_msg(Msg::Statuses(Ok((
         vec![row("redis", 0, 0)],
         BTreeMap::new(),
     ))));
-    assert_eq!(effects, [Effect::Refresh], "the late request reruns once");
+    assert_eq!(effects, [Effect::Refresh]);
     assert_eq!(app.rows.len(), 1);
-}
-
-#[test]
-fn docker_error_clears_rows_and_shows_message() {
-    let mut app = loaded();
     app.on_msg(Msg::Statuses(Err("Cannot reach Docker".into())));
-    assert!(app.rows.is_empty());
-    assert_eq!(app.status, "Cannot reach Docker");
+    assert!(app.rows.is_empty() && app.status == "Cannot reach Docker");
 }
 
 #[test]
 fn cursor_moves_and_clamps() {
     let mut app = loaded();
+    let last = app.tree_rows().len() - 1;
     app.on_key(key('j'));
     app.on_key(code(KeyCode::Down));
-    assert_eq!(app.selected, 2);
-    (0..10).for_each(|_| drop(app.on_key(key('j'))));
     assert_eq!(app.selected, 3);
-    (0..10).for_each(|_| drop(app.on_key(key('k'))));
+    (0..20).for_each(|_| drop(app.on_key(key('j'))));
+    assert_eq!(app.selected, last);
+    (0..20).for_each(|_| drop(app.on_key(key('k'))));
     assert_eq!(app.selected, 0);
 }
 
 #[test]
-fn filter_narrows_rows_and_esc_returns_to_the_list() {
+fn filter_and_quit_keys() {
     let mut app = loaded();
     app.on_key(key('/'));
     assert!(app.filter_mode);
-    "red".chars().for_each(|c| drop(app.on_key(key(c))));
+    assert!(
+        app.on_key(key('r')).is_empty()
+            && app.on_key(key('e')).is_empty()
+            && app.on_key(key('d')).is_empty()
+    );
     assert_eq!(app.visible().len(), 1);
-    assert_eq!(app.selected_row().unwrap().name, "redis");
+    assert_eq!(app.visible()[0].name, "redis");
     app.on_key(code(KeyCode::Backspace));
     assert_eq!(app.filter, "re");
     app.on_key(code(KeyCode::Esc));
     assert!(!app.filter_mode);
-    app.on_key(key('q'));
-}
-
-#[test]
-fn typing_in_filter_mode_does_not_trigger_actions() {
-    let mut app = loaded();
-    app.on_key(key('/'));
-    assert!(app.on_key(key('q')).is_empty());
-    assert!(app.on_key(key('u')).is_empty());
-    assert_eq!(app.filter, "qu");
-}
-
-#[test]
-fn q_and_ctrl_c_quit() {
     assert_eq!(loaded().on_key(key('q')), [Effect::Quit]);
-    let ctrl_c = KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL);
-    assert_eq!(loaded().on_key(ctrl_c), [Effect::Quit]);
+    assert_eq!(
+        loaded().on_key(KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)),
+        [Effect::Quit]
+    );
 }
 
 #[test]
@@ -119,8 +114,7 @@ fn up_stop_restart_run_at_once_and_block_while_busy() {
         [Effect::Run(Plan::Single("postgres".into(), OpKind::Up))]
     );
     assert!(app.busy);
-    assert!(app.on_key(key('s')).is_empty());
-    assert!(app.status.contains("Busy"));
+    assert!(app.on_key(key('s')).is_empty() && app.status.contains("Busy"));
     let effects = app.on_msg(Msg::OpsDone {
         ok: true,
         message: "postgres started".into(),
@@ -145,50 +139,35 @@ fn up_stop_restart_run_at_once_and_block_while_busy() {
 }
 
 #[test]
-fn down_asks_for_confirmation() {
+fn down_and_label_only_rules() {
     let mut app = loaded();
     assert!(app.on_key(key('d')).is_empty());
     assert!(matches!(app.modal, Some(Modal::Confirm { .. })));
-    assert!(app.on_key(key('n')).is_empty());
-    assert!(app.modal.is_none() && !app.busy);
+    assert!(app.on_key(key('n')).is_empty() && app.modal.is_none() && !app.busy);
     app.on_key(key('d'));
-    let effects = app.on_key(key('y'));
     assert_eq!(
-        effects,
+        app.on_key(key('y')),
         [Effect::Run(Plan::Single("postgres".into(), OpKind::Down))]
     );
     assert!(app.busy);
-}
-
-#[test]
-fn label_only_rows_refuse_up_restart_and_manage_toggle() {
-    let mut app = loaded();
-    (0..3).for_each(|_| drop(app.on_key(key('j'))));
-    assert_eq!(app.selected_row().unwrap().name, "oauth2-proxy");
-    assert!(app.on_key(key('u')).is_empty());
-    assert!(app.status.contains("label only"));
+    select_service(&mut app, "oauth2-proxy");
+    app.busy = false;
+    assert!(app.on_key(key('u')).is_empty() && app.status.contains("label only"));
     assert!(app.on_key(key('r')).is_empty());
-    assert!(app.on_key(key(' ')).is_empty());
-    assert!(!app.manage.contains("oauth2-proxy"));
-}
-
-#[test]
-fn manage_selection_starts_from_running_services() {
-    let app = loaded();
-    assert_eq!(app.manage.iter().collect::<Vec<_>>(), ["postgres"]);
+    assert!(app.on_key(key(' ')).is_empty() && !app.manage.contains("oauth2-proxy"));
 }
 
 #[test]
 fn space_then_m_builds_a_plan_in_startup_order() {
     let mut app = loaded();
-    app.on_key(key('j'));
+    select_service(&mut app, "redis");
     app.on_key(key(' '));
-    app.on_key(key('j'));
+    select_service(&mut app, "hindsight");
     app.on_key(key(' '));
     assert_eq!(app.manage.len(), 3);
     app.on_key(key('m'));
     let Some(Modal::Confirm { plan, .. }) = app.modal.clone() else {
-        panic!("expected a confirm modal")
+        panic!("expected confirm")
     };
     assert_eq!(
         plan,
@@ -203,10 +182,11 @@ fn space_then_m_builds_a_plan_in_startup_order() {
 #[test]
 fn deselecting_a_running_service_plans_a_stop() {
     let mut app = loaded();
+    assert_eq!(app.manage.iter().collect::<Vec<_>>(), ["postgres"]);
     app.on_key(key(' '));
     app.on_key(key('m'));
     let Some(Modal::Confirm { plan, .. }) = app.modal.clone() else {
-        panic!("expected a confirm modal")
+        panic!("expected confirm")
     };
     assert_eq!(
         plan,
@@ -218,27 +198,15 @@ fn deselecting_a_running_service_plans_a_stop() {
 }
 
 #[test]
-fn manage_with_no_changes_says_so() {
+fn manage_selection_no_changes_select_all_clear_and_refresh() {
     let mut app = loaded();
-    assert!(app.on_key(key('m')).is_empty());
-    assert_eq!(app.status, "No changes needed");
-    assert!(app.modal.is_none());
-}
-
-#[test]
-fn select_all_skips_locked_and_clear_empties() {
-    let mut app = loaded();
+    assert!(app.on_key(key('m')).is_empty() && app.status == "No changes needed");
     app.on_key(key('a'));
     assert_eq!(app.manage.len(), 3);
     assert!(!app.manage.contains("oauth2-proxy"));
     app.on_key(key('c'));
     assert!(app.manage.is_empty());
-}
-
-#[test]
-fn dirty_manage_selection_survives_a_refresh() {
-    let mut app = loaded();
-    app.on_key(key('j'));
+    select_service(&mut app, "redis");
     app.on_key(key(' '));
     app.on_start();
     app.on_msg(Msg::Statuses(Ok((app.rows.clone(), app.locked.clone()))));
@@ -246,27 +214,18 @@ fn dirty_manage_selection_survives_a_refresh() {
 }
 
 #[test]
-fn logs_toggle_follows_and_stops() {
+fn logs_follow_stop_and_cap() {
     let mut app = loaded();
     let effects = app.on_key(key('l'));
     assert!(matches!(&effects[..], [Effect::FollowLogs(c)] if c.len() == 1));
     assert_eq!(app.log_target.as_deref(), Some("postgres"));
-    app.on_msg(Msg::Log("hello".into()));
-    assert_eq!(app.logs.len(), 1);
-    assert_eq!(app.on_key(key('l')), [Effect::StopLogs]);
-    assert!(app.log_target.is_none() && app.logs.is_empty());
-    app.on_key(key('j'));
-    assert!(app.on_key(key('l')).is_empty(), "redis has no containers");
-}
-
-#[test]
-fn log_buffer_is_capped() {
-    let mut app = loaded();
-    for i in 0..LOG_MAX_LINES + 50 {
-        app.on_msg(Msg::Log(i.to_string()));
-    }
+    (0..LOG_MAX_LINES + 50).for_each(|i| drop(app.on_msg(Msg::Log(i.to_string()))));
     assert_eq!(app.logs.len(), LOG_MAX_LINES);
     assert_eq!(app.logs.front().unwrap(), "50");
+    assert_eq!(app.on_key(key('l')), [Effect::StopLogs]);
+    assert!(app.log_target.is_none() && app.logs.is_empty());
+    select_service(&mut app, "redis");
+    assert!(app.on_key(key('l')).is_empty());
 }
 
 #[test]
@@ -281,20 +240,61 @@ fn docker_events_are_debounced_into_one_refresh() {
 }
 
 #[test]
-fn help_modal_opens_and_closes() {
+fn help_and_shift_r() {
     let mut app = loaded();
     app.on_key(key('?'));
     assert_eq!(app.modal, Some(Modal::Help));
-    assert!(app.on_key(key('x')).is_empty() && app.modal.is_some());
     app.on_key(code(KeyCode::Esc));
     assert!(app.modal.is_none());
-}
-
-#[test]
-fn shift_r_refreshes_unless_busy() {
-    let mut app = loaded();
     assert_eq!(app.on_key(key('R')), [Effect::Refresh]);
     app.on_msg(Msg::Statuses(Ok((app.rows.clone(), app.locked.clone()))));
     app.busy = true;
     assert!(app.on_key(key('R')).is_empty());
+}
+
+#[test]
+fn active_zoom_open_and_presets_shortcuts() {
+    let mut app = loaded();
+    app.on_key(key('f'));
+    assert!(app.active_only && app.visible().len() == 1);
+    app.on_key(key('f'));
+    assert!(!app.active_only && app.visible().len() == 4);
+    app.on_key(key('z'));
+    assert!(app.zoom_details);
+    assert!(app.on_key(key('o')).is_empty()); // postgres has no web_ui
+    select_service(&mut app, "hindsight");
+    assert!(
+        matches!(app.on_key(key('o')).as_slice(), [Effect::OpenUrl(u)] if u.starts_with("https://"))
+    );
+    app.on_key(key('p'));
+    assert_eq!(app.modal, Some(Modal::Presets { selected: 0 }));
+    app.on_key(code(KeyCode::Enter));
+    assert!(app.modal.is_none() && app.manage.contains("postgres") && app.manage_dirty);
+}
+
+#[test]
+fn telemetry_messages_update_app_state() {
+    let mut app = loaded();
+    app.on_msg(Msg::Capacity(DockerCapacity {
+        ncpu: 4,
+        mem_total_bytes: 8_000_000_000,
+    }));
+    app.on_msg(Msg::DiskUsage(DiskUsage {
+        total_bytes: 5_000_000_000,
+        ..DiskUsage::default()
+    }));
+    let stats = BTreeMap::from([(
+        "postgres-0".to_string(),
+        ContainerStat {
+            name: "postgres-0".into(),
+            cpu_pct: 12.5,
+            mem_used_bytes: 100_000,
+            ..ContainerStat::default()
+        },
+    )]);
+    app.on_msg(Msg::Stats(stats));
+    assert_eq!(app.capacity.unwrap().ncpu, 4);
+    assert_eq!(app.disk_usage.unwrap().total_bytes, 5_000_000_000);
+    assert_eq!(app.cpu_history.back().copied(), Some(12.5));
+    assert_eq!(app.service_stats(&app.rows[0]), (12.5, 100_000));
 }

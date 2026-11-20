@@ -1,11 +1,18 @@
 //! Dashboard state and key handling. No terminal or Docker calls live here.
 
+use crate::catalog::{self, Catalog};
 use crate::docker::state::{ContainerInfo, ServiceStatus};
+use crate::docker::stats::{ContainerStat, DiskUsage, DockerCapacity};
+use crate::stack::ROOT_ENV_FILE;
+use crate::tui::theme::Theme;
+use crate::tui::tree::{build_tree, TreeRow};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::path::Path;
 use std::time::{Duration, Instant};
 
 pub const LOG_MAX_LINES: usize = 2000;
 const OPS_MAX_LINES: usize = 200;
+const CPU_HISTORY_MAX: usize = 16;
 const EVENT_DEBOUNCE: Duration = Duration::from_millis(300);
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -26,6 +33,9 @@ pub enum Plan {
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Modal {
     Help,
+    Presets {
+        selected: usize,
+    },
     Confirm {
         title: String,
         body: String,
@@ -40,12 +50,16 @@ pub enum Effect {
     Run(Plan),
     FollowLogs(Vec<ContainerInfo>),
     StopLogs,
+    OpenUrl(String),
     Quit,
 }
 
 /// Results that worker threads send back.
 pub enum Msg {
     Statuses(Result<(Vec<ServiceStatus>, BTreeMap<String, String>), String>),
+    Stats(BTreeMap<String, ContainerStat>),
+    Capacity(DockerCapacity),
+    DiskUsage(DiskUsage),
     Ops(String),
     OpsDone { ok: bool, message: String },
     Log(String),
@@ -72,34 +86,79 @@ pub struct App {
     pub log_target: Option<String>,
     pub modal: Option<Modal>,
     pub error: String,
+    pub catalog: Catalog,
+    pub domain: String,
+    pub theme: Theme,
+    pub stats: BTreeMap<String, ContainerStat>,
+    pub capacity: Option<DockerCapacity>,
+    pub disk_usage: Option<DiskUsage>,
+    pub cpu_history: VecDeque<f64>,
+    pub collapsed: BTreeSet<String>,
+    pub active_only: bool,
+    pub zoom_details: bool,
 }
 
 impl App {
     pub fn new() -> Self {
         Self {
             status: "Ready".into(),
+            catalog: catalog::load_catalog(),
+            domain: catalog::root_domain(Path::new(ROOT_ENV_FILE)),
+            theme: Theme::from_env(),
             ..Self::default()
         }
     }
 
+    pub fn tree_rows(&self) -> Vec<TreeRow> {
+        build_tree(
+            &self.rows,
+            &self.catalog,
+            &self.collapsed,
+            &self.filter,
+            self.active_only,
+        )
+    }
+
+    pub fn selected_tree_row(&self) -> Option<TreeRow> {
+        self.tree_rows().get(self.selected).cloned()
+    }
+
     pub fn visible(&self) -> Vec<&ServiceStatus> {
-        let needle = self.filter.trim().to_lowercase();
-        self.rows
-            .iter()
-            .filter(|r| needle.is_empty() || r.name.to_lowercase().contains(&needle))
+        self.tree_rows()
+            .into_iter()
+            .filter_map(|row| match row {
+                TreeRow::Service { index } => self.rows.get(index),
+                TreeRow::Group { .. } => None,
+            })
             .collect()
     }
 
     pub fn selected_row(&self) -> Option<&ServiceStatus> {
-        self.visible().get(self.selected).copied()
+        match self.selected_tree_row() {
+            Some(TreeRow::Service { index }) => self.rows.get(index),
+            _ => None,
+        }
+    }
+
+    pub fn service_stats(&self, row: &ServiceStatus) -> (f64, u64) {
+        row.containers.iter().fold((0.0, 0), |(cpu, mem), c| {
+            self.stats
+                .get(&c.name)
+                .map_or((cpu, mem), |s| (cpu + s.cpu_pct, mem + s.mem_used_bytes))
+        })
+    }
+
+    pub fn total_usage(&self) -> (f64, u64) {
+        self.stats
+            .values()
+            .fold((0.0, 0), |(c, m), s| (c + s.cpu_pct, m + s.mem_used_bytes))
     }
 
     pub(super) fn selected_name(&self) -> Option<String> {
         self.selected_row().map(|r| r.name.clone())
     }
-
     pub(super) fn clamp(&mut self) {
-        self.selected = self.selected.min(self.visible().len().saturating_sub(1));
+        self.selected = self.selected.min(self.tree_rows().len().saturating_sub(1));
     }
 
     pub(super) fn push_ops(&mut self, line: String) {
@@ -109,7 +168,6 @@ impl App {
         }
     }
 
-    /// Start a refresh unless one runs. A late request reruns once the current one lands.
     pub(super) fn request_refresh(&mut self) -> Vec<Effect> {
         if self.refreshing {
             self.refresh_again = true;
@@ -124,7 +182,6 @@ impl App {
         self.request_refresh()
     }
 
-    /// A Docker event arrived. The refresh fires from `tick` after the debounce.
     pub fn on_event(&mut self, now: Instant) {
         self.event_at.get_or_insert(now);
     }
@@ -142,6 +199,23 @@ impl App {
     pub fn on_msg(&mut self, msg: Msg) -> Vec<Effect> {
         match msg {
             Msg::Statuses(result) => self.apply_statuses(result),
+            Msg::Stats(stats) => {
+                self.cpu_history
+                    .push_back(stats.values().map(|s| s.cpu_pct).sum());
+                while self.cpu_history.len() > CPU_HISTORY_MAX {
+                    self.cpu_history.pop_front();
+                }
+                self.stats = stats;
+                vec![]
+            }
+            Msg::Capacity(cap) => {
+                self.capacity = Some(cap);
+                vec![]
+            }
+            Msg::DiskUsage(df) => {
+                self.disk_usage = Some(df);
+                vec![]
+            }
             Msg::Ops(line) => {
                 self.push_ops(line);
                 vec![]
@@ -199,9 +273,18 @@ impl App {
             }
         }
         if let Some(name) = keep {
-            if let Some(i) = self.visible().iter().position(|r| r.name == name) {
+            if let Some(i) = self.tree_rows().iter().position(|t| match t {
+                TreeRow::Service { index } => self.rows.get(*index).is_some_and(|r| r.name == name),
+                TreeRow::Group { .. } => false,
+            }) {
                 self.selected = i;
             }
+        } else if let Some(i) = self
+            .tree_rows()
+            .iter()
+            .position(|t| matches!(t, TreeRow::Service { .. }))
+        {
+            self.selected = i;
         }
         self.clamp();
         if std::mem::take(&mut self.refresh_again) {
