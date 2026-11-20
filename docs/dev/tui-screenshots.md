@@ -28,7 +28,7 @@ Notes:
   - `ocean`: `#0f1419`
   - `amber`: `#14110e`
   - `nord`: `#2e3440`
-- **Build first:** Run `make build` beforehand so `make console` opens immediately within `sleep 2` without waiting on `cargo build`.
+- **Build first:** Run `make build` beforehand because `make console` requires the prebuilt `dss` binary.
 - **Duplicate session error:** If a previous run failed mid-way, clean up with `tmux kill-session -t dss-shot`.
 
 ## Capturing static CLI commands

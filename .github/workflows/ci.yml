@@ -37,8 +37,7 @@ jobs:
           dest="$RUNNER_TEMP/dss-export-smoke"
           cli/target/release/dss package --name smoke --services memcached --dest "$dest"
           cd "$dest"
-          make build
-          cli/target/release/dss env create
-          cli/target/release/dss env passwords
-          cli/target/release/dss env fill-secrets
+          ./dss env create
+          ./dss env passwords
+          ./dss env fill-secrets
           make validate

@@ -1,6 +1,4 @@
-//! Limit the root `.env.example` and the catalog to a service selection.
-
-use crate::catalog::Catalog;
+//! Limit the root `.env.example` and manifest to a service selection.
 
 /// Banner title (text before " - ") -> service directory. The longest match wins.
 const BANNERS: &[(&str, &str)] = &[
@@ -162,18 +160,6 @@ pub fn filter_env_example(text: &str, services: &[String]) -> String {
     out
 }
 
-/// The catalog limited to `services`, as pretty JSON with `{domain}` left in place.
-pub fn filter_catalog(raw: &Catalog, services: &[String]) -> Result<String, String> {
-    let kept: Catalog = raw
-        .iter()
-        .filter(|(k, _)| services.contains(k))
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect();
-    serde_json::to_string_pretty(&kept)
-        .map(|s| s + "\n")
-        .map_err(|e| e.to_string())
-}
-
 /// `dss-package.json`: the services the exported tree manages.
 pub fn manifest(services: &[String]) -> Result<String, String> {
     serde_json::to_string_pretty(&serde_json::json!({ "services": services }))
@@ -240,14 +226,7 @@ mod tests {
     }
 
     #[test]
-    fn catalog_and_manifest_hold_only_selected_services() {
-        let all =
-            crate::catalog::parse_catalog(include_str!("../../service_catalog.json"), "{domain}")
-                .unwrap();
-        let json = filter_catalog(&all, &names(&["redis", "traefik"])).unwrap();
-        assert!(json.contains("\"redis\"") && json.contains("\"traefik\""));
-        assert!(!json.contains("\"postgres\""));
-        assert!(json.contains("{domain}"));
+    fn manifest_holds_only_selected_services() {
         assert_eq!(
             crate::config::select_services(&manifest(&names(&["redis"])).unwrap()).unwrap(),
             ["redis"]

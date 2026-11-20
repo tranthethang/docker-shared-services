@@ -11,6 +11,9 @@ Local Docker Compose stack for common infra: databases, cache, messaging, CI/CD,
 ## Quick start
 
 ```bash
+# 0) Build the dss binary
+make build
+
 # 1) Networks, .env files, shared password
 make setup
 # Or choose a secure shared password:

@@ -10,11 +10,11 @@ ______________________________________________________________________
 
 ```bash
 make help           # Show all commands
+make build          # Build cli/target/release/dss (run first)
 make setup          # Setup environment files and shared Docker networks
                     # (also merges new keys from .env.example into existing .env)
 make console        # management console (TTY)
 make package        # Package a selected stack into dist/ (TTY wizard)
-make build          # Build cli/target/release/dss
 make check          # format-check, lint, shell-lint, test, validate
 ```
 

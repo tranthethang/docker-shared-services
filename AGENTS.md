@@ -31,7 +31,7 @@ make check                                      # fmt, clippy, shellcheck, test,
 make hooks                                      # install prek git hooks
 ```
 
-Every `make` target and `dss` subcommand uses the `cli/` Rust binary, which `make build` (or `make setup`/`make console`) builds with `cargo`. The Makefile stops with an install hint when `cargo` is missing. `make console` and `make package` (without flags) need a TTY.
+Every `make` target and `dss` subcommand uses the `cli/` Rust binary, which `make build` compiles with `cargo` (run `make build` first; operational targets do not auto-build). The Makefile stops with an install hint when `cargo` is missing. `make console` and `make package` (without flags) need a TTY.
 
 ## Structure
 
@@ -47,7 +47,7 @@ Every `make` target and `dss` subcommand uses the `cli/` Rust binary, which `mak
 - `make setup` prompts before writing `.env` files. Skip it when there is no TTY (`cli/target/release/dss setup --yes`).
 - Root `.env` must exist before `dss up` or `make console` starts services. Create it with `make setup`.
 - Setup rejects the legacy password `Password102!`.
-- `cli/` is copied into exports. An export holds only the services you pick, listed in its `dss-package.json`.
+- The prebuilt `dss` binary is copied into exports (no `cli/` sources needed). An export holds only the services you pick, listed in its `dss-package.json`.
 
 ## Workflow
 
