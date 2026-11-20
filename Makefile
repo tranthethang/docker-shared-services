@@ -1,33 +1,25 @@
-.PHONY: help setup passwords ps health remove-all prune remove-config info up down stop restart logs validate manage tui package sync format format-check lint typecheck test test-update check hooks
+.PHONY: help build setup console package validate format format-check lint shell-lint test hooks check
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-# Python runs through uv on the locked Python 3.12 environment (without dev tools).
-UV ?= uv
-UV_MISSING := $(if $(shell command -v $(UV) 2>/dev/null),,1)
-UV_RUN = $(if $(UV_MISSING),$(error uv is required. Install: https://docs.astral.sh/uv/),$(UV) run --frozen --no-dev)
-PY = $(UV_RUN) python
-PY_TUI = $(UV_RUN) --group tui python
+# The Rust binary in cli/ does the work. It builds with cargo on first use.
+CARGO ?= cargo
+CARGO_MISSING := $(if $(shell command -v $(CARGO) 2>/dev/null),,1)
+MANIFEST := --manifest-path cli/Cargo.toml
+DSS := cli/target/release/dss
 
-# Python managers
-PYTHON_ENV_MGR = $(PY) -m dss.cli.env
-PYTHON_SVC_MGR = $(PY) -m dss.cli.service
-
-# Optional shared password for setup/passwords targets:
+# Optional shared password for setup:
 #   make setup password='your-secure-password'
 #   DSS_SHARED_PASSWORD='your-secure-password' make setup
-#   make passwords password='your-secure-password'
 # When omitted, setup generates a shared password on first use.
 password ?=
 
-# -f arguments for every service compose file, shared networks first.
-COMPOSE_FILES = -f docker-compose.shared.yml \
-	$(shell find . -maxdepth 2 -name "docker-compose.yml" -not -path "./docker-compose.shared.yml" | LC_ALL=C sort | sed 's|^./|-f |')
-# SANDBOX_NAME from the root .env prefixes the project name of the all-services command.
-SANDBOX_NAME = $(shell $(PY) -m dss.core.stack name 2>/dev/null)
-# Dynamic DOCKER_COMPOSE command that includes all services
-DOCKER_COMPOSE = docker compose $(if $(SANDBOX_NAME),-p $(SANDBOX_NAME) )$(COMPOSE_FILES)
+$(DSS): $(wildcard cli/src/*.rs cli/src/*/*.rs) cli/Cargo.toml cli/Cargo.lock cli/service_catalog.json
+	$(if $(CARGO_MISSING),$(error cargo is required. Install: https://rustup.rs/))
+	@$(CARGO) build --release --quiet $(MANIFEST)
+
+build: $(DSS) ## Build the dss binary (cli/target/release/dss)
 
 help: ## Show this help message
 	@echo "╔════════════════════════════════════════════════════════════════╗"
@@ -35,7 +27,8 @@ help: ## Show this help message
 	@echo "╚════════════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make <command> [service=<service_name>]"
+	@echo "  make <command>"
+	@echo "  $(DSS) --help"
 	@echo ""
 	@echo "Commands:"
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -44,154 +37,42 @@ help: ## Show this help message
 		awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
-setup: ## Setup env files and networks (optional: password='your-secure-password')
-	@echo "Checking shared Docker networks (names and subnets from SANDBOX_NAME and SANDBOX_SUBNET_BASE)..."
-	@scripts/ensure-networks.sh $$($(PY) -m dss.core.stack)
-	@echo "Checking environment files..."
-	@$(PYTHON_ENV_MGR) check all
-	@echo ""
-	@read -p "Do you want to create missing .env files from .env.example? (y/n) " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		$(PYTHON_ENV_MGR) create all; \
-	fi
-	@# Append keys newly added to .env.example without overwriting existing values.
-	@$(PYTHON_ENV_MGR) merge-missing all
-	@# ONE shared password for every placeholder password (DB/Redis/MinIO/…).
-	@# Override: make setup password='your-secure-password'  OR  DSS_SHARED_PASSWORD='…' make setup
-	@# Unique secrets (Garage, Woodpecker agent) are filled next and stay distinct.
-	@$(PYTHON_ENV_MGR) fill-shared-password $(if $(password),--password "$(password)",)
-	@$(PYTHON_ENV_MGR) fill-secrets all
-	@echo "Checking Dozzle users file (dozzle/data/users.yml)..."
-	@scripts/ensure-dozzle-users.sh dozzle/data/users.yml .env
-	@$(PYTHON_ENV_MGR) validate all || true
-	@$(PYTHON_ENV_MGR) summary all
-	@echo ""
+setup: $(DSS) ## Setup env files and networks (optional: password='your-secure-password')
+	@$(DSS) setup $(if $(password),--password "$(password)",)
 
-passwords: ## Apply ONE shared password to all services (optional: password='…' force=1)
-	@$(PYTHON_ENV_MGR) fill-shared-password \
-		$(if $(password),--password "$(password)",) \
-		$(if $(filter 1 true yes,$(force)),--force,)
+console: $(DSS) ## Open the management console (needs an interactive terminal)
+	@$(DSS)
 
-up: ## Start services (usage: make up [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
+package: $(DSS) ## Package a selected stack into dist/ (interactive wizard)
+	@$(DSS) package
 
-down: ## Stop and remove services (usage: make down [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
-
-stop: ## Stop services (usage: make stop [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
-
-restart: ## Restart services (usage: make restart [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
-
-manage: ## Interactive multi-select service manager (up selected, down unselected)
-	@$(PYTHON_SVC_MGR) manage
-
-tui: ## Optional Textual dashboard (requires uv + interactive terminal)
-	@if [ ! -t 0 ] || [ ! -t 1 ]; then \
-		echo "❌ make tui needs an interactive terminal (TTY)."; \
-		echo "   Use make manage / make up / make ps / make logs instead."; \
-		exit 1; \
-	fi
-	@$(PY_TUI) -m dss.tui
-
-package: ## Package a selected stack into dist/ (requires uv + interactive terminal)
-	@if [ ! -t 0 ] || [ ! -t 1 ]; then \
-		echo "❌ make package needs an interactive terminal (TTY)."; \
-		exit 1; \
-	fi
-	@$(PY_TUI) -m dss.package.wizard
-
-logs: ## Show logs (usage: make logs [service=pgvector])
-	@$(PYTHON_SVC_MGR) $(if $(service),$(service) $@,$@)
-
-ps: ## Show status of all running services
-	@echo ""
-	@echo "Service Status:"
-	@echo ""
-	@$(DOCKER_COMPOSE) ps
-	@echo ""
-
-health: ## Check health status of all services (usage: make health [service=pgvector])
-	@echo ""
-	@echo "Service Health:"
-	@echo ""
-	@if [ -n "$(service)" ]; then \
-		docker compose $(if $(SANDBOX_NAME),-p $(SANDBOX_NAME)-$(service) )--project-directory $(service) -f docker-compose.shared.yml -f $(service)/docker-compose.yml ps; \
-	else \
-		$(DOCKER_COMPOSE) ps --format "table {{.Name}}\t{{.Status}}"; \
-	fi
-	@echo ""
-
-remove-all: ## Remove all containers and volumes (⚠️ DANGER: Removes all data)
-	@scripts/remove-all.sh $(COMPOSE_FILES)
-
-prune: ## Remove unused Docker resources
-	@echo "Pruning Docker resources..."
-	@docker system prune -f --volumes
-	@echo "✅ Pruned"
-
-remove-config: ## Remove all .env files that have a matching .env.example
-	@scripts/remove-config.sh .
-
-info: ## Show service information and access URLs
-	@$(PY) -m dss.cli.info
-
-validate: ## Validate all Docker Compose files
+validate: $(DSS) ## Validate all Docker Compose files and the service catalog
 	@echo "==> validate"
-	@$(PYTHON_SVC_MGR) --validate-compose
+	@$(DSS) validate
 
-sync: ## Install Python tooling deps with uv (ruff, yamlfix, mdformat, …)
-	@$(UV) sync --group dev
-	@echo "✅ uv sync complete"
+format: ## Format the Rust sources
+	@$(CARGO) fmt $(MANIFEST)
 
-format: ## Format YAML, JSON, Markdown, Python, and .env.example files
-	@$(UV) sync --group dev --quiet
-	@PYTHONUNBUFFERED=1 $(UV) run python tools/format_repo.py
-
-format-check: ## Check formatting without writing changes
+format-check: ## Check Rust formatting without writing changes
 	@echo "==> format-check"
-	@$(UV) sync --group dev --quiet
-	@PYTHONUNBUFFERED=1 $(UV) run python tools/format_repo.py --check
+	@$(CARGO) fmt --check $(MANIFEST)
 
-SHELL_SCRIPTS = $(shell find . -name '*.sh' -not -path './.venv/*' -not -path './dist/*' -not -path './.git/*' -not -path '*/data/*')
+lint: ## Run clippy with warnings as errors
+	@echo "==> lint: clippy"
+	@$(CARGO) clippy $(MANIFEST) --all-targets -- -D warnings
 
-lint: ## Run ruff, import-linter, the file-size check, shellcheck, and shfmt
-	@$(UV) sync --group dev --quiet
-	@echo "==> lint: ruff"
-	@$(UV) run ruff check dss tools tests
-	@echo "==> lint: import-linter"
-	@$(UV) run lint-imports
-	@echo "==> lint: file size"
-	@$(UV) run python tools/check_file_size.py
-	@echo "==> lint: shellcheck"
-	@$(UV) run shellcheck -x $(SHELL_SCRIPTS)
-	@echo "==> lint: shfmt"
-	@$(UV) run shfmt -d -i 2 -ci $(SHELL_SCRIPTS)
+shell-lint: ## Run shellcheck (warning level) on tracked shell scripts. Needs shellcheck.
+	@echo "==> shell-lint: shellcheck"
+	@command -v shellcheck >/dev/null 2>&1 || { echo "shellcheck is required. Install: https://www.shellcheck.net/"; exit 1; }
+	@git ls-files -z '*.sh' | xargs -0 shellcheck -S warning
 
-typecheck: ## Run mypy (strict) on dss/ and tools/
-	@# The tui group installs textual so its widgets type-check as real classes, not Any.
-	@echo "==> typecheck: mypy (strict)"
-	@$(UV) sync --group dev --group tui --quiet
-	@$(UV) run --group tui mypy dss tools
+test: ## Run cargo test (unit tests plus repo rules and the 300-line limit)
+	@echo "==> test: cargo test"
+	@$(CARGO) test --quiet $(MANIFEST)
 
-COVERAGE_FLOOR_CORE = 80
-
-test: ## Run pytest with a dss/ coverage report; dss/core must reach the coverage floor
-	@echo "==> test: pytest"
-	@$(UV) sync --group dev --quiet
-	@$(UV) run pytest --cov=dss --cov-report=term-missing
-	@echo "==> test: coverage floor dss/core >= $(COVERAGE_FLOOR_CORE)%"
-	@$(UV) run coverage report --include='dss/core/*' --fail-under=$(COVERAGE_FLOOR_CORE)
-
-test-update: ## Regenerate tests/golden snapshots
-	@$(UV) sync --group dev --quiet
-	@GOLDEN_UPDATE=1 $(UV) run pytest
-
-hooks: ## Install git hooks (pre-commit: format-check, lint, typecheck; pre-push: test)
-	@$(UV) sync --group dev --quiet
-	@$(UV) run prek install
+hooks: ## Install git hooks (pre-commit: format-check, lint, shell-lint; pre-push: test). Needs prek.
+	@command -v prek >/dev/null 2>&1 || { echo "prek is required. Install: https://github.com/j178/prek"; exit 1; }
+	@prek install
 	@echo "✅ Git hooks installed (.pre-commit-config.yaml)"
 
-check: format-check lint typecheck test validate ## Run format-check, lint, typecheck, test, and validate
+check: format-check lint shell-lint test validate ## Run format-check, lint, shell-lint, test, and validate

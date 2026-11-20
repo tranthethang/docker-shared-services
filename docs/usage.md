@@ -12,70 +12,78 @@ ______________________________________________________________________
 make help           # Show all commands
 make setup          # Setup environment files and shared Docker networks
                     # (also merges new keys from .env.example into existing .env)
-make up             # Start services (interactive or specific)
-make down           # Stop and remove services
-make stop           # Stop services (keep containers)
-make manage         # Interactive multi-select start/stop
-make tui            # Optional Textual dashboard (uv + TTY)
-make ps             # Show service status
-make logs           # View logs
-make info           # URLs, ports, opt-in UI auth guidance
-make remove-all     # Remove containers & volumes
-make restart        # Restart services
+make console        # management console (TTY)
+make package        # Package a selected stack into dist/ (TTY wizard)
+make build          # Build cli/target/release/dss
+make check          # format-check, lint, shell-lint, test, validate
+```
+
+### Direct CLI (`cli/target/release/dss`)
+
+For non-interactive or scripted operations after `make build`:
+
+```bash
+cli/target/release/dss up --service <name>       # Start one service (and its backends)
+cli/target/release/dss down --service <name>     # Stop and remove services
+cli/target/release/dss stop --service <name>     # Stop services (keep containers)
+cli/target/release/dss restart --service <name>  # Restart services
+cli/target/release/dss ps                        # Show service status
+cli/target/release/dss health                    # Check service health
+cli/target/release/dss logs --service <name>     # View logs
+cli/target/release/dss info                      # URLs, ports, opt-in UI auth guidance
+cli/target/release/dss teardown                  # Remove containers & volumes
 ```
 
 ### Quality gate
 
-`make check` is the post-change gate. It runs formatting, lint (ruff, file size, shellcheck, shfmt), mypy, pytest, and Compose validation. Compose validation needs env files; CI creates a disposable env before `make check`.
+`make check` is the post-change gate. It runs `cargo fmt --check`, clippy, `shellcheck`, `cargo test` (which also checks the Compose files and the 300-line limit), and Compose validation. Compose validation needs env files; CI creates a disposable env before `make check`.
 
 ```bash
-make check          # format-check, lint, typecheck, test, validate
-make test-update    # rewrite tests/golden from export_stack (GOLDEN_UPDATE=1)
+make check          # format-check, lint, shell-lint, test, validate
+make build          # build cli/target/release/dss
 ```
 
-A normal `make test` compares golden files and does not write them.
+### Dashboard (`make console` or `dss`)
 
-### Optional Textual dashboard (`make tui`)
-
-Keyboard-driven status/health/logs UI that reuses the same Compose conventions as the Makefile. Does **not** replace `make manage` or other CLI targets.
+Keyboard-driven status, health, and logs UI built with ratatui. It runs the same Compose commands as `dss up` / `down` / `stop` / `restart`.
 
 ```bash
-uv sync --group tui   # install optional deps (textual, docker SDK)
-make tui
+make console    # interactive terminal required
 ```
 
-| Key                   | Action                                                       |
-| --------------------- | ------------------------------------------------------------ |
-| `↑`/`↓` or `j`/`k`    | Move selection                                               |
-| `/`                   | Filter services (`Enter`/`Esc` returns to the list)          |
-| `r`                   | Force a status refresh (status also auto-updates)            |
-| `Enter`               | Container details (details also follow the cursor)           |
-| `l`                   | Follow live logs (last 200 lines + new); press again to stop |
-| `u` / `s` / `Shift+R` | Up / stop / restart selected stack                           |
-| `d`                   | Down selected stack (confirm)                                |
-| `Space`               | Toggle manage selection                                      |
-| `m`                   | Confirm manage plan, then quit and show Docker progress      |
-| `?`                   | Help                                                         |
-| `q`                   | Quit                                                         |
+| Key                | Action                                                       |
+| ------------------ | ------------------------------------------------------------ |
+| `↑`/`↓` or `j`/`k` | Move selection                                               |
+| `/`                | Filter services (`Enter`/`Esc` returns to the list)          |
+| `R`                | Force a status refresh (status also auto-updates)            |
+| `Enter`            | Show details and stop following logs                         |
+| `l`                | Follow live logs (last 200 lines + new); press again to stop |
+| `u` / `s` / `r`    | Up / stop / restart selected stack                           |
+| `d`                | Down selected stack (confirm)                                |
+| `Space`            | Toggle manage selection                                      |
+| `a` / `c`          | Select all / clear the manage selection                      |
+| `m`                | Confirm and apply the manage plan                            |
+| `?`                | Help                                                         |
+| `q`                | Quit                                                         |
 
 Notes:
 
-- Status refreshes automatically on Docker container events (start, stop, health changes); `r` forces a refresh.
-- `m` closes the dashboard after confirmation and runs the same start/stop commands as `make manage`, so image pulls print in the terminal.
+- Status refreshes automatically on Docker container events (start, stop, health changes); `R` forces a refresh.
+- `m` shows what will start and stop, then runs it in the background. Compose output appears in the Operations panel.
 - `oauth2-proxy` is a label until `OAUTH2_PROXY_CLIENT_ID` and `OAUTH2_PROXY_CLIENT_SECRET` are set in `oauth2-proxy/.env`. Space, `a`, `u`, and restart leave it unchanged. Stop and down still work.
-- Logs are streamed **unredacted**, exactly like `make logs` / `docker logs`, and only when you press `l`. Application logs can contain credentials; treat the screen accordingly.
-- When a Compose action fails, the operations panel shows the last lines of Compose's error output with values from the root and service `.env` files masked as `***`. Run the matching `make` target for the full output.
+- Logs are streamed **unredacted**, exactly like `dss logs` / `docker logs`, and only when you press `l`. Application logs can contain credentials; treat the screen accordingly.
+- Compose output in the Operations panel has values from the root and service `.env` files masked as `***`. Run the matching `cli/target/release/dss` subcommand for the full output.
 
-Setup errors (non-interactive terminal, missing TUI packages, or Docker unreachable) print actionable messages and leave Makefile/CLI workflows available. Every Makefile target that runs Python needs `uv`; without it, Make stops with an install hint.
+Without an interactive terminal, the dashboard prints a message and exits. Use `cli/target/release/dss up --service <name>`, `cli/target/release/dss ps`, or `cli/target/release/dss --help` instead. Every Makefile target builds the binary with `cargo` first. Without `cargo`, Make stops with an install hint.
 
 ### Opt-in UI auth (oauth2-proxy)
 
 ```bash
-make up service=oauth2-proxy
-uv run python -m dss.cli.env summary   # AUTH gateway on/off per candidate UI
-uv run python -m dss.cli.env merge-missing all   # add keys from .env.example missing in .env
+cli/target/release/dss up --service oauth2-proxy
+cli/target/release/dss env summary         # AUTH gateway on/off per candidate UI
+cli/target/release/dss env merge-missing   # add keys from .env.example missing in .env
 # Enable for one UI: edit <service>/.env → AUTH_ENABLED=true, AUTH_MIDDLEWARE=auth-default
-make restart service=mermaid-live-editor
+cli/target/release/dss restart --service mermaid-live-editor
 ```
 
 See [configuration.md](configuration.md#opt-in-oidc-ui-authentication) and [oauth2-proxy/README.md](../oauth2-proxy/README.md).
@@ -97,20 +105,20 @@ ______________________________________________________________________
 ### Stop services (keep data)
 
 ```bash
-make down
+cli/target/release/dss down --all
 ```
 
 ### Stop and remove volumes (delete data)
 
 ```bash
-make remove-all
+cli/target/release/dss teardown
 ```
 
 ### Deep cleanup
 
 ```bash
-make remove-all
-make prune
+cli/target/release/dss teardown
+cli/target/release/dss prune
 docker system prune -a --volumes
 ```
 
@@ -118,7 +126,7 @@ ______________________________________________________________________
 
 ## 🎯 Pro Tips
 
-1. **Use Makefile** - Easier than docker-compose commands.
+1. **Use `make console` / `dss`** - Easier than raw `docker compose` commands across 30+ stacks.
 1. **Keep backups** of important databases before major changes.
 1. **Monitor resources** - Watch with `docker stats`.
 1. **Use .env files** - Don't hardcode sensitive values.

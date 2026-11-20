@@ -14,7 +14,7 @@ Dozzle stores a **bcrypt hash** in `users.yml`.
 Load the shared password from the root `.env`, then generate the users file:
 
 ```bash
-DSS_SHARED_PASSWORD=$(uv run --frozen --no-dev python -c "from dss.core.utils import read_env_value; print(read_env_value('.env', 'DSS_SHARED_PASSWORD'))")
+DSS_SHARED_PASSWORD=$(grep -E '^DSS_SHARED_PASSWORD=' .env | head -1 | cut -d= -f2-)
 docker run --rm -i amir20/dozzle generate admin \
   --password "$DSS_SHARED_PASSWORD" \
   --email admin@example.com \

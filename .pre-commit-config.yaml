@@ -1,6 +1,6 @@
 # Git hooks, run by prek (https://github.com/j178/prek). Install with `make hooks`.
-# Every hook only calls a make target, so rule config lives in pyproject.toml and the
-# Makefile, and CI (`make check`) runs the same commands.
+# Every hook only calls a make target, so rule config lives in the Makefile and cli/,
+# and CI (`make check`) runs the same commands.
 default_install_hook_types:
   - pre-commit
   - pre-push
@@ -24,9 +24,9 @@ repos:
         always_run: true
         stages: [pre-commit]
 
-      - id: typecheck
-        name: make typecheck
-        entry: make typecheck
+      - id: shell-lint
+        name: make shell-lint
+        entry: make shell-lint
         language: system
         pass_filenames: false
         always_run: true

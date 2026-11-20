@@ -43,7 +43,7 @@ Below is the mapping for all container services in the repository:
 | **gitea**                   | Git Service               |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL on data_net              |
 | **gotenberg**               | PDF Conversion Service    |       ❌        |      ✅       |     ❌     | Internal HTTP API / localhost:3030                   |
 | **hasura**                  | GraphQL Engine            |       ✅        |      ✅       |     ✅     | Traefik GraphQL API/Console + PostgreSQL on data_net |
-| **host-bridge**             | HAProxy TCP bridge        |       ❌        |      ✅       |     ✅     | Default dev TCP on 127.0.0.1; start with `make up`   |
+| **host-bridge**             | HAProxy TCP bridge        |       ❌        |      ✅       |     ✅     | Default dev TCP on 127.0.0.1; start via `dss up`     |
 | **hindsight**               | MCP Memory Service        |       ✅        |      ✅       |     ✅     | Traefik Web UI/API + PgVector on data_net            |
 | **inngest**                 | Background Job Platform   |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL/Redis on data_net        |
 | **jenkins**                 | Automation Server         |       ✅        |      ✅       |     ✅     | Traefik Web UI + PostgreSQL on data_net              |
@@ -91,11 +91,11 @@ Below is the mapping for all container services in the repository:
 
 ## Data tier rules
 
-`tests/test_network_tiers.py` (`make test`) enforces these rules:
+`cli/src/repo_rules.rs` (`make test`) enforces these rules:
 
 - Every data store is on `data_net` and not on `backend_net`. Data stores: `postgres`, `pgvector`, `mysql8`, `mariadb`, `mongodb`, `redis`, `memcached`, `kafka`, `loki`, `supabase-db`, `chromadb`, `qdrant`, `rabbitmq`.
 - A non-data container joins `data_net` only when one of these holds:
-  - its project is a consumer of a data store in `PACKAGE_REQUIRES` (`dss/core/config.py`);
+  - its project is a consumer of a data store in `PACKAGE_REQUIRES` (`cli/src/config.rs`);
   - it is in the same Compose project as a data store (for example `kafka-ui`, `grafana`, the Supabase services);
   - its project is a data-store UI or TCP bridge listed in `DATA_CLIENT_UI_SERVICES` (includes `host-bridge`).
 - Every `PACKAGE_REQUIRES` consumer of a data store has a container on `data_net`.

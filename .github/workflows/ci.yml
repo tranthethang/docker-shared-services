@@ -20,19 +20,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
-        with:
-          version: "0.10.6"
-
-      - name: Check dependency lockfile
-        run: uv lock --check
+      - name: Build the dss binary
+        run: make build
 
       - name: Create disposable Compose environment
         run: |
-          uv run --frozen --no-dev python -m dss.cli.env create all
-          uv run --frozen --no-dev python -m dss.cli.env fill-shared-password
-          uv run --frozen --no-dev python -m dss.cli.env fill-secrets all
+          cli/target/release/dss env create
+          cli/target/release/dss env passwords
+          cli/target/release/dss env fill-secrets
 
       - name: Run the quality gate
         run: make check
@@ -40,9 +35,10 @@ jobs:
       - name: Smoke-test an exported stack
         run: |-
           dest="$RUNNER_TEMP/dss-export-smoke"
-          uv run --frozen --no-dev python -c 'import sys; from pathlib import Path; from dss.package.export import export_stack; export_stack(["memcached"], "smoke", destination=Path(sys.argv[1]))' "$dest"
+          cli/target/release/dss package --name smoke --services memcached --dest "$dest"
           cd "$dest"
-          uv run --frozen --no-dev python -m dss.cli.env create all
-          uv run --frozen --no-dev python -m dss.cli.env fill-shared-password
-          uv run --frozen --no-dev python -m dss.cli.env fill-secrets all
+          make build
+          cli/target/release/dss env create
+          cli/target/release/dss env passwords
+          cli/target/release/dss env fill-secrets
           make validate
