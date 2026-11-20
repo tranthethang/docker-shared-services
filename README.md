@@ -1,6 +1,6 @@
 # Docker Shared Services
 
-![Docker Shared Services](assets/tux.svg)
+![Docker Shared Services](assets/console.svg)
 
 Local Docker Compose stack for common infra: databases, cache, messaging, CI/CD, auth, storage, and observability. Managed with a `Makefile` + the `dss` Rust binary in `cli/` (built with `cargo`).
 
@@ -39,28 +39,28 @@ The Traefik dashboard is at `https://traefik.sandbox.localhost/dashboard/` with 
 
 `make setup` writes **one** password into all service password fields (Postgres, Redis, MinIO, Grafana, …). Unique secrets (Garage, Woodpecker agent, Zitadel masterkey, oauth2-proxy cookie secret) stay separate.
 
-| Goal                   | Command                                                              |
-| ---------------------- | -------------------------------------------------------------------- |
-| Random shared password | `make setup`                                                         |
-| Choose a password      | `make setup password='your-secure-password'`                         |
-| Same via env           | `DSS_SHARED_PASSWORD='your-secure-password' make setup`              |
-| Rotate later           | `cli/target/release/dss env passwords --password 'NewPass' --force`  |
+| Goal                   | Command                                                             |
+| ---------------------- | ------------------------------------------------------------------- |
+| Random shared password | `make setup`                                                        |
+| Choose a password      | `make setup password='your-secure-password'`                        |
+| Same via env           | `DSS_SHARED_PASSWORD='your-secure-password' make setup`             |
+| Rotate later           | `cli/target/release/dss env passwords --password 'NewPass' --force` |
 
 Value is stored as `DSS_SHARED_PASSWORD` in the root `.env`.
 
 ## Common commands
 
-| Command                                           | What it does                                 |
-| ------------------------------------------------- | -------------------------------------------- |
-| `make setup`                                      | Networks, `.env`, shared password, Dozzle    |
-| `make console`                                    | Management console (needs an interactive TTY) |
-| `make package`                                    | Package a selected stack into `dist/`        |
-| `make validate`                                   | Validate all compose files                   |
-| `make build`                                      | Build `cli/target/release/dss`               |
-| `cli/target/release/dss up --service <folder>`    | Start one service (and its backends)         |
-| `cli/target/release/dss ps` / `health` / `info`   | Observe status, health, and URLs             |
-| `cli/target/release/dss remove-config`            | Delete generated `.env` files (confirm)      |
-| `cli/target/release/dss teardown`                 | **Wipe containers + volumes** (confirm)      |
+| Command                                         | What it does                                  |
+| ----------------------------------------------- | --------------------------------------------- |
+| `make setup`                                    | Networks, `.env`, shared password, Dozzle     |
+| `make console`                                  | Management console (needs an interactive TTY) |
+| `make package`                                  | Package a selected stack into `dist/`         |
+| `make validate`                                 | Validate all compose files                    |
+| `make build`                                    | Build `cli/target/release/dss`                |
+| `cli/target/release/dss up --service <folder>`  | Start one service (and its backends)          |
+| `cli/target/release/dss ps` / `health` / `info` | Observe status, health, and URLs              |
+| `cli/target/release/dss remove-config`          | Delete generated `.env` files (confirm)       |
+| `cli/target/release/dss teardown`               | **Wipe containers + volumes** (confirm)       |
 
 ```bash
 cli/target/release/dss up --service redis
