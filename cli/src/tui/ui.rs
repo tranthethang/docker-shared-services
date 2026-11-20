@@ -195,6 +195,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
             ("p", "Presets"),
             ("u", "Up"),
             ("d", "Down"),
+            ("s", "Stop"),
             ("l", "Logs"),
             ("m", "Manage"),
         ],

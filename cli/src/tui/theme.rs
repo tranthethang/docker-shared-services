@@ -18,12 +18,27 @@ pub struct Theme {
 
 impl Default for Theme {
     fn default() -> Self {
-        Self::ocean()
+        Self::gruvbox_light_soft()
     }
 }
 
 impl Theme {
-    /// Default dark slate/sky palette (`ocean`).
+    /// Default Gruvbox Light Soft palette (`gruvbox-light-soft`).
+    pub const fn gruvbox_light_soft() -> Self {
+        Self {
+            surface_base: Color::Rgb(0xF2, 0xE5, 0xBC),
+            surface_elevated: Color::Rgb(0xEB, 0xDB, 0xB2),
+            border_muted: Color::Rgb(0xA8, 0x99, 0x84),
+            border_focus: Color::Rgb(0x07, 0x66, 0x78),
+            text_primary: Color::Rgb(0x3C, 0x38, 0x36),
+            text_muted: Color::Rgb(0x7C, 0x6F, 0x64),
+            green: Color::Rgb(0x79, 0x74, 0x0E),
+            amber: Color::Rgb(0xB5, 0x76, 0x14),
+            red: Color::Rgb(0x9D, 0x00, 0x06),
+        }
+    }
+
+    /// Dark slate/sky palette (`ocean`).
     pub const fn ocean() -> Self {
         Self {
             surface_base: Color::Rgb(0x0F, 0x14, 0x19),
@@ -68,20 +83,24 @@ impl Theme {
         }
     }
 
-    /// Resolve a theme by name (`ocean`, `amber`, `nord`), falling back to `ocean`.
+    /// Resolve a theme by name (`gruvbox-light-soft`, `ocean`, `amber`, `nord`), falling back to `gruvbox-light-soft`.
     pub fn from_name(name: &str) -> Self {
         match name.trim().to_ascii_lowercase().as_str() {
+            "ocean" => Self::ocean(),
             "amber" => Self::amber(),
             "nord" => Self::nord(),
-            _ => Self::ocean(),
+            "gruvbox-light-soft" | "gruvbox_light_soft" | "gruvbox-light" | "gruvbox" => {
+                Self::gruvbox_light_soft()
+            }
+            _ => Self::gruvbox_light_soft(),
         }
     }
 
-    /// Read `DSS_THEME` from the environment, defaulting to `ocean`.
+    /// Read `DSS_THEME` from the environment, defaulting to `gruvbox-light-soft`.
     pub fn from_env() -> Self {
         std::env::var("DSS_THEME")
             .map(|v| Self::from_name(&v))
-            .unwrap_or_else(|_| Self::ocean())
+            .unwrap_or_else(|_| Self::gruvbox_light_soft())
     }
 }
 
@@ -90,11 +109,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn resolves_named_palettes_and_falls_back_to_ocean() {
+    fn resolves_named_palettes_and_falls_back_to_gruvbox_light_soft() {
+        assert_eq!(Theme::default(), Theme::gruvbox_light_soft());
+        assert_eq!(
+            Theme::from_name("gruvbox-light-soft"),
+            Theme::gruvbox_light_soft()
+        );
+        assert_eq!(Theme::from_name("gruvbox"), Theme::gruvbox_light_soft());
         assert_eq!(Theme::from_name("ocean"), Theme::ocean());
         assert_eq!(Theme::from_name("amber"), Theme::amber());
         assert_eq!(Theme::from_name("nord"), Theme::nord());
-        assert_eq!(Theme::from_name("unknown"), Theme::ocean());
+        assert_eq!(Theme::from_name("unknown"), Theme::gruvbox_light_soft());
         assert_ne!(Theme::amber().border_focus, Theme::nord().border_focus);
     }
 }

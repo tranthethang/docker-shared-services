@@ -78,6 +78,12 @@ make console          # interactive terminal required
 
 Press `?` inside the dashboard for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `dss logs`); press `l` again to stop. Select services with `Space`, then press `m` and confirm to start the selected services and stop the rest. Without a TTY, use `cli/target/release/dss up --service <name>`, `cli/target/release/dss ps`, or `cli/target/release/dss --help`.
 
+Switch the dashboard color theme with `DSS_THEME` (`gruvbox-light-soft` default, `ocean`, `amber`, `nord`):
+
+```bash
+DSS_THEME=ocean make console
+```
+
 ## What’s included
 
 | Area        | Examples                                                                                            |
