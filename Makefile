@@ -15,11 +15,13 @@ DSS := cli/target/release/dss
 # When omitted, setup generates a shared password on first use.
 password ?=
 
-$(DSS): $(wildcard cli/src/*.rs cli/src/*/*.rs) cli/Cargo.toml cli/Cargo.lock cli/service_catalog.json
-	$(if $(CARGO_MISSING),$(error cargo is required. Install: https://rustup.rs/))
-	@$(CARGO) build --release --quiet $(MANIFEST)
+define require-dss
+	@test -x "$(DSS)" || { echo "❌ $(DSS) not built. Run 'make build' first."; exit 1; }
+endef
 
-build: $(DSS) ## Build the dss binary (cli/target/release/dss)
+build: ## Build the dss binary (cli/target/release/dss)
+	$(if $(CARGO_MISSING),$(error cargo is required. Install: https://rustup.rs/))
+	@$(CARGO) build --release $(MANIFEST)
 
 help: ## Show this help message
 	@echo "╔════════════════════════════════════════════════════════════════╗"
@@ -37,16 +39,20 @@ help: ## Show this help message
 		awk -F'\t' '{printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 
-setup: $(DSS) ## Setup env files and networks (optional: password='your-secure-password')
+setup: ## Setup env files and networks (optional: password='your-secure-password')
+	$(require-dss)
 	@$(DSS) setup $(if $(password),--password "$(password)",)
 
-console: $(DSS) ## Open the management console (needs an interactive terminal)
+console: ## Open the management console (needs an interactive terminal)
+	$(require-dss)
 	@$(DSS)
 
-package: $(DSS) ## Package a selected stack into dist/ (interactive wizard)
+package: ## Package a selected stack into dist/ (interactive wizard)
+	$(require-dss)
 	@$(DSS) package
 
-validate: $(DSS) ## Validate all Docker Compose files and the service catalog
+validate: ## Validate all Docker Compose files and the service catalog
+	$(require-dss)
 	@echo "==> validate"
 	@$(DSS) validate
 

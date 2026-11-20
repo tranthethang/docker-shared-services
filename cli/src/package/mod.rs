@@ -12,8 +12,6 @@ use std::path::{Path, PathBuf};
 
 const MAX_NAME_LENGTH: usize = 48;
 const SKIP_DIR_NAMES: &[&str] = &["data", "volumes", "__pycache__", ".venv", "target"];
-/// Rust sources the exported Makefile builds with cargo.
-const CLI_FILES: &[&str] = &["Cargo.toml", "Cargo.lock"];
 
 /// `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`, 1 to 48 characters.
 pub fn validate_stack_name(name: &str) -> Result<&str, String> {
@@ -141,6 +139,27 @@ fn write(path: &Path, text: &str) -> Result<(), String> {
     fs::write(path, text).map_err(|e| format!("{}: {e}", path.display()))
 }
 
+fn copy_binary(root: &Path, dest: &Path) -> Result<(), String> {
+    let release = root.join("cli/target/release/dss");
+    let src = if release.is_file() {
+        release
+    } else {
+        std::env::current_exe().map_err(|e| e.to_string())?
+    };
+    let target = dest.join("dss");
+    fs::copy(&src, &target).map_err(|e| format!("{}: {e}", target.display()))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = fs::metadata(&target)
+            .map_err(|e| e.to_string())?
+            .permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&target, perms).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 fn build(services: &[String], name: &str, root: &Path, dest: &Path) -> Result<(), String> {
     for service in services {
         let source = root.join(service);
@@ -159,27 +178,7 @@ fn build(services: &[String], name: &str, root: &Path, dest: &Path) -> Result<()
         &dest.join(".env.example"),
         &filter::filter_env_example(&example, services),
     )?;
-    for file in CLI_FILES {
-        let target = dest.join("cli").join(file);
-        write(
-            &target,
-            &fs::read_to_string(root.join("cli").join(file)).map_err(|e| e.to_string())?,
-        )?;
-    }
-    copy_tree(
-        &root.join("cli/src"),
-        &dest.join("cli/src"),
-        "cli",
-        root,
-        Path::new(""),
-    )?;
-    let raw =
-        fs::read_to_string(root.join("cli/service_catalog.json")).map_err(|e| e.to_string())?;
-    let catalog = parse_catalog(&raw, "{domain}")?;
-    write(
-        &dest.join("cli/service_catalog.json"),
-        &filter::filter_catalog(&catalog, services)?,
-    )?;
+    copy_binary(root, dest)?;
     write(
         &dest.join(crate::config::MANIFEST_FILE),
         &filter::manifest(services)?,
@@ -188,6 +187,8 @@ fn build(services: &[String], name: &str, root: &Path, dest: &Path) -> Result<()
         &dest.join("Makefile"),
         &templates::render_makefile(services),
     )?;
+    let raw =
+        fs::read_to_string(root.join("cli/service_catalog.json")).map_err(|e| e.to_string())?;
     let shown = parse_catalog(&raw, DEFAULT_DOMAIN)?;
     write(
         &dest.join("README.md"),

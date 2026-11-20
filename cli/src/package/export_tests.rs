@@ -88,13 +88,11 @@ fn exporting_one_service_writes_its_dependencies_and_traefik() {
         "README.md",
         ".gitignore",
         "dss-package.json",
-        "cli/Cargo.toml",
-        "cli/Cargo.lock",
-        "cli/src/main.rs",
-        "cli/service_catalog.json",
+        "dss",
     ] {
         assert!(dest.join(file).is_file(), "{file}");
     }
+    assert!(!dest.join("cli").exists());
 }
 
 #[test]
@@ -110,8 +108,6 @@ fn unrelated_services_are_absent_from_the_export() {
     );
     let manifest = fs::read_to_string(dest.join("dss-package.json")).unwrap();
     assert!(manifest.contains("redis") && !manifest.contains("postgres"));
-    let catalog = fs::read_to_string(dest.join("cli/service_catalog.json")).unwrap();
-    assert!(catalog.contains("\"redis\"") && !catalog.contains("\"postgres\""));
     assert!(!fs::read_to_string(dest.join("README.md"))
         .unwrap()
         .contains("postgres"));
@@ -122,7 +118,7 @@ fn export_skips_env_files_data_dirs_and_target() {
     let out = temp("skip").join("stack");
     let dest = export_stack(&names(&["redis"]), "demo", &repo(), Some(out)).unwrap();
     assert!(!dest.join("redis/.env").exists());
-    assert!(!dest.join("cli/target").exists());
+    assert!(!dest.join("cli").exists());
     assert!(!dest.join("redis/data").exists());
 }
 

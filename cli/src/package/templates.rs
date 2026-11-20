@@ -33,9 +33,6 @@ tmp/
 temp/
 .DS_Store
 Thumbs.db
-
-# Rust
-cli/target/
 ";
 
 const MAKEFILE: &str = "\
@@ -44,13 +41,13 @@ const MAKEFILE: &str = "\
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-# The binary builds from ./cli with cargo. Override DSS to use a prebuilt one.
-DSS ?= cli/target/release/dss
+# Prebuilt dss binary packaged with this stack. Override DSS if moved.
+DSS ?= ./dss
 password ?=
 
-$(DSS): $(wildcard cli/src/*.rs cli/src/*/*.rs) cli/Cargo.toml cli/Cargo.lock cli/service_catalog.json
->@command -v cargo >/dev/null 2>&1 || { echo \"cargo is required. Install: https://rustup.rs/\"; exit 1; }
->@cargo build --release --manifest-path cli/Cargo.toml
+define require-dss
+>@test -x \"$(DSS)\" || { echo \"❌ $(DSS) not found or not executable.\"; exit 1; }
+endef
 
 help: ## Show this help message
 >@echo \"Packaged Docker Shared Services stack\"
@@ -59,29 +56,37 @@ help: ## Show this help message
 >@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = \":.*?## \"} {printf \"  %-20s %s\\n\", $$1, $$2}'
 >@echo \"\"
 
-setup: $(DSS) ## Create networks and env files, fill secrets (optional: password='...')
+setup: ## Create networks and env files, fill secrets (optional: password='...')
+>$(require-dss)
 >@$(DSS) setup --yes $(if $(password),--password \"$(password)\",)
 
-passwords: $(DSS) ## Apply the shared password (optional: password='...' force=1)
+passwords: ## Apply the shared password (optional: password='...' force=1)
+>$(require-dss)
 >@$(DSS) env passwords $(if $(password),--password \"$(password)\",) $(if $(filter 1 true yes,$(force)),--force,)
 
-validate: $(DSS) ## Validate every packaged Compose project
+validate: ## Validate every packaged Compose project
+>$(require-dss)
 >@$(DSS) validate
 
-up: $(DSS) ## Start the packaged stack in dependency order
+up: ## Start the packaged stack in dependency order
+>$(require-dss)
 >@$(DSS) validate
 >@$(DSS) up --all
 
-down: $(DSS) ## Stop and remove containers (keeps volumes)
+down: ## Stop and remove containers (keeps volumes)
+>$(require-dss)
 >@$(DSS) down --all
 
-restart: $(DSS) ## Restart the packaged stack
+restart: ## Restart the packaged stack
+>$(require-dss)
 >@$(DSS) restart --all
 
-ps: $(DSS) ## Show container status
+ps: ## Show container status
+>$(require-dss)
 >@$(DSS) ps
 
-info: $(DSS) ## Show service URLs and networks
+info: ## Show service URLs and networks
+>$(require-dss)
 >@$(DSS) info
 ";
 
@@ -114,8 +119,7 @@ pub fn render_readme(name: &str, services: &[String], catalog: &Catalog) -> Stri
         "make down    # stop and remove containers (volumes are kept)".into(),
         "```".into(),
         String::new(),
-        "The first command builds the `dss` binary with cargo. Run `make help` for every command."
-            .into(),
+        "Run `make help` for every command.".into(),
         String::new(),
         "## Services".into(),
     ];
