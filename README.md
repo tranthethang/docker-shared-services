@@ -20,12 +20,12 @@ make setup
 #    make setup && make cert && make up
 
 # 3) Start what you need
-make up                        # interactive
-make up service=postgres       # one service (folder name)
+make tui                                       # interactive ratatui dashboard
+cli/target/release/dss up --service postgres   # one service (folder name)
 
 # 4) Check
-make ps
-make info                      # URLs / ports
+cli/target/release/dss ps
+cli/target/release/dss info                    # URLs / ports
 ```
 
 HTTPS uses **Caddy** in the companion [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy) repo (`make cert` + `make up` there). Traefik in this repo routes **HTTP only** on `traefik_proxy`; start Caddy before Traefik for browser access.
@@ -39,44 +39,44 @@ The Traefik dashboard is at `https://traefik.sandbox.localhost/dashboard/` with 
 
 `make setup` writes **one** password into all service password fields (Postgres, Redis, MinIO, Grafana, …). Unique secrets (Garage, Woodpecker agent, Zitadel masterkey, oauth2-proxy cookie secret) stay separate.
 
-| Goal                   | Command                                                 |
-| ---------------------- | ------------------------------------------------------- |
-| Random shared password | `make setup`                                            |
-| Choose a password      | `make setup password='your-secure-password'`            |
-| Same via env           | `DSS_SHARED_PASSWORD='your-secure-password' make setup` |
-| Rotate later           | `make passwords password='NewPass' force=1`             |
+| Goal                   | Command                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| Random shared password | `make setup`                                                         |
+| Choose a password      | `make setup password='your-secure-password'`                         |
+| Same via env           | `DSS_SHARED_PASSWORD='your-secure-password' make setup`              |
+| Rotate later           | `cli/target/release/dss env passwords --password 'NewPass' --force`  |
 
 Value is stored as `DSS_SHARED_PASSWORD` in the root `.env`.
 
 ## Common commands
 
-| Command                                 | What it does                                              |
-| --------------------------------------- | --------------------------------------------------------- |
-| `make setup`                            | Networks, `.env`, shared password, Dozzle user            |
-| `make passwords`                        | Apply / rotate the shared password                        |
-| `make up` / `down` / `stop` / `restart` | Lifecycle (`service=<folder>` optional)                   |
-| `make manage`                           | Dashboard with multi-select start/stop                    |
-| `make tui`                              | ratatui dashboard (needs an interactive TTY)              |
-| `make logs` / `ps` / `health` / `info`  | Observe                                                   |
-| `make validate`                         | Validate all compose files                                |
-| `make remove-config`                    | Delete generated `.env` files (confirm)                   |
-| `make remove-all`                       | **Wipe containers + volumes** (confirm)                   |
+| Command                                           | What it does                                 |
+| ------------------------------------------------- | -------------------------------------------- |
+| `make setup`                                      | Networks, `.env`, shared password, Dozzle    |
+| `make tui`                                        | ratatui dashboard (needs an interactive TTY) |
+| `make package`                                    | Package a selected stack into `dist/`        |
+| `make validate`                                   | Validate all compose files                   |
+| `make build`                                      | Build `cli/target/release/dss`               |
+| `cli/target/release/dss up --service <folder>`    | Start one service (and its backends)         |
+| `cli/target/release/dss ps` / `health` / `info`   | Observe status, health, and URLs             |
+| `cli/target/release/dss remove-config`            | Delete generated `.env` files (confirm)      |
+| `cli/target/release/dss teardown`                 | **Wipe containers + volumes** (confirm)      |
 
 ```bash
-make up service=redis
-make logs service=gitea
-make restart service=postgres
+cli/target/release/dss up --service redis
+cli/target/release/dss logs --service gitea
+cli/target/release/dss restart --service postgres
 ```
 
 ### Dashboard
 
-`make tui` opens a keyboard-driven terminal UI (ratatui) for status, health, logs, and the same lifecycle actions as `make up` / `down` / `stop` / `restart`. `make manage` and `make up` without `service=` open it too.
+`make tui` opens a keyboard-driven terminal UI (ratatui) for status, health, logs, and lifecycle actions (`up`, `down`, `stop`, `restart`, multi-select `manage`).
 
 ```bash
 make tui              # interactive terminal required
 ```
 
-Press `?` inside the dashboard for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `make logs`); press `l` again to stop. Select services with `Space`, then press `m` and confirm to start the selected services and stop the rest. Without a TTY, use `make up service=<name>`, `make ps`, or `dss --help`.
+Press `?` inside the dashboard for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `dss logs`); press `l` again to stop. Select services with `Space`, then press `m` and confirm to start the selected services and stop the rest. Without a TTY, use `cli/target/release/dss up --service <name>`, `cli/target/release/dss ps`, or `cli/target/release/dss --help`.
 
 ## What’s included
 

@@ -24,7 +24,7 @@ cp pgvector/.env.example pgvector/.env
 DOMAIN=dev.example.test
 ```
 
-`make up` passes the root `.env` to Compose first and the service `.env` second. A value in a service `.env` overrides the root value. Traefik labels, the Traefik default rule, the per-service URLs, and `make info` all follow `DOMAIN`.
+`dss up` passes the root `.env` to Compose first and the service `.env` second. A value in a service `.env` overrides the root value. Traefik labels, the Traefik default rule, the per-service URLs, and `dss info` all follow `DOMAIN`.
 
 Per-service host and URL variables are empty in the `.env.example` files. Each one has a `# Default:` comment that shows the value built from `DOMAIN`, for example `ZITADEL_HOSTNAME` defaults to `zitadel.${DOMAIN}`. Set one only to give that service a different host.
 
@@ -60,7 +60,7 @@ SANDBOX_SUBNET_BASE=10
 - Subnets must not overlap. Give each stack a `SANDBOX_SUBNET_BASE` at least 3 higher than the previous one.
 - Each Traefik only routes containers with its own `sandbox.stack` label, so two stacks never list each other's routers.
 - Data volumes are not shared or migrated between stacks. A volume with a fixed `name:` (for example `supabase_db_data`) becomes `<SANDBOX_NAME>_<name>`, such as `projb_supabase_db_data`.
-- Set the same `SANDBOX_NAME` in the root `.env` before the first `make up`. Changing it later creates new containers and networks next to the old ones.
+- Set the same `SANDBOX_NAME` in the root `.env` before the first `dss up` (or `make tui`). Changing it later creates new containers and networks next to the old ones.
 
 ### Shared password (recommended)
 
@@ -86,7 +86,7 @@ make setup password='your-secure-password'
 DSS_SHARED_PASSWORD='your-secure-password' make setup
 
 # Rotate later (overwrites even non-placeholder values)
-make passwords password='MyNewSharedPass' force=1
+cli/target/release/dss env passwords --password 'MyNewSharedPass' --force
 ```
 
 The chosen value is stored as `DSS_SHARED_PASSWORD` in the root `.env` and copied
@@ -183,10 +183,10 @@ Browser UIs can sit behind a shared `oauth2-proxy` gateway that authenticates us
 ### Rollout
 
 1. `make setup` (creates `oauth2-proxy/.env` and fills `OAUTH2_PROXY_COOKIE_SECRET` when empty). General setup validation only requires the cookie secret; empty `OAUTH2_PROXY_CLIENT_ID` / `OAUTH2_PROXY_CLIENT_SECRET` are expected until you opt in.
-1. Start Traefik: `make up service=traefik`.
+1. Start Traefik: `cli/target/release/dss up --service traefik`.
 1. Register a confidential client with your OIDC provider and allow redirect URI `https://auth.sandbox.localhost/oauth2/callback`. Set `OAUTH2_PROXY_OIDC_ISSUER_URL` to the issuer base URL (origin plus path, not the well-known URL), and set the client id/secret in `oauth2-proxy/.env`. For a public issuer, leave `OAUTH2_PROXY_OIDC_ISSUER_HOST` empty. For a local issuer reached through this machine's Traefik, set it to the issuer hostname only, for example `idp.sandbox.localhost`.
-1. The client id/secret are manual prerequisites for oauth2-proxy and are never auto-generated. Until both values are set, `make manage` and `make tui` show `oauth2-proxy` as a label and will not start it. `make up service=oauth2-proxy` exits with the same reason.
-1. `make up service=oauth2-proxy`.
+1. The client id/secret are manual prerequisites for oauth2-proxy and are never auto-generated. Until both values are set, `make tui` shows `oauth2-proxy` as a label and will not start it. `dss up --service oauth2-proxy` exits with the same reason.
+1. `cli/target/release/dss up --service oauth2-proxy`.
 1. To protect a UI, edit that service’s `.env`:
 
 ```env
@@ -194,7 +194,7 @@ AUTH_ENABLED=true
 AUTH_MIDDLEWARE=auth-default
 ```
 
-Then `make restart service=<folder>`. Set `AUTH_MIDDLEWARE=auth-none` (and `AUTH_ENABLED=false`) to return to public access.
+Then `cli/target/release/dss restart --service <folder>`. Set `AUTH_MIDDLEWARE=auth-none` (and `AUTH_ENABLED=false`) to return to public access.
 
 ### Initial candidates (default: off)
 
@@ -211,11 +211,11 @@ Middleware names: `auth-none` (public default), `auth-default` (any authenticate
 ### Status and lifecycle
 
 ```bash
-make info                              # Lists gateway URL + opt-in guidance
-cli/target/release/dss env summary   # Per-UI AUTH gateway on/off
-make up service=oauth2-proxy
-make logs service=oauth2-proxy
-make restart service=mermaid-live-editor
+cli/target/release/dss info                             # Lists gateway URL + opt-in guidance
+cli/target/release/dss env summary                      # Per-UI AUTH gateway on/off
+cli/target/release/dss up --service oauth2-proxy
+cli/target/release/dss logs --service oauth2-proxy
+cli/target/release/dss restart --service mermaid-live-editor
 ```
 
 Full gateway details: [oauth2-proxy/README.md](../oauth2-proxy/README.md).
@@ -226,7 +226,7 @@ ______________________________________________________________________
 
 TLS and host ports **80/443** live in the companion repo [docker-shared-services-proxy](https://github.com/tranthethang/docker-shared-services-proxy). Traefik in this repo listens on **HTTP port 80** inside `traefik_proxy` only; it does not mount server certificates or publish 80/443 on the Docker host by default. See [Proxy contract](#proxy-contract) for the optional published port.
 
-Default **TCP** dev aliases on the Mac (`localhost:5432`, `localhost:6379`, and the other eleven default profile ports) are published by **`host-bridge`** (HAProxy on `data_net` and `backend_net`), not by individual database compose files. Run `make up service=host-bridge` after the backends you need are up. Port names and defaults match the root `.env`; see [host-bridge/USAGE.md](../host-bridge/USAGE.md). HTTP(S) stays on Caddy → Traefik only.
+Default **TCP** dev aliases on the Mac (`localhost:5432`, `localhost:6379`, and the other eleven default profile ports) are published by **`host-bridge`** (HAProxy on `data_net` and `backend_net`), not by individual database compose files. Run `cli/target/release/dss up --service host-bridge` after the backends you need are up. Port names and defaults match the root `.env`; see [host-bridge/USAGE.md](../host-bridge/USAGE.md). HTTP(S) stays on Caddy → Traefik only.
 
 Public hostnames still use `*.sandbox.localhost` (for example `https://mailpit.sandbox.localhost`). A bare `*.localhost` wildcard is **not** accepted by Chrome/OpenSSL for names like `mailpit.localhost`, which is why services are under `sandbox.localhost`.
 
@@ -242,9 +242,9 @@ make setup
 make setup && make cert && make up
 
 # 3. This repo — internal router and services
-make up service=traefik
-make up service=<name>
-make up service=host-bridge   # when Mac apps need localhost TCP aliases (after backends are up)
+cli/target/release/dss up --service traefik
+cli/target/release/dss up --service <name>
+cli/target/release/dss up --service host-bridge   # when Mac apps need localhost TCP aliases (after backends are up)
 ```
 
 ### Generate certificates (proxy repo)
@@ -277,7 +277,7 @@ Any HTTPS proxy can sit in front of Traefik, local Caddy or a remote proxy. The 
 - Traefik speaks HTTP on port 80 only. The proxy terminates TLS.
 - The proxy sends the original `Host` header and `X-Forwarded-Proto: https`.
 - The proxy address is inside `TRAEFIK_TRUSTED_IPS`. Traefik ignores `X-Forwarded-*` headers from other addresses. The default is `10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`.
-- A remote proxy reaches Traefik through `TRAEFIK_BIND` and `TRAEFIK_HTTP_PORT` in `traefik/.env`. When `TRAEFIK_HTTP_PORT` is set, `make up service=traefik` adds `traefik/docker-compose.publish.yml` and publishes `${TRAEFIK_BIND}:${TRAEFIK_HTTP_PORT}:80`. When it is empty, Traefik publishes no port.
+- A remote proxy reaches Traefik through `TRAEFIK_BIND` and `TRAEFIK_HTTP_PORT` in `traefik/.env`. When `TRAEFIK_HTTP_PORT` is set, `dss up --service traefik` adds `traefik/docker-compose.publish.yml` and publishes `${TRAEFIK_BIND}:${TRAEFIK_HTTP_PORT}:80`. When it is empty, Traefik publishes no port.
 - `TRAEFIK_BIND` must be a private address. With private ranges in `TRAEFIK_TRUSTED_IPS`, any host in the VPC can forge forwarded headers. Narrow `TRAEFIK_TRUSTED_IPS` to the proxy address when other hosts share that network.
 
 ## 🔗 Quick Links

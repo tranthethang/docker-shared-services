@@ -19,18 +19,19 @@ Write files in this repo in English (README, `docs/`, comments, commits, `.env.e
 ## Commands
 
 ```bash
-make setup                              # networks + .env (interactive; needs a TTY)
-make up service=zitadel                 # one service; queues its backends first
-make down service=zitadel               # stop and remove that service's containers
-make ps                                 # status of running services
-make health service=postgres            # health for one service
-make logs service=zitadel               # logs for one service
-make check                              # fmt, clippy, test, and Compose validate
-make build                              # build cli/target/release/dss
-make hooks                              # install prek git hooks
+make setup                                      # networks + .env (interactive; needs a TTY)
+make tui                                        # ratatui dashboard (interactive; needs a TTY)
+make build                                      # build cli/target/release/dss
+cli/target/release/dss up --service zitadel     # one service; queues its backends first
+cli/target/release/dss down --service zitadel   # stop and remove that service's containers
+cli/target/release/dss ps                       # status of running services
+cli/target/release/dss health --service postgres # health for one service
+cli/target/release/dss logs --service zitadel   # logs for one service
+make check                                      # fmt, clippy, shellcheck, test, and Compose validate
+make hooks                                      # install prek git hooks
 ```
 
-Every target runs the `dss` binary, which needs `cargo` to build. The Makefile stops with an install hint when it is missing. `make tui`, `make manage`, and `make package` (without flags) also need a TTY.
+Every `make` target and `dss` subcommand uses the `cli/` Rust binary, which `make build` (or `make setup`/`make tui`) builds with `cargo`. The Makefile stops with an install hint when `cargo` is missing. `make tui` and `make package` (without flags) need a TTY.
 
 ## Structure
 
@@ -42,10 +43,9 @@ Every target runs the `dss` binary, which needs `cargo` to build. The Makefile s
 
 ## Gotchas
 
-- `depends_on` does not cross Compose projects. `make up service=<name>` must start that service's `dependency_queue` and wait until each backend container is `running` and, when a healthcheck exists, `healthy`. A created container is not ready.
-- `make up` without `service=` opens a menu. Pass `service=<name>`.
-- `make setup` prompts before writing `.env` files. Skip it when there is no TTY.
-- Root `.env` must exist before `make up`. Create it with `make setup`.
+- `depends_on` does not cross Compose projects. `dss up --service <name>` must start that service's `dependency_queue` and wait until each backend container is `running` and, when a healthcheck exists, `healthy`. A created container is not ready.
+- `make setup` prompts before writing `.env` files. Skip it when there is no TTY (`cli/target/release/dss setup --yes`).
+- Root `.env` must exist before `dss up` or `make tui` starts services. Create it with `make setup`.
 - Setup rejects the legacy password `Password102!`.
 - `cli/` is copied into exports. An export holds only the services you pick, listed in its `dss-package.json`.
 
@@ -58,7 +58,7 @@ Every target runs the `dss` binary, which needs `cargo` to build. The Makefile s
 
 - **NEVER** edit or test under `dist/`. Change the origin tree (`Makefile`, `cli/`, service directories). Leave `dist/` empty unless the user asks for a new export.
 - Do not commit `.env` files or TLS private keys. Local HTTPS certs live in the **docker-shared-services-proxy** repo under `caddy/certs/`.
-- Do not run `make remove-all`, `make prune`, or `make remove-config` unless the user asks. They delete data or env files.
+- Do not run `cli/target/release/dss teardown`, `prune`, or `remove-config` unless the user asks. They delete data or env files.
 - Do not lower a quality limit (clippy level, 300-line file size) to pass a check.
 
 ## More docs
@@ -66,5 +66,5 @@ Every target runs the `dss` binary, which needs `cargo` to build. The Makefile s
 - Commands: `docs/usage.md`
 - Configuration: `docs/configuration.md`
 - Networks: `docs/network-segmentation.md`
-- Service URLs: `make info` and `docs/services.md`
+- Service URLs: `cli/target/release/dss info` and `docs/services.md`
 - Troubleshooting: `docs/troubleshooting.md`

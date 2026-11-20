@@ -36,14 +36,14 @@ Rules:
 
 ## Running code
 
-- Run the binary through the Makefile (`make up service=redis`), or `cli/target/release/dss <subcommand>` after `make build`. Run from the repo root, because Compose paths are relative. **Review only.**
+- Run the dashboard through `make tui`, or run `cli/target/release/dss <subcommand>` after `make build`. Run from the repo root, because Compose paths are relative. **Review only.**
 - `cargo` is the only build requirement. The Makefile stops with an install hint when it is missing. **Enforced by** the Makefile.
 
 ## Adding a module
 
 1. Pick the directory that fits the purpose in the table above. Shared logic with no Docker calls belongs in `config`, `stack`, `catalog`, or `env`.
 1. Create `cli/src/<name>.rs` (or a directory with `mod.rs`) with a one-line `//!` comment, and declare it in `main.rs`.
-1. For a new subcommand, add it to the `clap` tree in `main.rs` and a body in `commands.rs`, then add a Makefile target that runs `$(DSS) <subcommand>`.
+1. For a new subcommand, add it to the `clap` tree in `main.rs` and a body in `commands.rs`.
 1. Add unit tests in the file, or in a `*_tests.rs` file next to it.
 1. Run `make check`.
 
