@@ -10,7 +10,7 @@ path = "src/main.rs"
 
 [dependencies]
 base64 = "0.22"
-bcrypt = "0.17"
+bcrypt = "0.19"
 clap = { version = "4", features = ["derive"] }
 crossterm = "0.28"
 hmac = "0.12"
