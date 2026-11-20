@@ -60,7 +60,7 @@ SANDBOX_SUBNET_BASE=10
 - Subnets must not overlap. Give each stack a `SANDBOX_SUBNET_BASE` at least 3 higher than the previous one.
 - Each Traefik only routes containers with its own `sandbox.stack` label, so two stacks never list each other's routers.
 - Data volumes are not shared or migrated between stacks. A volume with a fixed `name:` (for example `supabase_db_data`) becomes `<SANDBOX_NAME>_<name>`, such as `projb_supabase_db_data`.
-- Set the same `SANDBOX_NAME` in the root `.env` before the first `dss up` (or `make tui`). Changing it later creates new containers and networks next to the old ones.
+- Set the same `SANDBOX_NAME` in the root `.env` before the first `dss up` (or `make console`). Changing it later creates new containers and networks next to the old ones.
 
 ### Shared password (recommended)
 
@@ -185,7 +185,7 @@ Browser UIs can sit behind a shared `oauth2-proxy` gateway that authenticates us
 1. `make setup` (creates `oauth2-proxy/.env` and fills `OAUTH2_PROXY_COOKIE_SECRET` when empty). General setup validation only requires the cookie secret; empty `OAUTH2_PROXY_CLIENT_ID` / `OAUTH2_PROXY_CLIENT_SECRET` are expected until you opt in.
 1. Start Traefik: `cli/target/release/dss up --service traefik`.
 1. Register a confidential client with your OIDC provider and allow redirect URI `https://auth.sandbox.localhost/oauth2/callback`. Set `OAUTH2_PROXY_OIDC_ISSUER_URL` to the issuer base URL (origin plus path, not the well-known URL), and set the client id/secret in `oauth2-proxy/.env`. For a public issuer, leave `OAUTH2_PROXY_OIDC_ISSUER_HOST` empty. For a local issuer reached through this machine's Traefik, set it to the issuer hostname only, for example `idp.sandbox.localhost`.
-1. The client id/secret are manual prerequisites for oauth2-proxy and are never auto-generated. Until both values are set, `make tui` shows `oauth2-proxy` as a label and will not start it. `dss up --service oauth2-proxy` exits with the same reason.
+1. The client id/secret are manual prerequisites for oauth2-proxy and are never auto-generated. Until both values are set, `make console` shows `oauth2-proxy` as a label and will not start it. `dss up --service oauth2-proxy` exits with the same reason.
 1. `cli/target/release/dss up --service oauth2-proxy`.
 1. To protect a UI, edit that service’s `.env`:
 

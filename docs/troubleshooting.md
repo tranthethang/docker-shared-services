@@ -115,7 +115,7 @@ docker volume prune               # Remove unused volumes
 | Services stuck "starting" | Wait 30-60 seconds, check logs, restart: `dss restart --service <name>`      |
 | Can't connect to database | Verify port mapping, check .env passwords, test: `docker-compose ps`         |
 | Out of disk space         | Run `cli/target/release/dss prune`, remove images: `docker image prune -a`   |
-| Need to reset everything  | Run `cli/target/release/dss teardown` then `make tui`                        |
+| Need to reset everything  | Run `cli/target/release/dss teardown` then `make console`                    |
 
 ### Getting Help
 

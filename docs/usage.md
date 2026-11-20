@@ -12,7 +12,7 @@ ______________________________________________________________________
 make help           # Show all commands
 make setup          # Setup environment files and shared Docker networks
                     # (also merges new keys from .env.example into existing .env)
-make tui            # ratatui dashboard (TTY)
+make console        # management console (TTY)
 make package        # Package a selected stack into dist/ (TTY wizard)
 make build          # Build cli/target/release/dss
 make check          # format-check, lint, shell-lint, test, validate
@@ -43,12 +43,12 @@ make check          # format-check, lint, shell-lint, test, validate
 make build          # build cli/target/release/dss
 ```
 
-### Dashboard (`make tui` or `dss`)
+### Dashboard (`make console` or `dss`)
 
 Keyboard-driven status, health, and logs UI built with ratatui. It runs the same Compose commands as `dss up` / `down` / `stop` / `restart`.
 
 ```bash
-make tui    # interactive terminal required
+make console    # interactive terminal required
 ```
 
 | Key                | Action                                                       |
@@ -126,7 +126,7 @@ ______________________________________________________________________
 
 ## 🎯 Pro Tips
 
-1. **Use `make tui` / `dss`** - Easier than raw `docker compose` commands across 30+ stacks.
+1. **Use `make console` / `dss`** - Easier than raw `docker compose` commands across 30+ stacks.
 1. **Keep backups** of important databases before major changes.
 1. **Monitor resources** - Watch with `docker stats`.
 1. **Use .env files** - Don't hardcode sensitive values.

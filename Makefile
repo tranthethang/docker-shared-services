@@ -1,4 +1,4 @@
-.PHONY: help build setup tui package validate format format-check lint shell-lint test hooks check
+.PHONY: help build setup console package validate format format-check lint shell-lint test hooks check
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -40,7 +40,7 @@ help: ## Show this help message
 setup: $(DSS) ## Setup env files and networks (optional: password='your-secure-password')
 	@$(DSS) setup $(if $(password),--password "$(password)",)
 
-tui: $(DSS) ## Open the ratatui dashboard (needs an interactive terminal)
+console: $(DSS) ## Open the management console (needs an interactive terminal)
 	@$(DSS)
 
 package: $(DSS) ## Package a selected stack into dist/ (interactive wizard)

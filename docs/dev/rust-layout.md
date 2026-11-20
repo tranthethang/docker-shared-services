@@ -36,7 +36,7 @@ Rules:
 
 ## Running code
 
-- Run the dashboard through `make tui`, or run `cli/target/release/dss <subcommand>` after `make build`. Run from the repo root, because Compose paths are relative. **Review only.**
+- Run the dashboard through `make console`, or run `cli/target/release/dss <subcommand>` after `make build`. Run from the repo root, because Compose paths are relative. **Review only.**
 - `cargo` is the only build requirement. The Makefile stops with an install hint when it is missing. **Enforced by** the Makefile.
 
 ## Adding a module

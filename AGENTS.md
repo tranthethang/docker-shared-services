@@ -20,7 +20,7 @@ Write files in this repo in English (README, `docs/`, comments, commits, `.env.e
 
 ```bash
 make setup                                      # networks + .env (interactive; needs a TTY)
-make tui                                        # ratatui dashboard (interactive; needs a TTY)
+make console                                    # management console (interactive; needs a TTY)
 make build                                      # build cli/target/release/dss
 cli/target/release/dss up --service zitadel     # one service; queues its backends first
 cli/target/release/dss down --service zitadel   # stop and remove that service's containers
@@ -31,7 +31,7 @@ make check                                      # fmt, clippy, shellcheck, test,
 make hooks                                      # install prek git hooks
 ```
 
-Every `make` target and `dss` subcommand uses the `cli/` Rust binary, which `make build` (or `make setup`/`make tui`) builds with `cargo`. The Makefile stops with an install hint when `cargo` is missing. `make tui` and `make package` (without flags) need a TTY.
+Every `make` target and `dss` subcommand uses the `cli/` Rust binary, which `make build` (or `make setup`/`make console`) builds with `cargo`. The Makefile stops with an install hint when `cargo` is missing. `make console` and `make package` (without flags) need a TTY.
 
 ## Structure
 
@@ -45,7 +45,7 @@ Every `make` target and `dss` subcommand uses the `cli/` Rust binary, which `mak
 
 - `depends_on` does not cross Compose projects. `dss up --service <name>` must start that service's `dependency_queue` and wait until each backend container is `running` and, when a healthcheck exists, `healthy`. A created container is not ready.
 - `make setup` prompts before writing `.env` files. Skip it when there is no TTY (`cli/target/release/dss setup --yes`).
-- Root `.env` must exist before `dss up` or `make tui` starts services. Create it with `make setup`.
+- Root `.env` must exist before `dss up` or `make console` starts services. Create it with `make setup`.
 - Setup rejects the legacy password `Password102!`.
 - `cli/` is copied into exports. An export holds only the services you pick, listed in its `dss-package.json`.
 

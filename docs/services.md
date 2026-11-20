@@ -79,7 +79,7 @@ ______________________________________________________________________
 
 ## 🌐 Service Access
 
-Mac **TCP** aliases for the default profile (Postgres, Redis, Mailpit SMTP, and the other eleven rules) require **`cli/target/release/dss up --service host-bridge`** (or starting `host-bridge` in `make tui`) after those backends are running. Caddy owns **80/443**; host-bridge owns those TCP ports on `127.0.0.1`. Full alias table: [host-bridge/USAGE.md](../host-bridge/USAGE.md).
+Mac **TCP** aliases for the default profile (Postgres, Redis, Mailpit SMTP, and the other eleven rules) require **`cli/target/release/dss up --service host-bridge`** (or starting `host-bridge` in `make console`) after those backends are running. Caddy owns **80/443**; host-bridge owns those TCP ports on `127.0.0.1`. Full alias table: [host-bridge/USAGE.md](../host-bridge/USAGE.md).
 
 | Service            | Access Point                                                                                       | Credentials after `make setup`                                                                      |
 | :----------------- | :------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |

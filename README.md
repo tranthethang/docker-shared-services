@@ -20,7 +20,7 @@ make setup
 #    make setup && make cert && make up
 
 # 3) Start what you need
-make tui                                       # interactive ratatui dashboard
+make console                                   # interactive management console
 cli/target/release/dss up --service postgres   # one service (folder name)
 
 # 4) Check
@@ -53,7 +53,7 @@ Value is stored as `DSS_SHARED_PASSWORD` in the root `.env`.
 | Command                                           | What it does                                 |
 | ------------------------------------------------- | -------------------------------------------- |
 | `make setup`                                      | Networks, `.env`, shared password, Dozzle    |
-| `make tui`                                        | ratatui dashboard (needs an interactive TTY) |
+| `make console`                                    | Management console (needs an interactive TTY) |
 | `make package`                                    | Package a selected stack into `dist/`        |
 | `make validate`                                   | Validate all compose files                   |
 | `make build`                                      | Build `cli/target/release/dss`               |
@@ -70,10 +70,10 @@ cli/target/release/dss restart --service postgres
 
 ### Dashboard
 
-`make tui` opens a keyboard-driven terminal UI (ratatui) for status, health, logs, and lifecycle actions (`up`, `down`, `stop`, `restart`, multi-select `manage`).
+`make console` opens a keyboard-driven terminal UI (ratatui) for status, health, logs, and lifecycle actions (`up`, `down`, `stop`, `restart`, multi-select `manage`).
 
 ```bash
-make tui              # interactive terminal required
+make console          # interactive terminal required
 ```
 
 Press `?` inside the dashboard for key bindings. Status updates automatically from Docker events. Press `l` on a service to follow its logs live (like `dss logs`); press `l` again to stop. Select services with `Space`, then press `m` and confirm to start the selected services and stop the rest. Without a TTY, use `cli/target/release/dss up --service <name>`, `cli/target/release/dss ps`, or `cli/target/release/dss --help`.
