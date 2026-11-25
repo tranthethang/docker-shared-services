@@ -14,7 +14,7 @@ These models load from `config.yaml` when the container starts:
 - `claude-opus-5-5`
 - `claude-sonnet-5-5`
 
-`OPENAI_API_KEY` and `ANTHROPIC_API_KEY` are required in `litellm/.env`.
+`OPENAI_API_KEY` and `ANTHROPIC_API_KEY` live in `litellm/.env`. An empty key still lets the container start. Calls to that provider fail until the key is set.
 Virtual keys and other models still use the admin UI and stay in shared Postgres 16
 (`litellm` database).
 
@@ -134,7 +134,7 @@ shared static credentials until disabled as above.
 ## Configuration
 
 - `config.yaml` — proxy settings. The seven models above load from this file at start. Other models are added in the UI while `store_model_in_db: true`.
-- `litellm/.env` — image pin, Postgres password, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`. Both provider keys are required.
+- `litellm/.env` — image pin, Postgres password, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`. Either provider key may be empty.
 
 See also [docs/services.md](../docs/services.md) and
 [LiteLLM upgrade guide](https://docs.litellm.ai/docs/proxy/upgrade_guide).

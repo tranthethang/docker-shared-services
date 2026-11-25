@@ -20,8 +20,8 @@ services:
       DATABASE_URL: "postgresql://postgres:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in litellm/.env - run make setup}@postgres:5432/litellm"
       LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY:?Set LITELLM_MASTER_KEY in litellm/.env - run make setup}"
       LITELLM_SALT_KEY: "${LITELLM_SALT_KEY:?Set LITELLM_SALT_KEY in litellm/.env - run make setup}"
-      OPENAI_API_KEY: "${OPENAI_API_KEY:?Set OPENAI_API_KEY in litellm/.env - run make setup}"
-      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:?Set ANTHROPIC_API_KEY in litellm/.env - run make setup}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
       SERVER_ROOT_PATH: ""
     volumes:
       - ./config.yaml:/app/config.yaml:ro
