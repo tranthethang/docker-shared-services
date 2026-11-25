@@ -60,7 +60,7 @@ ______________________________________________________________________
 
 ### LLM proxy
 
-- **LiteLLM** - OpenAI-compatible proxy and admin UI at `https://litellm.sandbox.localhost` (`/ui`, `/v1`). Uses shared Postgres 16 database `litellm`. The seven startup models load from `litellm/config.yaml` and read `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` in `litellm/.env`. An empty key still lets the container start. On an existing Postgres volume, create the database once (in a stack with `SANDBOX_NAME` set, use `docker exec <SANDBOX_NAME>-postgres`): `docker exec postgres psql -U postgres -c "CREATE DATABASE litellm;"`
+- **LiteLLM** - OpenAI-compatible proxy and admin UI at `https://litellm.sandbox.localhost` (`/ui`, `/v1`). Uses shared Postgres 16 database `litellm`. The seven startup models load from `litellm/config.yaml` and read `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` in `litellm/.env`. An empty provider key still lets the container start. `/v1` uses `LITELLM_VIRTUAL_KEY`. On an existing Postgres volume, create the database once (in a stack with `SANDBOX_NAME` set, use `docker exec <SANDBOX_NAME>-postgres`): `docker exec postgres psql -U postgres -c "CREATE DATABASE litellm;"`
 
 ### Observability & Management
 
@@ -98,7 +98,7 @@ Mac **TCP** aliases for the default profile (Postgres, Redis, Mailpit SMTP, and 
 | Hindsight API      | `https://hindsight.sandbox.localhost` (Traefik only; MCP `/mcp/<bank>/`)                           | Set `HINDSIGHT_API_LLM_API_KEY` in `hindsight/.env`                                                 |
 | Hindsight UI       | `https://hindsight-ui.sandbox.localhost` (Traefik only)                                            | -                                                                                                   |
 | Hasura             | `https://hasura.sandbox.localhost`                                                                 | Admin secret: `DSS_SHARED_PASSWORD`                                                                 |
-| LiteLLM            | `https://litellm.sandbox.localhost` (`/ui`, `/v1`)                                                 | UI user `admin` / `LITELLM_MASTER_KEY`. `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` in `litellm/.env` may be empty |
+| LiteLLM            | `https://litellm.sandbox.localhost` (`/ui`, `/v1`)                                                 | UI user `admin` / `LITELLM_MASTER_KEY`. `/v1` uses `LITELLM_VIRTUAL_KEY`. `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` in `litellm/.env` may be empty |
 | Inngest            | `https://inngest.sandbox.localhost`                                                                | -                                                                                                   |
 | Node-RED           | `https://node-red.sandbox.localhost`                                                               | -                                                                                                   |
 | SonarQube          | `https://sonarqube.sandbox.localhost`                                                              | `admin` / `admin`                                                                                   |

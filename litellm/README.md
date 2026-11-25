@@ -15,7 +15,8 @@ These models load from `config.yaml` when the container starts:
 - `claude-sonnet-5-5`
 
 `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` live in `litellm/.env`. An empty key still lets the container start. Calls to that provider fail until the key is set.
-Virtual keys and other models still use the admin UI and stay in shared Postgres 16
+`make setup` fills an empty `LITELLM_VIRTUAL_KEY`. Start inserts that row.
+Extra virtual keys and other models still use the admin UI and stay in shared Postgres 16
 (`litellm` database).
 
 | Endpoint              | URL                                    |
@@ -53,17 +54,18 @@ longer on first boot while schema and spend-log indexes are applied. Check logs 
 
 ## API smoke test
 
-Create a **virtual key** in the Admin UI first. Replace `sk-...` with that key and
-`your-model` with one of the seven model ids above, or with another model you added in the
-UI. The key must allow that model.
+`make setup` fills an empty `LITELLM_VIRTUAL_KEY` in `litellm/.env`. Start inserts that row.
+The command below reads that value and calls `gpt-6.2-astra`.
+Extra keys still use the Admin UI. A key you create there must allow the model you call.
 
-From the host (Traefik):
+From the repo root (Traefik):
 
 ```bash
+LITELLM_VIRTUAL_KEY=$(grep '^LITELLM_VIRTUAL_KEY=' litellm/.env | cut -d= -f2-)
 curl -sS https://litellm.sandbox.localhost/v1/chat/completions \
-  -H "Authorization: Bearer sk-..." \
+  -H "Authorization: Bearer ${LITELLM_VIRTUAL_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"model":"your-model","messages":[{"role":"user","content":"Ping"}],"max_tokens":16}'
+  -d '{"model":"gpt-6.2-astra","messages":[{"role":"user","content":"Ping"}],"max_tokens":16}'
 ```
 
 The reply is in `choices[0].message.content` (expect something like `Pong` depending on the
@@ -134,7 +136,7 @@ shared static credentials until disabled as above.
 ## Configuration
 
 - `config.yaml` — proxy settings. The seven models above load from this file at start. Other models are added in the UI while `store_model_in_db: true`.
-- `litellm/.env` — image pin, Postgres password, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`. Either provider key may be empty.
+- `litellm/.env` — image pin, Postgres password, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, `LITELLM_VIRTUAL_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`. Either provider key may be empty. `make setup` fills an empty `LITELLM_VIRTUAL_KEY`. Start inserts the row.
 
 See also [docs/services.md](../docs/services.md) and
 [LiteLLM upgrade guide](https://docs.litellm.ai/docs/proxy/upgrade_guide).
