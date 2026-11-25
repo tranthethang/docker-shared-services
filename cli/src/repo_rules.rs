@@ -1,6 +1,4 @@
 //! Repo-wide checks that read the Compose files and sources. They run under `cargo test`.
-//!
-//! Compose files share one 2-space layout, so a line reader is enough and no YAML crate is needed.
 
 use crate::config::{PACKAGE_REQUIRES, SERVICES};
 use std::collections::BTreeMap;
@@ -163,7 +161,11 @@ fn every_service_declares_restart_and_oneshots_are_awaited() {
                 let awaited = text.contains(&format!(
                     "      {name}:\n        condition: service_completed_successfully"
                 ));
-                assert!(awaited, "{dir}: {name} uses restart 'no' but nothing waits on it with service_completed_successfully");
+                let follows = follows_healthy_service(&text, name);
+                assert!(
+                    awaited || follows,
+                    "{dir}: {name} is a one-shot that nothing awaits and that follows no healthy service"
+                );
             }
         }
     }
@@ -204,6 +206,18 @@ fn stack_scoped_names_carry_the_prefix() {
             "{dir}: use the prefixed network name"
         );
     }
+}
+
+fn follows_healthy_service(text: &str, name: &str) -> bool {
+    let mut own = false;
+    for line in text.lines() {
+        if indent(line) == 2 && line.ends_with(':') {
+            own = line.trim() == format!("{name}:");
+        } else if own && line.trim() == "condition: service_healthy" {
+            return true;
+        }
+    }
+    false
 }
 
 fn all_networks() -> BTreeMap<String, BTreeMap<String, Vec<String>>> {

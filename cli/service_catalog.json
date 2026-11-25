@@ -287,7 +287,8 @@
     "category": "AI & Search",
     "description": "OpenAI-compatible LLM proxy with an admin UI. Models and virtual keys are stored in Postgres.",
     "containers": [
-      "litellm"
+      "litellm",
+      "litellm-virtual-key"
     ],
     "web_ui": [
       "https://litellm.{domain}/ui"

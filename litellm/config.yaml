@@ -1,6 +1,6 @@
 # LiteLLM proxy. These models load from this file at startup.
 # Provider API keys come from the environment. This file stores no key value.
-# Virtual keys and extra models still use the admin UI and stay in Postgres.
+# Start inserts the shared virtual key. Extra keys still use the Admin UI.
 # Prompt and response bodies are not logged.
 
 model_list:

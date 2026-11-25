@@ -97,7 +97,6 @@ mod tests {
     use crate::config::validate_password_strength;
 
     #[test]
-    #[test]
     fn sk_hex_prefixes_32_bytes_as_67_chars() {
         let v = generate_secret(Method::SkHex, 32, "").unwrap();
         assert!(v.starts_with("sk-"));
