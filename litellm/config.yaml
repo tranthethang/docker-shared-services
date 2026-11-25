@@ -38,7 +38,7 @@ model_list:
     litellm_params:
       model: anthropic/claude-sonnet-5-5
       api_key: os.environ/ANTHROPIC_API_KEY
-      reasoning_effort: high
+      reasoning_effort: medium
 
 general_settings:
   store_model_in_db: true
