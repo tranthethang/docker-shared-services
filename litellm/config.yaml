@@ -8,32 +8,32 @@ model_list:
     litellm_params:
       model: openai/gpt-6.2-astra
       api_key: os.environ/OPENAI_API_KEY
-      reasoning_effort: high
+      reasoning_effort: medium
   - model_name: gpt-6.2-sol
     litellm_params:
       model: openai/gpt-6.2-sol
       api_key: os.environ/OPENAI_API_KEY
-      reasoning_effort: high
+      reasoning_effort: medium
   - model_name: gpt-6.1-terra
     litellm_params:
       model: openai/gpt-6.1-terra
       api_key: os.environ/OPENAI_API_KEY
-      reasoning_effort: high
+      reasoning_effort: medium
   - model_name: gpt-6-luna
     litellm_params:
       model: openai/gpt-6-luna
       api_key: os.environ/OPENAI_API_KEY
-      reasoning_effort: high
+      reasoning_effort: medium
   - model_name: claude-fable-5-2
     litellm_params:
       model: anthropic/claude-fable-5-2
       api_key: os.environ/ANTHROPIC_API_KEY
-      reasoning_effort: high
+      reasoning_effort: medium
   - model_name: claude-opus-5-5
     litellm_params:
       model: anthropic/claude-opus-5-5
       api_key: os.environ/ANTHROPIC_API_KEY
-      reasoning_effort: high
+      reasoning_effort: medium
   - model_name: claude-sonnet-5-5
     litellm_params:
       model: anthropic/claude-sonnet-5-5
