@@ -3,6 +3,7 @@
 use super::app::{OpKind, Plan};
 use crate::config::active_services;
 use crate::docker::compose::{compose_with, ensure_networks};
+use crate::docker::oneshot::wait_until_oneshots_done;
 use crate::docker::readiness::ensure_dependencies_ready;
 use crate::docker::{label_only_reason, Runner};
 use crate::env::{assignments, report::prerequisite_problems};
@@ -113,7 +114,7 @@ fn start_one(runner: &dyn Runner, service: &str, say: &dyn Fn(&str)) -> bool {
         return false;
     }
     say(&format!("Starting {service}…"));
-    compose(runner, service, &["up", "-d"], say)
+    compose(runner, service, &["up", "-d"], say) && wait_until_oneshots_done(runner, service, say)
 }
 
 fn single(runner: &dyn Runner, service: &str, kind: OpKind, say: &dyn Fn(&str)) -> OpResult {

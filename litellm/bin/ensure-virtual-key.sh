@@ -2,6 +2,18 @@
 set -eu
 
 # Wait for the proxy, then store LITELLM_VIRTUAL_KEY. Do not print either key.
+case "$LITELLM_VIRTUAL_KEY" in
+  sk-*) ;;
+  *)
+    echo "LITELLM_VIRTUAL_KEY must start with sk-" >&2
+    exit 1
+    ;;
+esac
+if [ "${#LITELLM_VIRTUAL_KEY}" -lt 16 ]; then
+  echo "LITELLM_VIRTUAL_KEY must contain at least 16 characters" >&2
+  exit 1
+fi
+
 i=0
 while [ "$i" -lt 60 ]; do
   code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 \

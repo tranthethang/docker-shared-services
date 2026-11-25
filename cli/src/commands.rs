@@ -3,6 +3,7 @@
 use crate::catalog::load_catalog;
 use crate::config::active_services;
 use crate::docker::compose::{compose_with, ensure_networks, validate_all};
+use crate::docker::oneshot::wait_until_oneshots_done;
 use crate::docker::readiness::ensure_dependencies_ready;
 use crate::docker::{label_only_reason, shutdown_queue, startup_queue, Docker};
 use crate::env::{self, report, shared};
@@ -84,6 +85,11 @@ pub fn start_service(service: &str) -> Res {
     say(&format!("✅ Starting {service}..."));
     if !inherit(&compose_with(service, &["up", "-d"])?) {
         return Err(format!("Failed to start {service}"));
+    }
+    if !wait_until_oneshots_done(&Docker, service, &say) {
+        return Err(format!(
+            "Cannot start {service}: a one-shot container did not exit 0."
+        ));
     }
     say(&format!("✅ {service} started successfully"));
     Ok(())

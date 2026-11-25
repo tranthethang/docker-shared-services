@@ -31,7 +31,7 @@ Rules:
 `cli/src/repo_rules.rs` reads every `docker-compose.yml` with a line reader and runs under `make test`:
 
 - Every directory with a compose file is in `SERVICES` and the catalog, and catalog `containers` match the compose service names.
-- Every service sets `restart`. A service with `restart: "no"` is awaited with `condition: service_completed_successfully`.
+- Every service sets `restart`. A service with `restart: "no"` is awaited with `condition: service_completed_successfully`, or it follows a healthy service in the same Compose file. `dss up` waits until that container exits 0.
 - `container_name`, and explicit volume and network `name:` values, carry the `SANDBOX_NAME` prefix. Every `traefik.enable=true` service carries the `sandbox.stack` label.
 - Data stores sit on `data_net` and not `backend_net`. Only declared clients join `data_net`.
 

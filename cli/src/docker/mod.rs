@@ -2,6 +2,7 @@
 
 pub mod compose;
 pub mod follow;
+pub mod oneshot;
 pub mod readiness;
 pub mod state;
 pub mod stats;
