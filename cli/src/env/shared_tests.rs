@@ -111,6 +111,11 @@ fn fill_secrets_generates_each_kind_and_keeps_set_values() {
         "JWT_SECRET=\nANON_KEY=\nSERVICE_ROLE_KEY=\n",
     );
     write(&root, "bugsink/.env", "BUGSINK_SECRET_KEY=\n");
+    write(
+        &root,
+        "litellm/.env",
+        "LITELLM_VIRTUAL_KEY=\nLITELLM_MASTER_KEY=already-set\n",
+    );
     let filled = fill_secrets(&root, Some("all")).unwrap();
     assert!(filled >= 2);
     let get = |s: &str, k: &str| read_value(&root.join(s).join(".env"), k).unwrap();
@@ -119,6 +124,18 @@ fn fill_secrets_generates_each_kind_and_keeps_set_values() {
     assert_eq!(get("zitadel", "ZITADEL_MASTERKEY").len(), 32);
     assert_eq!(get("supabase", "ANON_KEY").split('.').count(), 3);
     assert!(!get("bugsink", "BUGSINK_SECRET_KEY").is_empty());
+    let virtual_key = get("litellm", "LITELLM_VIRTUAL_KEY");
+    assert!(virtual_key.starts_with("sk-"));
+    assert_eq!(virtual_key.len(), 67);
+    assert!(virtual_key[3..].chars().all(|c| c.is_ascii_hexdigit()));
+    assert_eq!(get("litellm", "LITELLM_MASTER_KEY"), "already-set");
+    write(
+        &root,
+        "litellm/.env",
+        "LITELLM_VIRTUAL_KEY=sk-preset-value\n",
+    );
+    fill_secrets(&root, Some("litellm")).unwrap();
+    assert_eq!(get("litellm", "LITELLM_VIRTUAL_KEY"), "sk-preset-value");
 }
 
 #[test]
