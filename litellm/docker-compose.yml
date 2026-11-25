@@ -3,11 +3,11 @@ services:
     container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}litellm
     image: ${LITELLM_IMAGE:-ghcr.io/berriai/litellm:v1.111.0}
     restart: "${RESTART_POLICY:-unless-stopped}"
-    entrypoint: ["/bin/bash", "-c"]
     command:
-      - >-
-        /app/docker/entrypoint.sh &&
-        exec /app/docker/prod_entrypoint.sh --config /app/config.yaml --port 4000
+      - "--config"
+      - "/app/config.yaml"
+      - "--port"
+      - "4000"
     deploy:
       resources:
         limits:
