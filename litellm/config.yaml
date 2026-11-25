@@ -1,8 +1,44 @@
-# LiteLLM proxy. Add models and virtual keys in the admin UI (stored in Postgres).
-# Provider API keys are not stored in this file. The UI encrypts them with LITELLM_SALT_KEY.
+# LiteLLM proxy. These models load from this file at startup.
+# Provider API keys come from the environment. This file stores no key value.
+# Virtual keys and extra models still use the admin UI and stay in Postgres.
 # Prompt and response bodies are not logged.
 
-model_list: []
+model_list:
+  - model_name: gpt-6.2-astra
+    litellm_params:
+      model: openai/gpt-6.2-astra
+      api_key: os.environ/OPENAI_API_KEY
+      reasoning_effort: high
+  - model_name: gpt-6.2-sol
+    litellm_params:
+      model: openai/gpt-6.2-sol
+      api_key: os.environ/OPENAI_API_KEY
+      reasoning_effort: high
+  - model_name: gpt-6.1-terra
+    litellm_params:
+      model: openai/gpt-6.1-terra
+      api_key: os.environ/OPENAI_API_KEY
+      reasoning_effort: high
+  - model_name: gpt-6-luna
+    litellm_params:
+      model: openai/gpt-6-luna
+      api_key: os.environ/OPENAI_API_KEY
+      reasoning_effort: high
+  - model_name: claude-fable-5-2
+    litellm_params:
+      model: anthropic/claude-fable-5-2
+      api_key: os.environ/ANTHROPIC_API_KEY
+      reasoning_effort: high
+  - model_name: claude-opus-5-5
+    litellm_params:
+      model: anthropic/claude-opus-5-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      reasoning_effort: high
+  - model_name: claude-sonnet-5-5
+    litellm_params:
+      model: anthropic/claude-sonnet-5-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      reasoning_effort: high
 
 general_settings:
   store_model_in_db: true
