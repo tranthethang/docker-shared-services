@@ -51,12 +51,12 @@ services:
 
   litellm-virtual-key:
     container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}litellm-virtual-key
-    image: ${LITELLM_IMAGE:-ghcr.io/berriai/litellm:v1.111.0}
+    image: curlimages/curl:8.22.0
     restart: "no"
     depends_on:
       litellm:
         condition: service_healthy
-    command: ["sh", "/ensure-virtual-key.sh"]
+    entrypoint: ["sh", "/ensure-virtual-key.sh"]
     environment:
       LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY:?Set LITELLM_MASTER_KEY in litellm/.env - run make setup}"
       LITELLM_VIRTUAL_KEY: "${LITELLM_VIRTUAL_KEY:?Set LITELLM_VIRTUAL_KEY in litellm/.env - run make setup}"
