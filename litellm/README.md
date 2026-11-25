@@ -1,9 +1,22 @@
 # LiteLLM (OpenAI-compatible proxy)
 
-[LiteLLM](https://docs.litellm.ai/) proxy with admin UI. Models, virtual keys, and provider
-credentials are stored in shared Postgres 16 (`litellm` database). The pinned image is
-`ghcr.io/berriai/litellm:v1.106.6` (set `LITELLM_IMAGE` in `.env`; do not use `latest` or
+[LiteLLM](https://docs.litellm.ai/) proxy with admin UI. The pinned image is
+`ghcr.io/berriai/litellm:v1.111.0` (set `LITELLM_IMAGE` in `.env`; do not use `latest` or
 `main-stable`).
+
+These models load from `config.yaml` when the container starts:
+
+- `gpt-6.2-astra`
+- `gpt-6.2-sol`
+- `gpt-6.1-terra`
+- `gpt-6-luna`
+- `claude-fable-5-2`
+- `claude-opus-5-5`
+- `claude-sonnet-5-5`
+
+`OPENAI_API_KEY` and `ANTHROPIC_API_KEY` are required in `litellm/.env`.
+Virtual keys and other models still use the admin UI and stay in shared Postgres 16
+(`litellm` database).
 
 | Endpoint              | URL                                    |
 | --------------------- | -------------------------------------- |
@@ -40,9 +53,9 @@ longer on first boot while schema and spend-log indexes are applied. Check logs 
 
 ## API smoke test
 
-Create a **virtual key** and a **model** in the Admin UI first. Replace `sk-...` with your
-virtual key and `your-model` with the model name shown on the proxy (must be allowed on that
-key).
+Create a **virtual key** in the Admin UI first. Replace `sk-...` with that key and
+`your-model` with one of the seven model ids above, or with another model you added in the
+UI. The key must allow that model.
 
 From the host (Traefik):
 
@@ -120,8 +133,8 @@ shared static credentials until disabled as above.
 
 ## Configuration
 
-- `config.yaml` — proxy settings (models are added in the UI when `store_model_in_db: true`).
-- `litellm/.env` — image pin, Postgres password, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`.
+- `config.yaml` — proxy settings. The seven models above load from this file at start. Other models are added in the UI while `store_model_in_db: true`.
+- `litellm/.env` — image pin, Postgres password, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`. Both provider keys are required.
 
 See also [docs/services.md](../docs/services.md) and
 [LiteLLM upgrade guide](https://docs.litellm.ai/docs/proxy/upgrade_guide).
