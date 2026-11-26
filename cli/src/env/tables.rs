@@ -17,7 +17,6 @@ pub const VALIDATION_RULES: Table<&[&str]> = &[
         &[
             "LITELLM_MASTER_KEY",
             "LITELLM_SALT_KEY",
-            "LITELLM_VIRTUAL_KEY",
             "POSTGRES16_PASSWORD",
         ],
     ),
@@ -40,7 +39,6 @@ pub enum Method {
     Base64,
     Htpasswd,
     JwtHs256,
-    SkHex,
 }
 
 /// Secrets `setup` fills when empty: service -> (VAR, method, nbytes).
@@ -66,7 +64,6 @@ pub const AUTO_SECRETS: Table<&[(&str, Method, usize)]> = &[
         &[
             ("LITELLM_MASTER_KEY", Method::Hex, 32),
             ("LITELLM_SALT_KEY", Method::Hex, 32),
-            ("LITELLM_VIRTUAL_KEY", Method::SkHex, 32),
         ],
     ),
     (

@@ -84,7 +84,6 @@ pub fn generate_hs256_jwt(secret: &str, role: &str, now: u64) -> String {
 pub fn generate_secret(method: Method, nbytes: usize, password: &str) -> Result<String, String> {
     match method {
         Method::Hex => Ok(to_hex(&random_bytes(nbytes))),
-        Method::SkHex => Ok(format!("sk-{}", to_hex(&random_bytes(nbytes)))),
         Method::Base64 => Ok(STANDARD.encode(random_bytes(nbytes))),
         Method::Htpasswd => bcrypt_auth("admin", password),
         Method::JwtHs256 => Err("jwt_hs256 needs a role; call generate_hs256_jwt".into()),
@@ -95,14 +94,6 @@ pub fn generate_secret(method: Method, nbytes: usize, password: &str) -> Result<
 mod tests {
     use super::*;
     use crate::config::validate_password_strength;
-
-    #[test]
-    fn sk_hex_prefixes_32_bytes_as_67_chars() {
-        let v = generate_secret(Method::SkHex, 32, "").unwrap();
-        assert!(v.starts_with("sk-"));
-        assert_eq!(v.len(), 67);
-        assert!(v[3..].chars().all(|c| c.is_ascii_hexdigit()));
-    }
 
     #[test]
     fn hex_has_two_chars_per_byte() {

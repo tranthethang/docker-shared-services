@@ -4,20 +4,10 @@
 `ghcr.io/berriai/litellm:v1.111.0` (set `LITELLM_IMAGE` in `.env`; do not use `latest` or
 `main-stable`).
 
-These models load from `config.yaml` when the container starts:
-
-- `gpt-6.2-astra`
-- `gpt-6.2-sol`
-- `gpt-6.1-terra`
-- `gpt-6-luna`
-- `claude-fable-5-2`
-- `claude-opus-5-5`
-- `claude-sonnet-5-5`
-
-`OPENAI_API_KEY` and `ANTHROPIC_API_KEY` live in `litellm/.env`. An empty key still lets the container start. Calls to that provider fail until the key is set.
-`make setup` fills an empty `LITELLM_VIRTUAL_KEY`. Start inserts that row.
-Extra virtual keys and other models still use the admin UI and stay in shared Postgres 16
-(`litellm` database).
+`config.yaml` registers no models and no virtual keys. Add both in the Admin UI after
+start. They stay in shared Postgres 16 (`litellm` database) while `store_model_in_db` is
+true. Provider API keys belong on each model in the UI. `LITELLM_SALT_KEY` encrypts those
+credentials.
 
 | Endpoint              | URL                                    |
 | --------------------- | -------------------------------------- |
@@ -54,89 +44,48 @@ longer on first boot while schema and spend-log indexes are applied. Check logs 
 
 ## API smoke test
 
-`make setup` fills an empty `LITELLM_VIRTUAL_KEY` in `litellm/.env`. Start inserts that row.
-The command below reads that value and calls `gpt-6.2-astra`.
-Extra keys still use the Admin UI. A key you create there must allow the model you call.
+In the Admin UI, add a model (with its provider API key) and a virtual key that is allowed
+to call that model. Then call the model with that key. The master key is rejected on model
+routes.
 
-From the repo root (Traefik):
+From the repo root (Traefik), replace the key and model name:
 
 ```bash
-LITELLM_VIRTUAL_KEY=$(grep '^LITELLM_VIRTUAL_KEY=' litellm/.env | cut -d= -f2-)
 curl -sS https://litellm.sandbox.localhost/v1/chat/completions \
-  -H "Authorization: Bearer ${LITELLM_VIRTUAL_KEY}" \
+  -H "Authorization: Bearer sk-your-virtual-key" \
   -H "Content-Type: application/json" \
-  -d '{"model":"gpt-6.2-astra","messages":[{"role":"user","content":"Ping"}],"max_tokens":16}'
+  -d '{"model":"your-model","messages":[{"role":"user","content":"Ping"}],"max_tokens":16}'
 ```
 
-The reply is in `choices[0].message.content` (expect something like `Pong` depending on the
-model). From another container on `backend_net`, use `http://litellm:4000/v1/...` instead of
-the HTTPS URL.
+The reply is in `choices[0].message.content`. From another container on `backend_net`, use
+`http://litellm:4000/v1/...` instead of the HTTPS URL.
 
-## Admin UI login (bootstrap)
+## Public docs
 
-By default this stack does **not** set `UI_USERNAME` or `UI_PASSWORD`. LiteLLM then accepts:
+`NO_DOCS`, `NO_REDOC`, and `NO_OPENAPI` are set on the container. `/docs`, `/redoc`, and
+`/openapi.json` are not served. `/` and `/ui` serve the Admin UI.
 
-| Field    | Value                                                 |
-| -------- | ----------------------------------------------------- |
-| Username | `admin` (LiteLLM default when `UI_USERNAME` is unset) |
-| Password | `LITELLM_MASTER_KEY` from `litellm/.env`              |
+## Admin UI login
 
-Anyone who knows the master key can sign in as a **proxy admin**. The API also accepts the
-master key as a Bearer token; that behavior is unchanged when env login is disabled.
+The Admin UI accepts username `admin` and password `LITELLM_MASTER_KEY` when
+`UI_PASSWORD` is unset. The dashboard warning about that login remains, because this
+stack keeps the login.
 
 `LITELLM_SALT_KEY` encrypts provider API keys saved in the UI. **Do not change it** after
 keys are stored, or existing provider credentials become unreadable.
 
-## “Environment-credential login is enabled” banner
+## Model API keys
 
-From LiteLLM v1.106.x, the dashboard shows a warning while login via `UI_USERNAME` /
-`UI_PASSWORD` (or the master key when `UI_PASSWORD` is unset) remains allowed. This is a
-**security reminder**, not an error. LiteLLM treats that path as bootstrap-only: one shared
-secret, no per-person rotation, and audit logs cannot attribute UI actions to an individual.
-
-For local dev with a single operator, you can ignore the banner and keep using `admin` +
-`LITELLM_MASTER_KEY`.
-
-To turn the env login path off (recommended when several people use the UI or the host is
-shared):
-
-1. Sign in with `admin` and `LITELLM_MASTER_KEY`.
-
-1. **Internal Users** → **+ Invite User** → role **proxy_admin** → set a password via the
-   invite link (or `POST /user/new` with `user_role: proxy_admin`).
-
-1. Sign out and confirm login with the new email and password.
-
-1. Add to `config.yaml`:
-
-   ```yaml
-   general_settings:
-     disable_env_credential_login: true
-   ```
-
-1. Restart: `make restart service=litellm`.
-
-After restart, `admin` + master key are rejected on the UI login page; database users (and
-SSO, if configured) still work. The master key continues to work for `/v1` API calls.
-
-**Do not** set `disable_env_credential_login: true` before at least one `proxy_admin` user
-with a password exists, or you will lock yourself out of the UI. To recover, remove the
-setting from `config.yaml` and restart.
-
-Optional env overrides (not set in this repo by default):
-
-```env
-UI_USERNAME=admin
-UI_PASSWORD=your-ui-only-password
-```
-
-If `UI_PASSWORD` is set, the UI password is no longer the master key, but env login is still
-shared static credentials until disabled as above.
+Model routes such as `/v1/chat/completions` and `/v1/responses` reject the master key.
+Call them with a virtual key created in the Admin UI. The master key still authorizes
+admin routes such as `/key/generate`. `reject_master_key_inference.py` enforces the
+model-route rejection.
 
 ## Configuration
 
-- `config.yaml` — proxy settings. The seven models above load from this file at start. Other models are added in the UI while `store_model_in_db: true`.
-- `litellm/.env` — image pin, Postgres password, `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, `LITELLM_VIRTUAL_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`. Either provider key may be empty. `make setup` fills an empty `LITELLM_VIRTUAL_KEY`. Start inserts the row.
+- `config.yaml` — proxy settings only. Models and virtual keys are created in the UI.
+- `litellm/.env` — image pin, Postgres password, `LITELLM_MASTER_KEY`, and `LITELLM_SALT_KEY`.
+  `make setup` fills empty master and salt keys.
 
 See also [docs/services.md](../docs/services.md) and
 [LiteLLM upgrade guide](https://docs.litellm.ai/docs/proxy/upgrade_guide).

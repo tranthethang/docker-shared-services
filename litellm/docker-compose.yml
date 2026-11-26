@@ -20,11 +20,14 @@ services:
       DATABASE_URL: "postgresql://postgres:${POSTGRES16_PASSWORD:?Set POSTGRES16_PASSWORD in litellm/.env - run make setup}@postgres:5432/litellm"
       LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY:?Set LITELLM_MASTER_KEY in litellm/.env - run make setup}"
       LITELLM_SALT_KEY: "${LITELLM_SALT_KEY:?Set LITELLM_SALT_KEY in litellm/.env - run make setup}"
-      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
-      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
       SERVER_ROOT_PATH: ""
+      NO_DOCS: "true"
+      NO_REDOC: "true"
+      NO_OPENAPI: "true"
+      ROOT_REDIRECT_URL: "/ui"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
+      - ./reject_master_key_inference.py:/app/reject_master_key_inference.py:ro
     labels:
       - "traefik.enable=true"
       - "sandbox.stack=${SANDBOX_NAME:-sandbox}"
@@ -48,22 +51,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-  litellm-virtual-key:
-    container_name: ${SANDBOX_NAME:+${SANDBOX_NAME}-}litellm-virtual-key
-    image: curlimages/curl:8.22.0
-    restart: "no"
-    depends_on:
-      litellm:
-        condition: service_healthy
-    entrypoint: ["sh", "/ensure-virtual-key.sh"]
-    environment:
-      LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY:?Set LITELLM_MASTER_KEY in litellm/.env - run make setup}"
-      LITELLM_VIRTUAL_KEY: "${LITELLM_VIRTUAL_KEY:?Set LITELLM_VIRTUAL_KEY in litellm/.env - run make setup}"
-    volumes:
-      - ./bin/ensure-virtual-key.sh:/ensure-virtual-key.sh:ro
-    networks:
-      - backend_net
 
 networks:
   data_net:

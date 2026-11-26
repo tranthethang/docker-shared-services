@@ -114,7 +114,7 @@ fn fill_secrets_generates_each_kind_and_keeps_set_values() {
     write(
         &root,
         "litellm/.env",
-        "LITELLM_VIRTUAL_KEY=\nLITELLM_MASTER_KEY=already-set\n",
+        "LITELLM_SALT_KEY=\nLITELLM_MASTER_KEY=already-set\n",
     );
     let filled = fill_secrets(&root, Some("all")).unwrap();
     assert!(filled >= 2);
@@ -124,18 +124,11 @@ fn fill_secrets_generates_each_kind_and_keeps_set_values() {
     assert_eq!(get("zitadel", "ZITADEL_MASTERKEY").len(), 32);
     assert_eq!(get("supabase", "ANON_KEY").split('.').count(), 3);
     assert!(!get("bugsink", "BUGSINK_SECRET_KEY").is_empty());
-    let virtual_key = get("litellm", "LITELLM_VIRTUAL_KEY");
-    assert!(virtual_key.starts_with("sk-"));
-    assert_eq!(virtual_key.len(), 67);
-    assert!(virtual_key[3..].chars().all(|c| c.is_ascii_hexdigit()));
+    assert_eq!(get("litellm", "LITELLM_SALT_KEY").len(), 64);
+    assert!(get("litellm", "LITELLM_SALT_KEY")
+        .chars()
+        .all(|c| c.is_ascii_hexdigit()));
     assert_eq!(get("litellm", "LITELLM_MASTER_KEY"), "already-set");
-    write(
-        &root,
-        "litellm/.env",
-        "LITELLM_VIRTUAL_KEY=sk-preset-value\n",
-    );
-    fill_secrets(&root, Some("litellm")).unwrap();
-    assert_eq!(get("litellm", "LITELLM_VIRTUAL_KEY"), "sk-preset-value");
 }
 
 #[test]

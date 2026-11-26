@@ -285,10 +285,9 @@
   },
   "litellm": {
     "category": "AI & Search",
-    "description": "OpenAI-compatible LLM proxy with an admin UI. Models and virtual keys are stored in Postgres.",
+    "description": "OpenAI-compatible LLM proxy with an admin UI. Add models and virtual keys in the UI; they are stored in Postgres.",
     "containers": [
-      "litellm",
-      "litellm-virtual-key"
+      "litellm"
     ],
     "web_ui": [
       "https://litellm.{domain}/ui"

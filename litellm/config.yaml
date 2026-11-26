@@ -1,68 +1,19 @@
-# LiteLLM proxy. These models load from this file at startup.
-# Provider API keys come from the environment. This file stores no key value.
-# Start inserts the shared virtual key. Extra keys still use the Admin UI.
-# Prompt and response bodies are not logged.
-# model_info.id is required: without it, store_model_in_db hashes litellm_params
-# and a param change (for example reasoning_effort) evicts the deployment.
+# LiteLLM proxy. This file registers no models and no virtual keys.
+# Add both in the Admin UI. They stay in Postgres while store_model_in_db is true.
+# LITELLM_SALT_KEY encrypts provider credentials saved there. Do not change it later.
 
-model_list:
-  - model_name: gpt-6.2-astra
-    litellm_params:
-      model: openai/gpt-6.2-astra
-      api_key: os.environ/OPENAI_API_KEY
-      reasoning_effort: medium
-    model_info:
-      id: gpt-6.2-astra
-  - model_name: gpt-6.2-sol
-    litellm_params:
-      model: openai/gpt-6.2-sol
-      api_key: os.environ/OPENAI_API_KEY
-      reasoning_effort: medium
-    model_info:
-      id: gpt-6.2-sol
-  - model_name: gpt-6.1-terra
-    litellm_params:
-      model: openai/gpt-6.1-terra
-      api_key: os.environ/OPENAI_API_KEY
-      reasoning_effort: medium
-    model_info:
-      id: gpt-6.1-terra
-  - model_name: gpt-6-luna
-    litellm_params:
-      model: openai/gpt-6-luna
-      api_key: os.environ/OPENAI_API_KEY
-      reasoning_effort: medium
-    model_info:
-      id: gpt-6-luna
-  - model_name: claude-fable-5-2
-    litellm_params:
-      model: anthropic/claude-fable-5-2
-      api_key: os.environ/ANTHROPIC_API_KEY
-      reasoning_effort: medium
-    model_info:
-      id: claude-fable-5-2
-  - model_name: claude-opus-5-5
-    litellm_params:
-      model: anthropic/claude-opus-5-5
-      api_key: os.environ/ANTHROPIC_API_KEY
-      reasoning_effort: medium
-    model_info:
-      id: claude-opus-5-5
-  - model_name: claude-sonnet-5-5
-    litellm_params:
-      model: anthropic/claude-sonnet-5-5
-      api_key: os.environ/ANTHROPIC_API_KEY
-      reasoning_effort: medium
-    model_info:
-      id: claude-sonnet-5-5
+model_list: []
 
 general_settings:
   store_model_in_db: true
   database_connection_pool_limit: 5
 
 litellm_settings:
-  turn_off_message_logging: true
-  request_timeout: 120
+  callbacks:
+    - reject_master_key_inference.handler
+  turn_off_message_logging: false
+  # Seconds. Matches contract-audit AI_REQUEST_TIMEOUT_MS (600000). The proxy reads this at startup.
+  request_timeout: 600
 
 router_settings:
   # Unlisted error types use num_retries. InternalServerErrorRetries is applied
